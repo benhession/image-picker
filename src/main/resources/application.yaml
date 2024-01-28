@@ -1,0 +1,70 @@
+image:
+  size:
+    square:
+      thumbnail:
+        width: "100"
+        height: "100"
+      small:
+        width: "200"
+        height: "200"
+      medium:
+        height: "300"
+        width: "300"
+      large:
+        height: "400"
+        width: "400"
+
+    panoramic:
+      thumbnail:
+        width: "100"
+        height: "100"
+      small:
+        width: "200"
+        height: "200"
+      medium:
+        height: "300"
+        width: "300"
+      large:
+        height: "400"
+        width: "400"
+
+    rectangular:
+      thumbnail:
+        width: "100"
+        height: "100"
+      small:
+        width: "200"
+        height: "200"
+      medium:
+        height: "300"
+        width: "300"
+      large:
+        height: "400"
+        width: "400"
+
+    landscape:
+      thumbnail:
+        width: "100"
+        height: "100"
+      small:
+        width: "200"
+        height: "200"
+      medium:
+        height: "300"
+        width: "300"
+      large:
+        height: "400"
+        width: "400"
+
+"%test":
+  image:
+    size:
+      square:
+        thumbnail:
+          width: "100"
+          height: "100"
+
+      panoramic:
+        medium:
+          width: "500"
+          height: "100"
