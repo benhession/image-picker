@@ -1,16 +1,20 @@
 package com.benhession.imagepicker.exception;
 
+import jakarta.inject.Inject;
 import jakarta.ws.rs.core.Response;
+
 import jakarta.ws.rs.ext.ExceptionMapper;
 import jakarta.ws.rs.ext.Provider;
-import lombok.extern.slf4j.Slf4j;
+import org.jboss.logging.Logger;
 
 import java.util.ResourceBundle;
 import java.util.UUID;
 
 @Provider
-@Slf4j
 public class ThrowableMapper implements ExceptionMapper<Throwable> {
+
+    @Inject
+    Logger log;
 
     @Override
     public Response toResponse(Throwable e) {

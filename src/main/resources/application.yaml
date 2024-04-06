@@ -1,70 +1,93 @@
+bucket.name: ${BUCKET_NAME}
+
+quarkus :
+  s3.aws:
+    region: ${AWS_REGION}
+    credentials.type: "default"
+
+"%dev":
+  bucket:
+    name: "test-bucket"
+
+  quarkus:
+    s3:
+      devservices:
+        buckets: "test-bucket"
+      aws:
+        region: "us-east-1"
+        credentials:
+          type: "static"
+          static-provider:
+            access-key-id: "test-key"
+            secret-access-key: "test-secret"
+
 image:
-  size:
+  acceptedMimeTypes: "image/jpeg, image/png, image/gif"
+
+  square:
+    thumbnail:
+      width: "100"
+      height: "100"
+    small:
+      width: "200"
+      height: "200"
+    medium:
+      height: "300"
+      width: "300"
+    large:
+      height: "400"
+      width: "400"
+
+  panoramic:
+    thumbnail:
+      width: "100"
+      height: "100"
+    small:
+      width: "200"
+      height: "200"
+    medium:
+      height: "300"
+      width: "300"
+    large:
+      height: "400"
+      width: "400"
+
+  rectangular:
+    thumbnail:
+      width: "100"
+      height: "100"
+    small:
+      width: "200"
+      height: "200"
+    medium:
+      height: "300"
+      width: "300"
+    large:
+      height: "400"
+      width: "400"
+
+  landscape:
+    thumbnail:
+      width: "100"
+      height: "100"
+    small:
+      width: "200"
+      height: "200"
+    medium:
+      height: "300"
+      width: "300"
+    large:
+      height: "400"
+      width: "400"
+
+"%test":
+  image:
     square:
       thumbnail:
         width: "100"
         height: "100"
-      small:
-        width: "200"
-        height: "200"
-      medium:
-        height: "300"
-        width: "300"
-      large:
-        height: "400"
-        width: "400"
 
     panoramic:
-      thumbnail:
-        width: "100"
-        height: "100"
-      small:
-        width: "200"
-        height: "200"
       medium:
-        height: "300"
-        width: "300"
-      large:
-        height: "400"
-        width: "400"
-
-    rectangular:
-      thumbnail:
-        width: "100"
+        width: "500"
         height: "100"
-      small:
-        width: "200"
-        height: "200"
-      medium:
-        height: "300"
-        width: "300"
-      large:
-        height: "400"
-        width: "400"
-
-    landscape:
-      thumbnail:
-        width: "100"
-        height: "100"
-      small:
-        width: "200"
-        height: "200"
-      medium:
-        height: "300"
-        width: "300"
-      large:
-        height: "400"
-        width: "400"
-
-"%test":
-  image:
-    size:
-      square:
-        thumbnail:
-          width: "100"
-          height: "100"
-
-      panoramic:
-        medium:
-          width: "500"
-          height: "100"

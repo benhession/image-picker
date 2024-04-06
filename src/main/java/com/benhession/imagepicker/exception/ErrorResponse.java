@@ -4,16 +4,19 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.util.List;
 
 @Getter
+@Setter
 @EqualsAndHashCode
+@NoArgsConstructor
 public class ErrorResponse {
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
-    private final String errorId;
-    private final List<ErrorMessage> errors;
+    private String errorId;
+    private List<ErrorMessage> errors;
 
     public ErrorResponse(String errorId, ErrorMessage errorMessage) {
         this.errorId = errorId;
@@ -21,6 +24,7 @@ public class ErrorResponse {
     }
 
     @Getter
+    @Setter
     @EqualsAndHashCode
     @NoArgsConstructor
     public static class ErrorMessage {

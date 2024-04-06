@@ -5,10 +5,17 @@ import lombok.Getter;
 import org.eclipse.microprofile.config.inject.ConfigProperties;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 
+import java.util.List;
+
 @ApplicationScoped
 @Getter
-@ConfigProperties(prefix = "image.size")
+@ConfigProperties(prefix = "image")
 public class ImageConfigProperties {
+
+    // TODO: is there a more elegant way to do this?
+
+    @ConfigProperty(name = "acceptedMimeTypes")
+    List<String> acceptedMimeTypes;
 
     // square images
 
