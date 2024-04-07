@@ -11,14 +11,12 @@ import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import org.eclipse.microprofile.config.inject.ConfigProperties;
 import org.jboss.resteasy.annotations.providers.multipart.MultipartForm;
 
 @ApplicationScoped
 @Path("/image")
 public class ImageController {
     @Inject
-    @ConfigProperties
     ImageConfigProperties imageConfigProperties;
     @Inject
     ImageCreationService imageCreationService;
@@ -28,8 +26,8 @@ public class ImageController {
     public Response addImage(@MultipartForm ObjectUploadForm objectUploadForm) {
 
         if (objectUploadForm.getMimetype() == null
-                || !imageConfigProperties.getAcceptedMimeTypes().contains(objectUploadForm.getMimetype())) {
-            throw new BadRequestException("Mime type must be one of the following " + imageConfigProperties.getAcceptedMimeTypes());
+                || !imageConfigProperties.acceptedMimeTypes().contains(objectUploadForm.getMimetype())) {
+            throw new BadRequestException("Mime type must be one of the following " + imageConfigProperties.acceptedMimeTypes());
         }
 
         if (objectUploadForm.getFilename() == null || objectUploadForm.getFilename().isBlank()) {
