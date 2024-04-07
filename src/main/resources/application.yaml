@@ -21,6 +21,10 @@ quarkus :
             access-key-id: "test-key"
             secret-access-key: "test-secret"
 
+validation-messages:
+  system:
+    error: "An unexpected error has occurred."
+
 image:
   accepted-mime-types: "image/jpeg, image/png, image/gif"
 
