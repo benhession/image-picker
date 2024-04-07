@@ -3,6 +3,7 @@ package com.benhession.imagepicker.service;
 import com.benhession.imagepicker.model.ObjectUploadForm;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import lombok.RequiredArgsConstructor;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
@@ -10,10 +11,10 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 
 @ApplicationScoped
+@RequiredArgsConstructor(onConstructor = @__(@Inject))
 public class ObjectStorageService {
 
-    @Inject
-    S3Client s3Client;
+    private final S3Client s3Client;
 
     @ConfigProperty(name = "bucket.name")
     String bucketName;

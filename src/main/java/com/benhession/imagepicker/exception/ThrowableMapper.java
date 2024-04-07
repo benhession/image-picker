@@ -4,16 +4,17 @@ import jakarta.inject.Inject;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.ext.ExceptionMapper;
 import jakarta.ws.rs.ext.Provider;
+import lombok.RequiredArgsConstructor;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.logging.Logger;
 
 import java.util.UUID;
 
 @Provider
+@RequiredArgsConstructor(onConstructor = @__(@Inject))
 public class ThrowableMapper implements ExceptionMapper<Throwable> {
 
-    @Inject
-    Logger log;
+    private final Logger log;
 
     @ConfigProperty(name = "validation-messages.system.error")
     String systemErrorMessage;

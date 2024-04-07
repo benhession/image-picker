@@ -6,12 +6,13 @@ import com.benhession.imagepicker.model.ImageSize;
 import com.benhession.imagepicker.model.ImageType;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import lombok.RequiredArgsConstructor;
 
 @ApplicationScoped
+@RequiredArgsConstructor(onConstructor = @__(@Inject))
 public class ImageSizeService {
 
-    @Inject
-    ImageConfigProperties imageConfigProperties;
+    private final ImageConfigProperties imageConfigProperties;
 
     public ImageHeightWidth findImageHeightWidth(ImageType imageType, ImageSize imageSize) {
         return switch (imageType) {

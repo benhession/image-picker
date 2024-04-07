@@ -11,15 +11,15 @@ import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import lombok.RequiredArgsConstructor;
 import org.jboss.resteasy.annotations.providers.multipart.MultipartForm;
 
 @ApplicationScoped
 @Path("/image")
+@RequiredArgsConstructor(onConstructor = @__(@Inject))
 public class ImageController {
-    @Inject
-    ImageConfigProperties imageConfigProperties;
-    @Inject
-    ImageCreationService imageCreationService;
+    private final ImageConfigProperties imageConfigProperties;
+    private final ImageCreationService imageCreationService;
 
     @POST
     @Consumes(MediaType.MULTIPART_FORM_DATA)
