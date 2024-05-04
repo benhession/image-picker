@@ -19,18 +19,19 @@ public interface ImageConfigProperties {
         ImageSize landscape();
 
         interface ImageSize {
-            ImageHeightWidth thumbnail();
+            Scale thumbnail();
 
-            ImageHeightWidth small();
+            Scale small();
 
-            ImageHeightWidth medium();
+            Scale medium();
 
-            ImageHeightWidth large();
+            Scale large();
 
-            interface ImageHeightWidth {
-                int width();
+            float aspectRatio();
+            int minWidth();
 
-                int height();
+            interface Scale {
+                float scalingFactor();
             }
         }
     }

@@ -30,70 +30,64 @@ image:
 
   size:
     square:
+      aspect-ratio: "1"
+      min-width: "400"
       thumbnail:
-        width: "100"
-        height: "100"
+        scaling-factor: "0.1"
       small:
-        width: "200"
-        height: "200"
+        scaling-factor: "0.4"
       medium:
-        height: "300"
-        width: "300"
+        scaling-factor: "0.7"
       large:
-        height: "400"
-        width: "400"
+        scaling-factor: "1"
 
     panoramic:
+      aspect-ratio: "2"
+      min-width: "400"
       thumbnail:
-        width: "100"
-        height: "100"
+        scaling-factor: "0.1"
       small:
-        width: "200"
-        height: "200"
+        scaling-factor: "0.4"
       medium:
-        height: "300"
-        width: "300"
+        scaling-factor: "0.7"
       large:
-        height: "400"
-        width: "400"
+        scaling-factor: "1"
 
     rectangular:
+      aspect-ratio: "1.33"
+      min-width: "400"
       thumbnail:
-        width: "100"
-        height: "100"
+        scaling-factor: "0.1"
       small:
-        width: "200"
-        height: "200"
+        scaling-factor: "0.4"
       medium:
-        height: "300"
-        width: "300"
+        scaling-factor: "0.7"
       large:
-        height: "400"
-        width: "400"
+        scaling-factor: "1"
 
     landscape:
+      aspect-ratio: "1.77"
+      min-width: "400"
       thumbnail:
-        width: "100"
-        height: "100"
+        scaling-factor: "0.1"
       small:
-        width: "200"
-        height: "200"
+        scaling-factor: "0.4"
       medium:
-        height: "300"
-        width: "300"
+        scaling-factor: "0.7"
       large:
-        height: "400"
-        width: "400"
+        scaling-factor: "1"
 
 "%test":
   image:
     size:
       square:
+        aspect-ratio: "1"
+        min-width: "400"
         thumbnail:
-          width: "100"
-          height: "100"
+          scaling-factor: "0.1"
 
       panoramic:
+        aspect-ratio: "2"
+        min-width: "400"
         medium:
-          width: "500"
-          height: "100"
+          scaling-factor: "0.7"

@@ -20,15 +20,15 @@ public class ImageSizeServiceTest {
     public void When_FindImageHeightWidth_With_SquareThumbnail_Expect_CorrectValues() {
         var result = imageSizeService.findImageHeightWidth(SQUARE, THUMBNAIL);
 
-        assertEquals(100, result.getHeight());
-        assertEquals(100, result.getWidth());
+        assertEquals(40, result.getHeight());
+        assertEquals(40, result.getWidth());
     }
 
     @Test
     public void When_FindImageHeightWidth_With_MediumPanoramic_Expect_CorrectValues() {
         var result = imageSizeService.findImageHeightWidth(PANORAMIC, MEDIUM);
 
-        assertEquals(100, result.getHeight());
-        assertEquals(500, result.getWidth());
+        assertEquals(140, result.getHeight());
+        assertEquals(280, result.getWidth());
     }
 }

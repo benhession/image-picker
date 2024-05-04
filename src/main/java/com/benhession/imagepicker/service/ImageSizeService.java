@@ -14,90 +14,68 @@ public class ImageSizeService {
 
     private final ImageConfigProperties imageConfigProperties;
 
-    public ImageHeightWidth findImageHeightWidth(ImageType imageType, ImageSize imageSize) {
+    public float findAspectRatio(ImageType imageType) {
         return switch (imageType) {
-            case SQUARE -> switch (imageSize) {
-                case THUMBNAIL -> buildImageHeightWidth(
-                        imageConfigProperties.size().square().thumbnail().height(),
-                        imageConfigProperties.size().square().thumbnail().width()
-                );
-                case SMALL -> buildImageHeightWidth(
-                        imageConfigProperties.size().square().small().height(),
-                        imageConfigProperties.size().square().small().width()
-                );
-                case MEDIUM -> buildImageHeightWidth(
-                        imageConfigProperties.size().square().medium().height(),
-                        imageConfigProperties.size().square().medium().width()
-                );
-                case LARGE -> buildImageHeightWidth(
-                        imageConfigProperties.size().square().large().height(),
-                        imageConfigProperties.size().square().large().width()
-                );
-            };
-
-            case PANORAMIC -> switch (imageSize) {
-                case THUMBNAIL -> buildImageHeightWidth(
-                        imageConfigProperties.size().panoramic().thumbnail().height(),
-                        imageConfigProperties.size().panoramic().thumbnail().width()
-                );
-                case SMALL -> buildImageHeightWidth(
-                        imageConfigProperties.size().panoramic().small().height(),
-                        imageConfigProperties.size().panoramic().small().width()
-                );
-                case MEDIUM -> buildImageHeightWidth(
-                        imageConfigProperties.size().panoramic().medium().height(),
-                        imageConfigProperties.size().panoramic().medium().width()
-                );
-                case LARGE -> buildImageHeightWidth(
-                        imageConfigProperties.size().panoramic().large().height(),
-                        imageConfigProperties.size().panoramic().large().width()
-                );
-            };
-
-            case RECTANGULAR -> switch (imageSize) {
-                case THUMBNAIL -> buildImageHeightWidth(
-                        imageConfigProperties.size().rectangular().thumbnail().height(),
-                        imageConfigProperties.size().rectangular().thumbnail().width()
-                );
-                case SMALL -> buildImageHeightWidth(
-                        imageConfigProperties.size().rectangular().small().height(),
-                        imageConfigProperties.size().rectangular().small().width()
-                );
-                case MEDIUM -> buildImageHeightWidth(
-                        imageConfigProperties.size().rectangular().medium().height(),
-                        imageConfigProperties.size().rectangular().medium().width()
-                );
-                case LARGE -> buildImageHeightWidth(
-                        imageConfigProperties.size().rectangular().large().height(),
-                        imageConfigProperties.size().rectangular().large().width()
-                );
-            };
-
-            case LANDSCAPE -> switch (imageSize) {
-                case THUMBNAIL -> buildImageHeightWidth(
-                        imageConfigProperties.size().landscape().thumbnail().height(),
-                        imageConfigProperties.size().landscape().thumbnail().width()
-                );
-                case SMALL -> buildImageHeightWidth(
-                        imageConfigProperties.size().landscape().small().height(),
-                        imageConfigProperties.size().landscape().small().width()
-                );
-                case MEDIUM -> buildImageHeightWidth(
-                        imageConfigProperties.size().landscape().medium().height(),
-                        imageConfigProperties.size().landscape().medium().width()
-                );
-                case LARGE -> buildImageHeightWidth(
-                        imageConfigProperties.size().landscape().large().height(),
-                        imageConfigProperties.size().landscape().large().width()
-                );
-            };
+            case SQUARE -> imageConfigProperties.size().square().aspectRatio();
+            case PANORAMIC -> imageConfigProperties.size().panoramic().aspectRatio();
+            case RECTANGULAR -> imageConfigProperties.size().rectangular().aspectRatio();
+            case LANDSCAPE -> imageConfigProperties.size().landscape().aspectRatio();
         };
     }
 
-    private ImageHeightWidth buildImageHeightWidth(int height, int width) {
+    public ImageHeightWidth findImageHeightWidth(ImageType imageType, ImageSize imageSize) {
+        var squareConfig = imageConfigProperties.size().square();
+        var panoConfig = imageConfigProperties.size().panoramic();
+        var rectangularConfig = imageConfigProperties.size().rectangular();
+        var landscapeConfig = imageConfigProperties.size().landscape();
+
+        return switch (imageType) {
+            case SQUARE -> heightWidthFromImageSize(imageSize, squareConfig);
+            case PANORAMIC -> heightWidthFromImageSize(imageSize, panoConfig);
+            case RECTANGULAR -> heightWidthFromImageSize(imageSize, rectangularConfig);
+            case LANDSCAPE -> heightWidthFromImageSize(imageSize,landscapeConfig);
+        };
+    }
+
+    private ImageHeightWidth heightWidthFromImageSize(ImageSize imageSize,
+                                                      ImageConfigProperties.ImageType.ImageSize imageSizeConfig) {
+        return switch (imageSize) {
+            case THUMBNAIL -> calculateHeightWidth(
+                    imageSizeConfig.minWidth(),
+                    imageSizeConfig.thumbnail().scalingFactor(),
+                    imageSizeConfig.aspectRatio()
+            );
+            case SMALL -> calculateHeightWidth(
+                    imageSizeConfig.minWidth(),
+                    imageSizeConfig.small().scalingFactor(),
+                    imageSizeConfig.aspectRatio()
+            );
+            case MEDIUM -> calculateHeightWidth(
+                    imageSizeConfig.minWidth(),
+                    imageSizeConfig.medium().scalingFactor(),
+                    imageSizeConfig.aspectRatio()
+            );
+            case LARGE -> calculateHeightWidth(
+                    imageSizeConfig.minWidth(),
+                    imageSizeConfig.large().scalingFactor(),
+                    imageSizeConfig.aspectRatio()
+            );
+        };
+    }
+
+    private int calculateWidth(int minWidth, float scaleFactor) {
+        return Math.round(minWidth * scaleFactor);
+    }
+
+    private int calculateHeight(int minWidth, float scaleFactor, float aspectRatio) {
+        return Math.round(calculateWidth(minWidth, scaleFactor) / aspectRatio);
+    }
+
+
+    private ImageHeightWidth calculateHeightWidth(int minWidth, float scaleFactor, float aspectRatio) {
         return ImageHeightWidth.builder()
-                .height(height)
-                .width(width)
+                .height(calculateHeight(minWidth, scaleFactor, aspectRatio))
+                .width(calculateWidth(minWidth, scaleFactor))
                 .build();
     }
 }
