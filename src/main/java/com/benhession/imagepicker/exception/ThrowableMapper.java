@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.logging.Logger;
 
+import java.util.List;
 import java.util.UUID;
 
 @Provider
@@ -23,8 +24,13 @@ public class ThrowableMapper implements ExceptionMapper<Throwable> {
     public Response toResponse(Throwable e) {
         String errorId = UUID.randomUUID().toString();
         log.error("errorId[{}]", errorId, e);
-        ErrorResponse.ErrorMessage errorMessage = new ErrorResponse.ErrorMessage(systemErrorMessage);
-        ErrorResponse errorResponse = new ErrorResponse(errorId, errorMessage);
+        ErrorResponse errorResponse = ErrorResponse.builder()
+            .errorId(errorId)
+            .errors(List.of(ErrorResponse.ErrorMessage.builder()
+                    .message(systemErrorMessage)
+                    .build()))
+            .build();
+
         return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(errorResponse).build();
     }
 
