@@ -27,11 +27,11 @@ public interface ImageConfigProperties {
 
             Scale large();
 
-            float aspectRatio();
-            int minWidth();
+            String aspectRatio();
+            String minWidth();
 
             interface Scale {
-                float scalingFactor();
+                String scalingFactor();
             }
         }
     }

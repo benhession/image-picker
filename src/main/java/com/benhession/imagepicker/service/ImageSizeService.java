@@ -8,18 +8,32 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import lombok.RequiredArgsConstructor;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 @ApplicationScoped
 @RequiredArgsConstructor(onConstructor = @__(@Inject))
 public class ImageSizeService {
 
     private final ImageConfigProperties imageConfigProperties;
 
-    public float findAspectRatio(ImageType imageType) {
+    public BigDecimal findAspectRatio(ImageType imageType) {
         return switch (imageType) {
-            case SQUARE -> imageConfigProperties.size().square().aspectRatio();
-            case PANORAMIC -> imageConfigProperties.size().panoramic().aspectRatio();
-            case RECTANGULAR -> imageConfigProperties.size().rectangular().aspectRatio();
-            case LANDSCAPE -> imageConfigProperties.size().landscape().aspectRatio();
+            case SQUARE -> aspectRatioFromString(imageConfigProperties.size().square().aspectRatio());
+            case PANORAMIC -> aspectRatioFromString(imageConfigProperties.size().panoramic().aspectRatio());
+            case RECTANGULAR -> aspectRatioFromString(imageConfigProperties.size().rectangular().aspectRatio());
+            case LANDSCAPE -> aspectRatioFromString(imageConfigProperties.size().landscape().aspectRatio());
+        };
+    }
+
+    public int findMinWidth(ImageType imageType) {
+        return switch (imageType) {
+            case SQUARE -> Integer.parseInt(imageConfigProperties.size().square().minWidth());
+            case PANORAMIC -> Integer.parseInt(imageConfigProperties.size().panoramic().minWidth());
+            case RECTANGULAR -> Integer.parseInt(imageConfigProperties.size().rectangular().minWidth());
+            case LANDSCAPE -> Integer.parseInt(imageConfigProperties.size().landscape().minWidth());
         };
     }
 
@@ -41,41 +55,55 @@ public class ImageSizeService {
                                                       ImageConfigProperties.ImageType.ImageSize imageSizeConfig) {
         return switch (imageSize) {
             case THUMBNAIL -> calculateHeightWidth(
-                    imageSizeConfig.minWidth(),
-                    imageSizeConfig.thumbnail().scalingFactor(),
-                    imageSizeConfig.aspectRatio()
+                    new BigDecimal(imageSizeConfig.minWidth()),
+                    new BigDecimal(imageSizeConfig.thumbnail().scalingFactor()),
+                    aspectRatioFromString(imageSizeConfig.aspectRatio())
             );
             case SMALL -> calculateHeightWidth(
-                    imageSizeConfig.minWidth(),
-                    imageSizeConfig.small().scalingFactor(),
-                    imageSizeConfig.aspectRatio()
+                    new BigDecimal(imageSizeConfig.minWidth()),
+                    new BigDecimal(imageSizeConfig.small().scalingFactor()),
+                    aspectRatioFromString(imageSizeConfig.aspectRatio())
             );
             case MEDIUM -> calculateHeightWidth(
-                    imageSizeConfig.minWidth(),
-                    imageSizeConfig.medium().scalingFactor(),
-                    imageSizeConfig.aspectRatio()
+                    new BigDecimal(imageSizeConfig.minWidth()),
+                    new BigDecimal(imageSizeConfig.medium().scalingFactor()),
+                    aspectRatioFromString(imageSizeConfig.aspectRatio())
             );
             case LARGE -> calculateHeightWidth(
-                    imageSizeConfig.minWidth(),
-                    imageSizeConfig.large().scalingFactor(),
-                    imageSizeConfig.aspectRatio()
+                    new BigDecimal(imageSizeConfig.minWidth()),
+                    new BigDecimal(imageSizeConfig.large().scalingFactor()),
+                    aspectRatioFromString(imageSizeConfig.aspectRatio())
             );
         };
     }
 
-    private int calculateWidth(int minWidth, float scaleFactor) {
-        return Math.round(minWidth * scaleFactor);
+    private int calculateWidth(BigDecimal minWidth, BigDecimal scaleFactor) {
+        return minWidth.multiply(scaleFactor).setScale(0, RoundingMode.HALF_UP).intValue();
     }
 
-    private int calculateHeight(int minWidth, float scaleFactor, float aspectRatio) {
-        return Math.round(calculateWidth(minWidth, scaleFactor) / aspectRatio);
+    private int calculateHeight(BigDecimal minWidth, BigDecimal scaleFactor, BigDecimal aspectRatio) {
+        return minWidth.multiply(scaleFactor).divide(aspectRatio, 0, RoundingMode.HALF_UP).intValue();
     }
 
 
-    private ImageHeightWidth calculateHeightWidth(int minWidth, float scaleFactor, float aspectRatio) {
+    private ImageHeightWidth calculateHeightWidth(BigDecimal minWidth, BigDecimal scaleFactor, BigDecimal aspectRatio) {
         return ImageHeightWidth.builder()
                 .height(calculateHeight(minWidth, scaleFactor, aspectRatio))
                 .width(calculateWidth(minWidth, scaleFactor))
                 .build();
+    }
+
+    private BigDecimal aspectRatioFromString(String ratio) {
+        Pattern pattern = Pattern.compile("^(\\d+):(\\d+)$");
+        Matcher matcher = pattern.matcher(ratio);
+
+        if(!matcher.matches()) {
+            throw new RuntimeException("Unable to match ratio when parsing: " + ratio);
+        }
+
+        var widthPart = new BigDecimal(matcher.group(1));
+        var heightPart = new BigDecimal(matcher.group(2));
+
+        return widthPart.divide(heightPart, RoundingMode.HALF_UP);
     }
 }

@@ -30,7 +30,7 @@ image:
 
   size:
     square:
-      aspect-ratio: "1"
+      aspect-ratio: "1:1"
       min-width: "400"
       thumbnail:
         scaling-factor: "0.1"
@@ -42,7 +42,7 @@ image:
         scaling-factor: "1"
 
     panoramic:
-      aspect-ratio: "2"
+      aspect-ratio: "2:1"
       min-width: "400"
       thumbnail:
         scaling-factor: "0.1"
@@ -54,7 +54,7 @@ image:
         scaling-factor: "1"
 
     rectangular:
-      aspect-ratio: "1.33"
+      aspect-ratio: "4:3"
       min-width: "400"
       thumbnail:
         scaling-factor: "0.1"
@@ -66,7 +66,7 @@ image:
         scaling-factor: "1"
 
     landscape:
-      aspect-ratio: "1.77"
+      aspect-ratio: "16:9"
       min-width: "400"
       thumbnail:
         scaling-factor: "0.1"
@@ -81,13 +81,13 @@ image:
   image:
     size:
       square:
-        aspect-ratio: "1"
+        aspect-ratio: "1:1"
         min-width: "400"
         thumbnail:
           scaling-factor: "0.1"
 
       panoramic:
-        aspect-ratio: "2"
+        aspect-ratio: "2:1"
         min-width: "400"
         medium:
           scaling-factor: "0.7"
