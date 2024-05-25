@@ -24,6 +24,7 @@ dependencies {
 
     implementation 'net.coobird:thumbnailator:0.4.20'
     implementation 'org.jodd:jodd-util:6.2.2'
+    implementation 'com.madgag:animated-gif-lib:1.4'
 
     testImplementation 'io.quarkus:quarkus-junit5'
     testImplementation 'io.rest-assured:rest-assured'

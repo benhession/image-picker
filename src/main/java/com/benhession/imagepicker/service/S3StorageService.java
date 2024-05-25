@@ -14,9 +14,7 @@ import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
-import javax.imageio.ImageIO;
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -66,14 +64,10 @@ public class S3StorageService implements ObjectStorageService{
     private void uploadImage(PutObjectRequest putObjectRequest, ImageUploadDto imageDto) throws AwsServiceException,
             SdkClientException, IOException {
 
-        try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
 
-            ImageIO.write(imageDto.image(), mimeTypeUtil.mimeTypeToFileFormat(imageDto.mimetype()), outputStream);
-
-            try (ByteArrayInputStream inputStream = new ByteArrayInputStream(outputStream.toByteArray())) {
-                s3Client.putObject(putObjectRequest, RequestBody.fromInputStream(inputStream, outputStream.size()));
+            try (ByteArrayInputStream inputStream = new ByteArrayInputStream(imageDto.image())) {
+                s3Client.putObject(putObjectRequest, RequestBody.fromInputStream(inputStream, imageDto.image().length));
             }
-        }
     }
 
     private void deleteUploadedFiles(List<String> fileKeys) {

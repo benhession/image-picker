@@ -32,6 +32,7 @@ image:
   accepted-mime-types:
     - "image/jpeg"
     - "image/png"
+    - "image/gif"
 
   size:
     square:
