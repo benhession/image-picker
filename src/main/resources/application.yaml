@@ -5,6 +5,9 @@ quarkus :
     region: ${AWS_REGION}
     credentials.type: "default"
 
+  mongodb:
+    database: "image-picker"
+
 "%dev":
   bucket:
     name: "test-bucket"
@@ -26,7 +29,9 @@ validation-messages:
     error: "An unexpected error has occurred."
 
 image:
-  accepted-mime-types: "image/jpeg, image/png, image/gif"
+  accepted-mime-types:
+    - "image/jpeg"
+    - "image/png"
 
   size:
     square:
@@ -55,7 +60,7 @@ image:
 
     rectangular:
       aspect-ratio: "4:3"
-      min-width: "400"
+      min-width: "800"
       thumbnail:
         scaling-factor: "0.1"
       small:
@@ -78,6 +83,10 @@ image:
         scaling-factor: "1"
 
 "%test":
+
+  bucket:
+    name: "test-bucket"
+
   image:
     size:
       square:

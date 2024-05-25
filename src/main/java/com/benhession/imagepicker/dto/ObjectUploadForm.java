@@ -1,5 +1,6 @@
-package com.benhession.imagepicker.model;
+package com.benhession.imagepicker.dto;
 
+import com.benhession.imagepicker.model.ImageType;
 import com.benhession.imagepicker.validation.EnumValidator;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

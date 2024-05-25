@@ -22,6 +22,9 @@ dependencies {
     implementation 'io.quarkus:quarkus-arc'
     implementation 'io.quarkus:quarkus-config-yaml'
 
+    implementation 'net.coobird:thumbnailator:0.4.20'
+    implementation 'org.jodd:jodd-util:6.2.2'
+
     testImplementation 'io.quarkus:quarkus-junit5'
     testImplementation 'io.rest-assured:rest-assured'
     testImplementation 'io.quarkus:quarkus-junit5-mockito'

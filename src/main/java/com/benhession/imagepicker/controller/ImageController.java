@@ -2,7 +2,8 @@ package com.benhession.imagepicker.controller;
 
 import com.benhession.imagepicker.config.ImageConfigProperties;
 import com.benhession.imagepicker.exception.BadRequestException;
-import com.benhession.imagepicker.model.ObjectUploadForm;
+import com.benhession.imagepicker.dto.ObjectUploadForm;
+import com.benhession.imagepicker.model.ImageMetadata;
 import com.benhession.imagepicker.service.ImageCreationService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -29,13 +30,11 @@ public class ImageController {
     public Response addImage(@Valid @MultipartForm ObjectUploadForm objectUploadForm) {
 
         validateMimeType(objectUploadForm.getMimetype());
-        // TODO: check image size
 
-        // TODO: get image id from imageCreationService
-        imageCreationService.createNewImagesFrom(objectUploadForm.getData());
+        ImageMetadata metadata = imageCreationService.createNewImages(objectUploadForm);
 
-        // TODO: fetch meta data using id
-        //  build hateoas response and add to body
+        // TODO:
+        //  build hateoas response with all sizes
         return Response.accepted().build();
     }
 

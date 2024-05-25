@@ -1,6 +1,7 @@
 package com.benhession.imagepicker.service;
 
 import com.benhession.imagepicker.config.ImageConfigProperties;
+import com.benhession.imagepicker.exception.InvalidConfigurationException;
 import com.benhession.imagepicker.model.ImageHeightWidth;
 import com.benhession.imagepicker.model.ImageSize;
 import com.benhession.imagepicker.model.ImageType;
@@ -98,12 +99,12 @@ public class ImageSizeService {
         Matcher matcher = pattern.matcher(ratio);
 
         if(!matcher.matches()) {
-            throw new RuntimeException("Unable to match ratio when parsing: " + ratio);
+            throw new InvalidConfigurationException("Unable to match ratio when parsing: " + ratio);
         }
 
         var widthPart = new BigDecimal(matcher.group(1));
         var heightPart = new BigDecimal(matcher.group(2));
 
-        return widthPart.divide(heightPart, RoundingMode.HALF_UP);
+        return widthPart.divide(heightPart, 2, RoundingMode.HALF_UP);
     }
 }

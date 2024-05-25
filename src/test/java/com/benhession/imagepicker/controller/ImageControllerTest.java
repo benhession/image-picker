@@ -27,7 +27,7 @@ public class ImageControllerTest {
     @Test
     public void When_AddImage_With_CreationServiceThrows_Expect_500AndError() {
 
-        doThrow(new RuntimeException("test exception")).when(creationService).createNewImagesFrom(any());
+        doThrow(new RuntimeException("test exception")).when(creationService).createNewImages(any());
 
         File file = loadTestFile("test-image.jpg");
 
