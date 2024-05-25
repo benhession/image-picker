@@ -1,22 +1,21 @@
 package com.benhession.imagepicker.controller;
 
 import com.benhession.imagepicker.config.ImageConfigProperties;
-import com.benhession.imagepicker.exception.BadRequestException;
 import com.benhession.imagepicker.dto.ObjectUploadForm;
+import com.benhession.imagepicker.exception.BadRequestException;
 import com.benhession.imagepicker.model.ImageMetadata;
 import com.benhession.imagepicker.service.ImageCreationService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
-import jakarta.ws.rs.Consumes;
-import jakarta.ws.rs.POST;
-import jakarta.ws.rs.Path;
+import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import lombok.RequiredArgsConstructor;
-import org.jboss.resteasy.annotations.providers.multipart.MultipartForm;
 
 import java.util.List;
+
+import static org.jboss.resteasy.reactive.common.util.RestMediaType.APPLICATION_HAL_JSON;
 
 @ApplicationScoped
 @Path("/image")
@@ -27,14 +26,15 @@ public class ImageController {
 
     @POST
     @Consumes(MediaType.MULTIPART_FORM_DATA)
-    public Response addImage(@Valid @MultipartForm ObjectUploadForm objectUploadForm) {
+    @Produces({MediaType.APPLICATION_JSON, APPLICATION_HAL_JSON})
+    public Response addImage(@Valid @BeanParam ObjectUploadForm objectUploadForm) {
 
         validateMimeType(objectUploadForm.getMimetype());
 
         ImageMetadata metadata = imageCreationService.createNewImages(objectUploadForm);
 
         // TODO:
-        //  build hateoas response with all sizes
+        //  build response with all sizes
         return Response.accepted().build();
     }
 
