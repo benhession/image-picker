@@ -19,6 +19,7 @@ dependencies {
     implementation 'io.quarkus:quarkus-rest-jackson'
     implementation 'io.quarkus:quarkus-arc'
     implementation 'io.quarkus:quarkus-config-yaml'
+    implementation 'org.mapstruct:mapstruct:1.5.5.Final'
 
     implementation 'net.coobird:thumbnailator:0.4.20'
     implementation 'org.jodd:jodd-util:6.2.2'
@@ -31,6 +32,7 @@ dependencies {
 
     compileOnly "org.projectlombok:lombok:${lombokVersion}"
     annotationProcessor "org.projectlombok:lombok:${lombokVersion}"
+    annotationProcessor 'org.mapstruct:mapstruct-processor:1.5.5.Final'
 }
 
 group 'com.benhession'

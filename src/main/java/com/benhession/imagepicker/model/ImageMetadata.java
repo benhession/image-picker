@@ -1,10 +1,8 @@
 package com.benhession.imagepicker.model;
 
 import io.quarkus.mongodb.panache.common.MongoEntity;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
+import org.bson.codecs.pojo.annotations.BsonId;
 import org.bson.types.ObjectId;
 
 import java.util.List;
@@ -14,8 +12,10 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
+@Setter
 public class ImageMetadata {
 
+    @BsonId
     private ObjectId id;
     private String parentKey;
     private String filename;

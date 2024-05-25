@@ -19,7 +19,8 @@ public class BadRequestExceptionMapper implements ExceptionMapper<BadRequestExce
     @Override
     public Response toResponse(BadRequestException e) {
         String errorId = UUID.randomUUID().toString();
-        log.error("errorId[{}]", errorId, e);
+        // TODO: does there need to be a stack trace here?
+        log.warn("errorId[{}]", errorId, e);
 
         List<ErrorResponse.ErrorMessage> errorMessages = e.getErrorMessages()
                 .stream()

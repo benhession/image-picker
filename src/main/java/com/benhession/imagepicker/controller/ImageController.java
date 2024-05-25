@@ -3,6 +3,7 @@ package com.benhession.imagepicker.controller;
 import com.benhession.imagepicker.config.ImageConfigProperties;
 import com.benhession.imagepicker.dto.ObjectUploadForm;
 import com.benhession.imagepicker.exception.BadRequestException;
+import com.benhession.imagepicker.mapper.ImageResponseMapper;
 import com.benhession.imagepicker.model.ImageMetadata;
 import com.benhession.imagepicker.service.ImageCreationService;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -15,27 +16,26 @@ import lombok.RequiredArgsConstructor;
 
 import java.util.List;
 
-import static org.jboss.resteasy.reactive.common.util.RestMediaType.APPLICATION_HAL_JSON;
-
 @ApplicationScoped
 @Path("/image")
 @RequiredArgsConstructor(onConstructor = @__(@Inject))
 public class ImageController {
     private final ImageConfigProperties imageConfigProperties;
     private final ImageCreationService imageCreationService;
+    private final ImageResponseMapper imageResponseMapper;
 
     @POST
     @Consumes(MediaType.MULTIPART_FORM_DATA)
-    @Produces({MediaType.APPLICATION_JSON, APPLICATION_HAL_JSON})
+    @Produces({MediaType.APPLICATION_JSON})
     public Response addImage(@Valid @BeanParam ObjectUploadForm objectUploadForm) {
 
         validateMimeType(objectUploadForm.getMimetype());
 
         ImageMetadata metadata = imageCreationService.createNewImages(objectUploadForm);
 
-        // TODO:
-        //  build response with all sizes
-        return Response.accepted().build();
+        return Response.accepted()
+                .entity(imageResponseMapper.toDto(metadata))
+                .build();
     }
 
     private void validateMimeType(String mimeType) {

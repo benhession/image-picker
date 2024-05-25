@@ -12,10 +12,12 @@ import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
+import software.amazon.awssdk.services.s3.model.GetUrlRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -25,7 +27,6 @@ import java.util.UUID;
 public class S3StorageService implements ObjectStorageService{
 
     private final S3Client s3Client;
-    private final MimeTypeUtil mimeTypeUtil;
 
     @ConfigProperty(name = "bucket.name")
     String bucketName;
@@ -59,6 +60,16 @@ public class S3StorageService implements ObjectStorageService{
         }
 
         return parentKey;
+    }
+
+    @Override
+    public String getBaseResourcePath(String parentKey) {
+        URL url = s3Client.utilities().getUrl(GetUrlRequest.builder()
+                .bucket(bucketName)
+                .key(parentKey)
+                .build());
+
+        return url.toString();
     }
 
     private void uploadImage(PutObjectRequest putObjectRequest, ImageUploadDto imageDto) throws AwsServiceException,
