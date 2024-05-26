@@ -8,6 +8,7 @@ import java.util.List;
 @Getter
 public class BadRequestException extends RuntimeException {
     private final List<ErrorMessage> errorMessages;
+
     public BadRequestException(List<ErrorMessage> errorMessages) {
         super(errorMessages.toString());
         this.errorMessages = errorMessages;

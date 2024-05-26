@@ -15,12 +15,17 @@ import com.madgag.gif.fmsware.AnimatedGifEncoder;
 import com.madgag.gif.fmsware.GifDecoder;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import lombok.RequiredArgsConstructor;
 import net.coobird.thumbnailator.Thumbnails;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
-import java.io.*;
+
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
@@ -33,6 +38,7 @@ import static com.benhession.imagepicker.model.ImageSize.values;
 @ApplicationScoped
 @RequiredArgsConstructor(onConstructor = @__(@Inject))
 public class ImageCreationService {
+
     private final ImageSizeService imageSizeService;
     private final FilenameUtil filenameUtil;
     private final ObjectStorageService objectStorageService;
@@ -40,34 +46,35 @@ public class ImageCreationService {
     private final MimeTypeUtil mimeTypeUtil;
 
     public ImageMetadata createNewImages(final ObjectUploadForm objectUploadForm) {
-        //TODO: test this implementation
         final File file = objectUploadForm.getData();
         final ImageType imageType = ImageType.valueOf(objectUploadForm.getImageType());
 
         validateInputImage(file, imageType);
 
         List<ImageUploadDto> images = Arrays.stream(values())
-                .map(imageSize -> new ImageUploadDto(
-                        filenameUtil.getFilename(objectUploadForm.getFilename(), imageType, imageSize),
-                        objectUploadForm.getMimetype(),
-                        resizeAsNewImage(objectUploadForm, imageSize, objectUploadForm.getMimetype())))
-                .toList();
+          .map(imageSize -> new ImageUploadDto(
+            filenameUtil.getFilename(objectUploadForm.getFilename(), imageType, imageSize),
+            objectUploadForm.getMimetype(),
+            resizeAsNewImage(objectUploadForm, imageSize, objectUploadForm.getMimetype())))
+          .toList();
 
         String parentKey = objectStorageService.uploadFiles(objectUploadForm.getFilename(), images);
 
         var imageMetaData = ImageMetadata.builder()
-                .parentKey(parentKey)
-                .filename(objectUploadForm.getFilename())
-                .type(imageType)
-                .build();
+          .parentKey(parentKey)
+          .filename(objectUploadForm.getFilename())
+          .type(imageType)
+          .build();
 
         imageMetadataRepository.persist(imageMetaData);
 
         return imageMetadataRepository.findByParentKey(parentKey)
-                .orElseThrow(() -> new ImageProcessingException("Error retrieving metadata for key: " + parentKey));
+          .orElseThrow(
+            () -> new ImageProcessingException("Error retrieving metadata for key: " + parentKey));
     }
 
-    private byte[] resizeAsNewImage(ObjectUploadForm objectUploadForm, ImageSize imageSize, String mimeType) {
+    private byte[] resizeAsNewImage(ObjectUploadForm objectUploadForm, ImageSize imageSize,
+                                    String mimeType) {
         File file = objectUploadForm.getData();
         ImageType imageType = ImageType.valueOf(objectUploadForm.getImageType());
         var heightWidth = imageSizeService.findImageHeightWidth(imageType, imageSize);
@@ -79,9 +86,9 @@ public class ImageCreationService {
 
             try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
                 var bufferedImage = Thumbnails.of(file)
-                        .width(heightWidth.getWidth())
-                        .height(heightWidth.getHeight())
-                        .asBufferedImage();
+                  .width(heightWidth.getWidth())
+                  .height(heightWidth.getHeight())
+                  .asBufferedImage();
 
                 ImageIO.write(bufferedImage, mimeTypeUtil.mimeTypeToFileFormat(mimeType), outputStream);
                 return outputStream.toByteArray();
@@ -89,7 +96,7 @@ public class ImageCreationService {
 
         } catch (IOException e) {
             throw new ImageProcessingException(String.format("Error resizing file: %s to %s %s",
-                    file.getName(), imageSize, imageType));
+              file.getName(), imageSize, imageType));
         }
     }
 
@@ -106,17 +113,17 @@ public class ImageCreationService {
                 int frameCount = gifDecoder.getFrameCount();
                 for (int i = 0; i < frameCount; i++) {
                     var newFrame = Thumbnails.of(gifDecoder.getFrame(i))
-                            .width(imageHeightWidth.getWidth())
-                            .height(imageHeightWidth.getHeight())
-                            .asBufferedImage();
+                      .width(imageHeightWidth.getWidth())
+                      .height(imageHeightWidth.getHeight())
+                      .asBufferedImage();
                     frames.add(newFrame);
                     delays.add(gifDecoder.getDelay(i));
                 }
 
                 var averageDelay = delays.stream()
-                        .mapToInt(a -> a)
-                        .summaryStatistics()
-                        .getAverage();
+                  .mapToInt(a -> a)
+                  .summaryStatistics()
+                  .getAverage();
                 var roundedDelay = Math.toIntExact(Math.round(averageDelay));
 
                 gifEncoder.start(outputStream);
@@ -137,21 +144,22 @@ public class ImageCreationService {
             BufferedImage bufferedImage = ImageIO.read(file);
             List<BadRequestException.ErrorMessage> errorMessages = new ArrayList<>();
             BigDecimal expectedAspectRatio = imageSizeService.findAspectRatio(imageType);
-            BigDecimal actualAspectRatio = calculateAspectRatio(bufferedImage.getWidth(), bufferedImage.getHeight());
+            BigDecimal actualAspectRatio = calculateAspectRatio(bufferedImage.getWidth(),
+              bufferedImage.getHeight());
             int minWidth = imageSizeService.findMinWidth(imageType);
 
             if (!actualAspectRatio.equals(expectedAspectRatio)) {
                 errorMessages.add(BadRequestException.ErrorMessage.builder()
-                        .message(String.format("Expected aspect ratio for image type: %s to be %s, but was %s",
-                                imageType, expectedAspectRatio.floatValue(), actualAspectRatio.floatValue()))
-                        .build());
+                  .message(String.format("Expected aspect ratio for image type: %s to be %s, but was %s",
+                    imageType, expectedAspectRatio.floatValue(), actualAspectRatio.floatValue()))
+                  .build());
             }
 
             if (bufferedImage.getWidth() < minWidth) {
                 errorMessages.add(BadRequestException.ErrorMessage.builder()
-                        .message(String.format("Expected width of %s image to be more that %s, but was %s",
-                                imageType, minWidth, bufferedImage.getWidth()))
-                        .build());
+                  .message(String.format("Expected width of %s image to be more that %s, but was %s",
+                    imageType, minWidth, bufferedImage.getWidth()))
+                  .build());
             }
 
             if (!errorMessages.isEmpty()) {
@@ -160,8 +168,8 @@ public class ImageCreationService {
 
         } catch (IOException e) {
             throw new BadRequestException(List.of(BadRequestException.ErrorMessage.builder()
-                    .message("Unable to read file data")
-                    .build()));
+              .message("Unable to read file data")
+              .build()));
         }
     }
 

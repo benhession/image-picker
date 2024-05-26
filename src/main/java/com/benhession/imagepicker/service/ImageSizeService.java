@@ -7,12 +7,11 @@ import com.benhession.imagepicker.model.ImageSize;
 import com.benhession.imagepicker.model.ImageType;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import lombok.RequiredArgsConstructor;
-
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import lombok.RequiredArgsConstructor;
 
 @ApplicationScoped
 @RequiredArgsConstructor(onConstructor = @__(@Inject))
@@ -48,7 +47,7 @@ public class ImageSizeService {
             case SQUARE -> heightWidthFromImageSize(imageSize, squareConfig);
             case PANORAMIC -> heightWidthFromImageSize(imageSize, panoConfig);
             case RECTANGULAR -> heightWidthFromImageSize(imageSize, rectangularConfig);
-            case LANDSCAPE -> heightWidthFromImageSize(imageSize,landscapeConfig);
+            case LANDSCAPE -> heightWidthFromImageSize(imageSize, landscapeConfig);
         };
     }
 
@@ -56,24 +55,24 @@ public class ImageSizeService {
                                                       ImageConfigProperties.ImageType.ImageSize imageSizeConfig) {
         return switch (imageSize) {
             case THUMBNAIL -> calculateHeightWidth(
-                    new BigDecimal(imageSizeConfig.minWidth()),
-                    new BigDecimal(imageSizeConfig.thumbnail().scalingFactor()),
-                    aspectRatioFromString(imageSizeConfig.aspectRatio())
+              new BigDecimal(imageSizeConfig.minWidth()),
+              new BigDecimal(imageSizeConfig.thumbnail().scalingFactor()),
+              aspectRatioFromString(imageSizeConfig.aspectRatio())
             );
             case SMALL -> calculateHeightWidth(
-                    new BigDecimal(imageSizeConfig.minWidth()),
-                    new BigDecimal(imageSizeConfig.small().scalingFactor()),
-                    aspectRatioFromString(imageSizeConfig.aspectRatio())
+              new BigDecimal(imageSizeConfig.minWidth()),
+              new BigDecimal(imageSizeConfig.small().scalingFactor()),
+              aspectRatioFromString(imageSizeConfig.aspectRatio())
             );
             case MEDIUM -> calculateHeightWidth(
-                    new BigDecimal(imageSizeConfig.minWidth()),
-                    new BigDecimal(imageSizeConfig.medium().scalingFactor()),
-                    aspectRatioFromString(imageSizeConfig.aspectRatio())
+              new BigDecimal(imageSizeConfig.minWidth()),
+              new BigDecimal(imageSizeConfig.medium().scalingFactor()),
+              aspectRatioFromString(imageSizeConfig.aspectRatio())
             );
             case LARGE -> calculateHeightWidth(
-                    new BigDecimal(imageSizeConfig.minWidth()),
-                    new BigDecimal(imageSizeConfig.large().scalingFactor()),
-                    aspectRatioFromString(imageSizeConfig.aspectRatio())
+              new BigDecimal(imageSizeConfig.minWidth()),
+              new BigDecimal(imageSizeConfig.large().scalingFactor()),
+              aspectRatioFromString(imageSizeConfig.aspectRatio())
             );
         };
     }
@@ -89,16 +88,16 @@ public class ImageSizeService {
 
     private ImageHeightWidth calculateHeightWidth(BigDecimal minWidth, BigDecimal scaleFactor, BigDecimal aspectRatio) {
         return ImageHeightWidth.builder()
-                .height(calculateHeight(minWidth, scaleFactor, aspectRatio))
-                .width(calculateWidth(minWidth, scaleFactor))
-                .build();
+          .height(calculateHeight(minWidth, scaleFactor, aspectRatio))
+          .width(calculateWidth(minWidth, scaleFactor))
+          .build();
     }
 
     private BigDecimal aspectRatioFromString(String ratio) {
         Pattern pattern = Pattern.compile("^(\\d+):(\\d+)$");
         Matcher matcher = pattern.matcher(ratio);
 
-        if(!matcher.matches()) {
+        if (!matcher.matches()) {
             throw new InvalidConfigurationException("Unable to match ratio when parsing: " + ratio);
         }
 

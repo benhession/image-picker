@@ -1,6 +1,7 @@
 plugins {
     id 'java'
     id 'io.quarkus'
+    id 'checkstyle'
 }
 
 repositories {
@@ -53,4 +54,15 @@ compileJava {
 
 compileTestJava {
     options.encoding = 'UTF-8'
+}
+
+checkstyle {
+    toolVersion = '10.12.1'
+    ignoreFailures = false
+    maxWarnings = 0
+
+    configProperties = [
+            "org.checkstyle.google.suppressionfilter.config":
+                    "${projectDir}/config/checkstyle/suppressions.xml",
+    ]
 }

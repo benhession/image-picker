@@ -7,6 +7,7 @@ import java.util.List;
 @ConfigMapping(prefix = "image")
 public interface ImageConfigProperties {
     List<String> acceptedMimeTypes();
+
     ImageType size();
 
     interface ImageType {
@@ -28,6 +29,7 @@ public interface ImageConfigProperties {
             Scale large();
 
             String aspectRatio();
+
             String minWidth();
 
             interface Scale {

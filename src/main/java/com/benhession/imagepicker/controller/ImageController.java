@@ -9,7 +9,12 @@ import com.benhession.imagepicker.service.ImageCreationService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
-import jakarta.ws.rs.*;
+
+import jakarta.ws.rs.BeanParam;
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import lombok.RequiredArgsConstructor;
@@ -34,16 +39,16 @@ public class ImageController {
         ImageMetadata metadata = imageCreationService.createNewImages(objectUploadForm);
 
         return Response.accepted()
-                .entity(imageResponseMapper.toDto(metadata))
-                .build();
+          .entity(imageResponseMapper.toDto(metadata))
+          .build();
     }
 
     private void validateMimeType(String mimeType) {
         if (!imageConfigProperties.acceptedMimeTypes().contains(mimeType)) {
             var errorMessage = BadRequestException.ErrorMessage.builder()
-                    .path("/image")
-                    .message("Mime type must be one of the following " + imageConfigProperties.acceptedMimeTypes())
-                    .build();
+              .path("/image")
+              .message("Mime type must be one of the following " + imageConfigProperties.acceptedMimeTypes())
+              .build();
             throw new BadRequestException(List.of(errorMessage));
         }
     }
