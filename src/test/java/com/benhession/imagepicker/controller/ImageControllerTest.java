@@ -1,19 +1,19 @@
 package com.benhession.imagepicker.controller;
 
-import com.benhession.imagepicker.exception.ErrorResponse;
-import com.benhession.imagepicker.service.ImageCreationService;
-import io.quarkus.test.InjectMock;
-import io.quarkus.test.common.http.TestHTTPEndpoint;
-import io.quarkus.test.junit.QuarkusTest;
-import org.junit.jupiter.api.Test;
-
-import java.io.File;
-import java.net.URL;
-
 import static io.restassured.RestAssured.given;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
+
+import com.benhession.imagepicker.exception.ErrorResponse;
+import com.benhession.imagepicker.service.ImageCreationService;
+import com.benhession.imagepicker.testutil.TestFileLoader;
+import io.quarkus.test.InjectMock;
+import io.quarkus.test.common.http.TestHTTPEndpoint;
+import io.quarkus.test.junit.QuarkusTest;
+import jakarta.inject.Inject;
+import java.io.File;
+import org.junit.jupiter.api.Test;
 
 @QuarkusTest
 @TestHTTPEndpoint(ImageController.class)
@@ -21,6 +21,8 @@ public class ImageControllerTest {
 
     private static final String SYSTEM_ERROR_MESSAGE = "An unexpected error has occurred.";
 
+    @Inject
+    TestFileLoader testFileLoader;
     @InjectMock
     ImageCreationService creationService;
 
@@ -29,7 +31,7 @@ public class ImageControllerTest {
 
         doThrow(new RuntimeException("test exception")).when(creationService).createNewImages(any());
 
-        File file = loadTestFile("test-image.jpg");
+        File file = testFileLoader.loadTestFile("test-image.jpg");
 
         var errorResponse = given()
                 .multiPart("data", file)
@@ -53,7 +55,7 @@ public class ImageControllerTest {
     @Test
     public void When_AddImage_With_InvalidMimeType_Expect_BadRequestAndErrorMessage() {
 
-        File file = loadTestFile("test-text-file.txt");
+        File file = testFileLoader.loadTestFile("test-text-file.txt");
         var errorResponse = given()
                 .multiPart("data", file)
                 .multiPart("filename", "test-text-file.txt")
@@ -75,7 +77,7 @@ public class ImageControllerTest {
 
     @Test
     public void When_AddImage_With_MissingFilename_ExpectBadRequest() {
-        File file = loadTestFile("test-image.jpg");
+        File file = testFileLoader.loadTestFile("test-image.jpg");
 
         given()
                 .multiPart("data", file)
@@ -89,7 +91,7 @@ public class ImageControllerTest {
 
     @Test
     public void When_AddImage_With_BlankFilename_ExpectBadRequest() {
-        File file = loadTestFile("test-image.jpg");
+        File file = testFileLoader.loadTestFile("test-image.jpg");
 
         given()
                 .multiPart("filename", " ")
@@ -116,7 +118,7 @@ public class ImageControllerTest {
 
     @Test
     public void When_AddImage_With_InvalidImageType_ExpectBadRequest() {
-        File file = loadTestFile("test-image.jpg");
+        File file = testFileLoader.loadTestFile("test-image.jpg");
 
         given()
                 .multiPart("data", file)
@@ -127,11 +129,5 @@ public class ImageControllerTest {
                 .post()
                 .then()
                 .statusCode(400);
-    }
-
-    private File loadTestFile(String filename) {
-        URL url = getClass().getClassLoader().getResource(filename);
-        assert url != null;
-        return new File(url.getFile());
     }
 }
