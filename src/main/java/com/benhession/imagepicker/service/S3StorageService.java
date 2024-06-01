@@ -46,6 +46,7 @@ public class S3StorageService implements ObjectStorageService {
 
             try {
                 uploadImage(putObjectRequest, imageDto);
+                uploadedKeys.add(key);
             } catch (AwsServiceException | SdkClientException e) {
                 deleteUploadedFiles(uploadedKeys);
                 throw new ImageProcessingException("Error uploading file to S3 for filename: "

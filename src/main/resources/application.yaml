@@ -8,22 +8,6 @@ quarkus :
   mongodb:
     database: "image-picker"
 
-"%dev":
-  bucket:
-    name: "test-bucket"
-
-  quarkus:
-    s3:
-      devservices:
-        buckets: "test-bucket"
-      aws:
-        region: "us-east-1"
-        credentials:
-          type: "static"
-          static-provider:
-            access-key-id: "test-key"
-            secret-access-key: "test-secret"
-
 validation-messages:
   system:
     error: "An unexpected error has occurred."
@@ -83,10 +67,39 @@ image:
       large:
         scaling-factor: "1"
 
+"%dev":
+
+  bucket:
+    name: "test-bucket"
+
+  quarkus:
+    s3:
+      devservices:
+        buckets: "test-bucket"
+      aws:
+        region: "us-east-1"
+        credentials:
+          type: "static"
+          static-provider:
+            access-key-id: "test-key"
+            secret-access-key: "test-secret"
+
 "%test":
 
   bucket:
     name: "test-bucket"
+
+  quarkus:
+    s3:
+      devservices:
+        buckets: "test-bucket"
+      aws:
+        region: "us-east-1"
+        credentials:
+          type: "static"
+          static-provider:
+            access-key-id: "test-key"
+            secret-access-key: "test-secret"
 
   image:
     size:
