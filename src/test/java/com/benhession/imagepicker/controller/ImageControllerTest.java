@@ -11,6 +11,7 @@ import com.benhession.imagepicker.testutil.TestFileLoader;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.common.http.TestHTTPEndpoint;
 import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.security.TestSecurity;
 import jakarta.inject.Inject;
 import java.io.File;
 import org.junit.jupiter.api.Test;
@@ -27,6 +28,7 @@ public class ImageControllerTest {
     ImageCreationService creationService;
 
     @Test
+    @TestSecurity(user = "testUser", roles = {"Everyone", "blog-admin"})
     public void When_AddImage_With_CreationServiceThrows_Expect_500AndError() {
 
         doThrow(new RuntimeException("test exception")).when(creationService).createNewImages(any());
@@ -53,6 +55,7 @@ public class ImageControllerTest {
     }
 
     @Test
+    @TestSecurity(user = "testUser", roles = {"Everyone", "blog-admin"})
     public void When_AddImage_With_InvalidMimeType_Expect_BadRequestAndErrorMessage() {
 
         File file = testFileLoader.loadTestFile("test-text-file.txt");
@@ -76,7 +79,8 @@ public class ImageControllerTest {
     }
 
     @Test
-    public void When_AddImage_With_MissingFilename_ExpectBadRequest() {
+    @TestSecurity(user = "testUser", roles = {"Everyone", "blog-admin"})
+    public void When_AddImage_With_MissingFilename_Expect_BadRequest() {
         File file = testFileLoader.loadTestFile("test-image.jpg");
 
         given()
@@ -90,7 +94,8 @@ public class ImageControllerTest {
     }
 
     @Test
-    public void When_AddImage_With_BlankFilename_ExpectBadRequest() {
+    @TestSecurity(user = "testUser", roles = {"Everyone", "blog-admin"})
+    public void When_AddImage_With_BlankFilename_Expect_BadRequest() {
         File file = testFileLoader.loadTestFile("test-image.jpg");
 
         given()
@@ -105,7 +110,8 @@ public class ImageControllerTest {
     }
 
     @Test
-    public void When_AddImage_With_MissingData_ExpectBadRequest() {
+    @TestSecurity(user = "testUser", roles = {"Everyone", "blog-admin"})
+    public void When_AddImage_With_MissingData_Expect_BadRequest() {
 
         given()
                 .multiPart("mime-type", "image/jpeg")
@@ -117,7 +123,8 @@ public class ImageControllerTest {
     }
 
     @Test
-    public void When_AddImage_With_InvalidImageType_ExpectBadRequest() {
+    @TestSecurity(user = "testUser", roles = {"Everyone", "blog-admin"})
+    public void When_AddImage_With_InvalidImageType_Expect_BadRequest() {
         File file = testFileLoader.loadTestFile("test-image.jpg");
 
         given()
@@ -129,5 +136,21 @@ public class ImageControllerTest {
                 .post()
                 .then()
                 .statusCode(400);
+    }
+
+    @Test
+    @TestSecurity(user = "unauthorisedTestUser", roles = {"Everyone"})
+    public void When_AddImage_With_UnauthorisedUser_Expect_Forbidden() {
+        File file = testFileLoader.loadTestFile("test-image.jpg");
+
+        given()
+          .multiPart("data", file)
+          .multiPart("filename", "test-image.jpg")
+          .multiPart("mime-type", "image/jpeg")
+          .multiPart("image-type", "RECTANGULAR")
+          .when()
+          .post()
+          .then()
+          .statusCode(403);
     }
 }

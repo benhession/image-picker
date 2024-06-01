@@ -5,6 +5,10 @@ on:
     branches:
       - 'develop'
 
+env:
+  JWT_PUBLIC_KEY_ISSUER: ${{vars.JWT_PUBLIC_KEY_ISSUER}}
+  JWT_PUBLIC_KEY_LOCATION: ${{vars.JWT_PUBLIC_KEY_LOCATION}}
+
 jobs:
   build-gradle-project:
     runs-on: ubuntu-latest

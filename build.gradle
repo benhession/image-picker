@@ -10,6 +10,7 @@ repositories {
 }
 
 dependencies {
+    implementation 'io.quarkus:quarkus-smallrye-jwt'
     implementation 'io.quarkus:quarkus-hibernate-validator'
     implementation 'io.quarkiverse.amazonservices:quarkus-amazon-s3'
     implementation 'software.amazon.awssdk:url-connection-client'
@@ -30,6 +31,7 @@ dependencies {
     testImplementation 'io.rest-assured:rest-assured'
     testImplementation 'io.quarkus:quarkus-junit5-mockito'
     testImplementation 'org.assertj:assertj-core:3.25.3'
+    testImplementation "io.quarkus:quarkus-test-security"
 
     compileOnly "org.projectlombok:lombok:${lombokVersion}"
     annotationProcessor "org.projectlombok:lombok:${lombokVersion}"

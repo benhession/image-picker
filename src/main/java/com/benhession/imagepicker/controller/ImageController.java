@@ -6,10 +6,10 @@ import com.benhession.imagepicker.exception.BadRequestException;
 import com.benhession.imagepicker.mapper.ImageResponseMapper;
 import com.benhession.imagepicker.model.ImageMetadata;
 import com.benhession.imagepicker.service.ImageCreationService;
+import jakarta.annotation.security.RolesAllowed;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
-
 import jakarta.ws.rs.BeanParam;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.POST;
@@ -17,9 +17,8 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import lombok.RequiredArgsConstructor;
-
 import java.util.List;
+import lombok.RequiredArgsConstructor;
 
 @ApplicationScoped
 @Path("/image")
@@ -32,6 +31,7 @@ public class ImageController {
     @POST
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces({MediaType.APPLICATION_JSON})
+    @RolesAllowed({"blog-admin"})
     public Response addImage(@Valid @BeanParam ObjectUploadForm objectUploadForm) {
 
         validateMimeType(objectUploadForm.getMimetype());

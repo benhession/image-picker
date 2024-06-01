@@ -1,5 +1,12 @@
 bucket.name: ${BUCKET_NAME}
 
+mp:
+  jwt:
+    verify:
+      publickey:
+        location: ${JWT_PUBLIC_KEY_LOCATION}
+        issuer: ${JWT_PUBLIC_KEY_ISSUER}
+
 quarkus :
   s3.aws:
     region: ${AWS_REGION}
