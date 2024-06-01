@@ -20,7 +20,6 @@ import com.benhession.imagepicker.testutil.TestFileLoader;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusMock;
 import io.quarkus.test.junit.QuarkusTest;
-import io.quarkus.test.junit.mockito.InjectSpy;
 import jakarta.inject.Inject;
 import java.math.BigDecimal;
 import java.util.Arrays;
@@ -120,15 +119,16 @@ public class ImageCreationServiceTest {
 
     @Test
     public void When_CreateNewImages_With_InvalidWidth_Expect_BadRequestException() {
+
+        var imageService = Mockito.mock(ImageSizeService.class);
+        QuarkusMock.installMockForType(imageService, ImageSizeService.class);
+
         var objectUploadForm = ObjectUploadForm.builder()
           .data(testFileLoader.loadTestFile("test.jpeg"))
           .filename(TEST_FILENAME)
           .mimetype(TEST_MIME_TYPE)
           .imageType(TEST_IMAGE_TYPE.toString())
           .build();
-
-        var imageService = Mockito.mock(ImageSizeService.class);
-        QuarkusMock.installMockForType(imageService, ImageSizeService.class);
 
         when(imageService.findAspectRatio(any())).thenReturn(new BigDecimal("1.78"));
         when(imageService.findMinWidth(any())).thenReturn(2000);
