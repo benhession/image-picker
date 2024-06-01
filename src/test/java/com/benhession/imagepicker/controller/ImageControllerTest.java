@@ -140,7 +140,7 @@ public class ImageControllerTest {
 
     @Test
     @TestSecurity(user = "unauthorisedTestUser", roles = {"Everyone"})
-    public void When_AddImage_With_unauthorisedUser_Expect_Forbidden() {
+    public void When_AddImage_With_UnauthorisedUser_Expect_Forbidden() {
         File file = testFileLoader.loadTestFile("test-image.jpg");
 
         given()
