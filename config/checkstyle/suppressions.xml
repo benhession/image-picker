@@ -1,0 +1,10 @@
+<!DOCTYPE suppressions PUBLIC "-//Puppy Crawl//DTD Suppressions 1.1//EN"
+        "http://www.puppycrawl.com/dtds/suppressions_1_1.dtd">
+<suppressions>
+    <suppress files="[\\/]src[\\/]test[\\/].*" id="methodNameRegular" />
+    <suppress files="[\\/]src[\\/]integrationTest[\\/].*" id="methodNameRegular" />
+    <suppress files="[\\/]src[\\/]main[\\/].*" id="methodNameTest" />
+    <suppress files="[\\/]src[\\/]main[\\/].*" id="integrationTestsClassNames" />
+    <suppress files="[\\/]src[\\/]test[\\/].*" id="integrationTestsClassNames" />
+    <suppress files="[\\/]src[\\/]integrationTest[\\/].*" id="regularClassNames" />
+</suppressions>
