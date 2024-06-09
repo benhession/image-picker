@@ -6,8 +6,9 @@ on:
       - 'develop'
 
 env:
-  JWT_PUBLIC_KEY_ISSUER: ${{vars.JWT_PUBLIC_KEY_ISSUER}}
-  JWT_PUBLIC_KEY_LOCATION: ${{vars.JWT_PUBLIC_KEY_LOCATION}}
+  AUTH_SERVER_URL: ${{vars.AUTH_SERVER_URL}}
+  OIDC_CLIENT_ID: ${{vars.OIDC_CLIENT_ID}}
+  OIDC_CLIENT_SECRET: ${{secrets.OIDC_CLIENT_SECRET}}
 
 jobs:
   build-gradle-project:
