@@ -1,19 +1,10 @@
 package com.benhession.imagepicker.exception;
 
-import lombok.Builder;
-import lombok.Getter;
-
 import java.util.List;
 
-@Getter
-public class BadRequestException extends RuntimeException {
-    private final List<ErrorMessage> errorMessages;
+public class BadRequestException extends AbstractMultipleErrorApplicationException {
 
     public BadRequestException(List<ErrorMessage> errorMessages) {
-        super(errorMessages.toString());
-        this.errorMessages = errorMessages;
+        super(errorMessages);
     }
-
-    @Builder
-    public record ErrorMessage(String path, String message) {}
 }
