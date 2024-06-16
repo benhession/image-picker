@@ -68,7 +68,7 @@ public class ImageController {
             .ok(imageResponseMapper.toDto(metadata)))
           .orElseThrow(() -> new NotFoundException(List.of(
               AbstractMultipleErrorApplicationException.ErrorMessage.builder()
-                .path("image/" + id.toString())
+                .path("/image/" + id.toString())
                 .message("Unable to find image with id: " + id)
                 .build())));
     }
