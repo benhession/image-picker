@@ -11,6 +11,7 @@ import static org.mockito.Mockito.when;
 
 import com.benhession.imagepicker.dto.ImageUploadDto;
 import com.benhession.imagepicker.dto.ObjectUploadForm;
+import com.benhession.imagepicker.exception.AbstractMultipleErrorApplicationException;
 import com.benhession.imagepicker.exception.BadRequestException;
 import com.benhession.imagepicker.model.ImageMetadata;
 import com.benhession.imagepicker.model.ImageSize;
@@ -114,7 +115,11 @@ public class ImageCreationServiceTest {
 
         assertThatThrownBy(() -> imageCreationService.createNewImages(objectUploadForm))
           .isInstanceOf(BadRequestException.class)
-            .hasMessageContaining("Expected aspect ratio for image type: SQUARE to be 1.0, but was 1.78");
+          .matches(e -> ((BadRequestException) e).getErrorMessages().stream()
+              .map(AbstractMultipleErrorApplicationException.ErrorMessage::message)
+              .anyMatch(message ->
+                message.equals("Expected aspect ratio for image type: SQUARE to be 1.0, but was 1.78")),
+              "has expected message");
     }
 
     @Test
@@ -133,10 +138,13 @@ public class ImageCreationServiceTest {
         when(imageService.findAspectRatio(any())).thenReturn(new BigDecimal("1.78"));
         when(imageService.findMinWidth(any())).thenReturn(2000);
 
-
         assertThatThrownBy(() -> imageCreationService.createNewImages(objectUploadForm))
           .isInstanceOf(BadRequestException.class)
-          .hasMessageContaining("Expected width of LANDSCAPE image to be more that 2000");
+          .matches(e -> ((BadRequestException) e).getErrorMessages().stream()
+              .map(AbstractMultipleErrorApplicationException.ErrorMessage::message)
+              .anyMatch(message ->
+                message.equals("Expected width of LANDSCAPE image to be more that 2000, but was 800")),
+              "has expected message");
     }
 
 }
