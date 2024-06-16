@@ -1,6 +1,8 @@
 package com.benhession.imagepicker.exception;
 
 import jakarta.inject.Inject;
+import jakarta.ws.rs.ClientErrorException;
+import jakarta.ws.rs.NotAcceptableException;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.ext.ExceptionMapper;
 import jakarta.ws.rs.ext.Provider;
@@ -22,6 +24,11 @@ public class ThrowableMapper implements ExceptionMapper<Throwable> {
 
     @Override
     public Response toResponse(Throwable e) {
+
+        if (e instanceof ClientErrorException clientErrorException) {
+            return clientErrorException.getResponse();
+        }
+
         String errorId = UUID.randomUUID().toString();
         log.error("errorId[{}]", errorId, e);
         ErrorResponse errorResponse = ErrorResponse.builder()
