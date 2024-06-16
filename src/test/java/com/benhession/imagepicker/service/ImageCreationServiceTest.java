@@ -116,9 +116,10 @@ public class ImageCreationServiceTest {
         assertThatThrownBy(() -> imageCreationService.createNewImages(objectUploadForm))
           .isInstanceOf(BadRequestException.class)
           .matches(e -> ((BadRequestException) e).getErrorMessages().stream()
-            .map(AbstractMultipleErrorApplicationException.ErrorMessage::message)
-            .anyMatch(message -> message.equals("Expected aspect ratio for image type: SQUARE to be 1.0, but was 1.78")),
-            "has expected message");
+              .map(AbstractMultipleErrorApplicationException.ErrorMessage::message)
+              .anyMatch(message ->
+                message.equals("Expected aspect ratio for image type: SQUARE to be 1.0, but was 1.78")),
+              "has expected message");
     }
 
     @Test
@@ -140,9 +141,10 @@ public class ImageCreationServiceTest {
         assertThatThrownBy(() -> imageCreationService.createNewImages(objectUploadForm))
           .isInstanceOf(BadRequestException.class)
           .matches(e -> ((BadRequestException) e).getErrorMessages().stream()
-            .map(AbstractMultipleErrorApplicationException.ErrorMessage::message)
-            .anyMatch(message -> message.equals("Expected width of LANDSCAPE image to be more that 2000, but was 800")),
-            "has expected message");
+              .map(AbstractMultipleErrorApplicationException.ErrorMessage::message)
+              .anyMatch(message ->
+                message.equals("Expected width of LANDSCAPE image to be more that 2000, but was 800")),
+              "has expected message");
     }
 
 }
