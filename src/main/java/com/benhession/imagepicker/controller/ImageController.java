@@ -87,9 +87,9 @@ public class ImageController {
     @Produces({APPLICATION_JSON})
     @RolesAllowed({"blog-admin"})
     @RestLink(rel = "list")
-    public RestResponse<List<ImageResponseDto>> getAllImages(@QueryParam("page") String pageString,
-                                                             @QueryParam("size") String sizeString,
-                                                             @Context UriInfo uriInfo) {
+    public RestResponse<List<ImageResponseDto>> getImages(@QueryParam("page") String pageString,
+                                                          @QueryParam("size") String sizeString,
+                                                          @Context UriInfo uriInfo) {
 
         List<AbstractMultipleErrorApplicationException.ErrorMessage> errorMessages = new ArrayList<>();
         int page = parseIntegerQueryParameter(pageString, "page", errorMessages);
