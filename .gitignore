@@ -37,3 +37,7 @@ nb-configuration.xml
 
 # Plugin directory
 /.quarkus/cli/plugins/
+
+# terraform
+/terraform/.terraform.lock.hcl
+/terraform/.terraform/
