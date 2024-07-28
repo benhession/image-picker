@@ -1,0 +1,5 @@
+# deny by default
+*
+# use ! to include
+!terraform/
+!build/function.zip
