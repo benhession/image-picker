@@ -4,6 +4,17 @@ resource "aws_lambda_function" "image-picker" {
   handler       = "io.quarkus.amazon.lambda.runtime.QuarkusStreamHandler"
   runtime       = "java17"
   architectures = ["arm64"]
+  timeout       = 120
+  memory_size   = 2048
+  publish       = true
+
+  snap_start {
+    apply_on = "PublishedVersions"
+  }
+
+  ephemeral_storage {
+    size = 512
+  }
 
   s3_bucket        = aws_s3_bucket.lambda_source_bucket.id
   s3_key           = var.image_picker_lambda_name
@@ -13,10 +24,12 @@ resource "aws_lambda_function" "image-picker" {
 
   environment {
     variables = tomap({
-      AUTH_SERVER_URL    = var.auth_server_url
-      OIDC_CLIENT_ID     = var.oidc_client_id
-      OIDC_CLIENT_SECRET = var.oidc_client_secret
-      BUCKET_NAME        = var.image_picker_bucket_name
+      AUTH_SERVER_URL           = var.auth_server_url
+      OIDC_CLIENT_ID            = var.oidc_client_id
+      OIDC_CLIENT_SECRET        = var.oidc_client_secret
+      BUCKET_NAME               = var.image_picker_bucket_name
+      MONGODB_CONNECTION_STRING = var.mongodb_connection_string
+      MONGODB_DATABASE_NAME     = var.mongodb_database_name
     })
   }
 }
@@ -33,6 +46,23 @@ data "aws_iam_policy_document" "assume_role" {
     actions = ["sts:AssumeRole"]
   }
 }
+data "aws_iam_policy_document" "lambda_s3" {
+  statement {
+    actions = [
+      "s3:PutObject",
+      "s3:GetObject",
+      "s3:DeleteObject",
+      "s3:ListObjects",
+      "s3:PutObjectTagging",
+      "s3:GetObjectTagging"
+    ]
+
+    resources = [
+      aws_s3_bucket.image-picker-images.arn,
+      "${aws_s3_bucket.image-picker-images.arn}/*"
+    ]
+  }
+}
 
 resource "aws_iam_role" "image_picker_lambda" {
   name               = "${var.image_picker_lambda_name}-lambda"
@@ -41,6 +71,16 @@ resource "aws_iam_role" "image_picker_lambda" {
 
 resource "aws_iam_role_policy_attachment" "basic" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+  role       = aws_iam_role.image_picker_lambda.name
+}
+
+resource "aws_iam_policy" "lambda_s3" {
+  name   = "lambda_s3-policy"
+  policy = data.aws_iam_policy_document.lambda_s3.json
+}
+
+resource "aws_iam_role_policy_attachment" "lambda_s3" {
+  policy_arn = aws_iam_policy.lambda_s3.arn
   role       = aws_iam_role.image_picker_lambda.name
 }
 

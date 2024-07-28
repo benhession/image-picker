@@ -12,7 +12,7 @@ quarkus :
     credentials.type: "default"
 
   mongodb:
-    database: "image-picker"
+    database: ${MONGODB_DATABASE_NAME}
 
 validation-messages:
   system:
@@ -72,6 +72,11 @@ image:
         scaling-factor: "0.7"
       large:
         scaling-factor: "1"
+
+"%prod":
+  quarkus:
+    mongodb:
+      connection-string: ${MONGODB_CONNECTION_STRING}
 
 "%dev":
 

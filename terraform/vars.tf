@@ -1,10 +1,10 @@
 variable "lambda_source_bucket" {
-  type = string
+  type    = string
   default = "image-picker-lambda-zips"
 }
 
 variable "image_picker_lambda_name" {
-  type = string
+  type    = string
   default = "image-picker"
 }
 
@@ -25,6 +25,14 @@ variable "aws_region" {
 }
 
 variable "image_picker_bucket_name" {
-  type = string
+  type    = string
   default = "image-picker-images"
+}
+
+variable "mongodb_connection_string" {
+  type = string
+}
+
+variable "mongodb_database_name" {
+  type = string
 }
