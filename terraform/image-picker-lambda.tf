@@ -1,23 +1,18 @@
 resource "aws_lambda_function" "image-picker" {
   function_name = var.image_picker_lambda_name
-  role          = aws_iam_role.image_picker_lambda.arn
-  handler       = "io.quarkus.amazon.lambda.runtime.QuarkusStreamHandler"
-  runtime       = "java17"
+  role = aws_iam_role.image_picker_lambda.arn
+  handler       = "not.used.in.provided.runtime"
+  runtime       = "provided.al2"
   architectures = ["arm64"]
   timeout       = 120
   memory_size   = 2048
-  publish       = true
-
-  snap_start {
-    apply_on = "PublishedVersions"
-  }
 
   ephemeral_storage {
     size = 512
   }
 
-  s3_bucket        = aws_s3_bucket.lambda_source_bucket.id
-  s3_key           = var.image_picker_lambda_name
+  s3_bucket = aws_s3_bucket.lambda_source_bucket.id
+  s3_key    = var.image_picker_lambda_name
   source_code_hash = filebase64sha256("${path.module}/../build/function.zip")
 
   depends_on = [aws_s3_object.file_upload]
@@ -30,6 +25,8 @@ resource "aws_lambda_function" "image-picker" {
       BUCKET_NAME               = var.image_picker_bucket_name
       MONGODB_CONNECTION_STRING = var.mongodb_connection_string
       MONGODB_DATABASE_NAME     = var.mongodb_database_name
+      DISABLE_SIGNAL_HANDLERS   = "true"
+      QUARKUS_HTTP_ROOT_PATH    = "/"
     })
   }
 }
@@ -39,7 +36,7 @@ data "aws_iam_policy_document" "assume_role" {
     effect = "Allow"
 
     principals {
-      type        = "Service"
+      type = "Service"
       identifiers = ["lambda.amazonaws.com"]
     }
 
