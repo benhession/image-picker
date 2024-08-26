@@ -12,7 +12,7 @@ env:
 
 jobs:
   build-gradle-project:
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout project sources
         uses: actions/checkout@v3
