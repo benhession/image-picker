@@ -5,6 +5,11 @@ resource "aws_api_gateway_rest_api" "image_picker_api" {
 
 resource "aws_api_gateway_deployment" "image_picker" {
   rest_api_id = aws_api_gateway_rest_api.image_picker_api.id
+  depends_on = [
+    module.post_image,
+    module.get_all_images,
+    module.get_image,
+  ]
 
   variables = {
     deployed_at = timestamp()
