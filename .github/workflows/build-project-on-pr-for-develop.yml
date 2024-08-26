@@ -30,5 +30,3 @@ jobs:
         with:
           name: Build reports
           path: build/reports
-      - name: Native build
-        run: clean build -Dquarkus.package.type=native -x test -Dquarkus.native.resources.includes=application.properties -Dquarkus.native.container-build=true --info
