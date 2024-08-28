@@ -36,3 +36,20 @@ variable "mongodb_connection_string" {
 variable "mongodb_database_name" {
   type = string
 }
+
+variable "mongodb_atlas_public_key" {
+  type = string
+}
+
+variable "mongodb_atlas_private_key" {
+  type = string
+}
+
+variable "mongodb_atlas_project_id" {
+  type = string
+}
+
+variable "mongodb_atlas_cluster_name" {
+  type = string
+  default = "blog-cluster"
+}

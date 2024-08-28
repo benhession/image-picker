@@ -43,6 +43,7 @@ data "aws_iam_policy_document" "assume_role" {
     actions = ["sts:AssumeRole"]
   }
 }
+
 data "aws_iam_policy_document" "lambda_s3" {
   statement {
     actions = [
