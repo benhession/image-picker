@@ -27,6 +27,8 @@ jobs:
         if: runner.os == 'macos'
         run: |
           brew install docker
+          brew install qemu
+          brew install lima
           brew install colima
           colima version
           colima start
