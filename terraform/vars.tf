@@ -3,9 +3,9 @@ variable "lambda_source_bucket" {
   default = "image-picker-lambda-zips"
 }
 
-variable "image_picker_lambda_name" {
+variable "image_picker_api_lambda_name" {
   type    = string
-  default = "image-picker"
+  default = "image-picker-api"
 }
 
 variable "auth_server_url" {

@@ -83,7 +83,7 @@ public class ImageControllerTest {
 
         assertThat(errorResponse.getErrors().size()).isEqualTo(1);
 
-        var error = errorResponse.getErrors().get(0);
+        var error = errorResponse.getErrors().getFirst();
         assertThat(error.getMessage()).isEqualTo(SYSTEM_ERROR_MESSAGE);
         assertThat(error.getPath()).isNull();
     }
@@ -107,7 +107,7 @@ public class ImageControllerTest {
 
         assertThat(errorResponse.getErrors().size()).isEqualTo(1);
 
-        var error = errorResponse.getErrors().get(0);
+        var error = errorResponse.getErrors().getFirst();
         assertThat(error.getMessage()).contains("Mime type must be one of the following");
         assertThat(error.getPath()).isEqualTo("/image");
     }
@@ -326,15 +326,13 @@ public class ImageControllerTest {
     @Test
     @TestSecurity(user = "unauthorisedTestUser", roles = {"Everyone"})
     public void When_GetImages_With_UnknownUser_Expect_Forbidden() {
-        var response = given()
+        given()
           .queryParam("page", 1)
           .queryParam("size", 3)
           .when()
           .get()
           .then()
-          .statusCode(403)
-          .extract()
-          .response();
+          .statusCode(403);
     }
 
     private Optional<String> getHeaderWithRel(String rel, List<Header> headers) {

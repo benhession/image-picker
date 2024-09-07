@@ -1,6 +1,6 @@
-resource "aws_lambda_function" "image-picker" {
-  function_name = var.image_picker_lambda_name
-  role = aws_iam_role.image_picker_lambda.arn
+resource "aws_lambda_function" "image-picker-api" {
+  function_name = var.image_picker_api_lambda_name
+  role          = aws_iam_role.image_picker_lambda.arn
   handler       = "not.used.in.provided.runtime"
   runtime       = "provided.al2"
   architectures = ["arm64"]
@@ -12,8 +12,8 @@ resource "aws_lambda_function" "image-picker" {
   }
 
   s3_bucket = aws_s3_bucket.lambda_source_bucket.id
-  s3_key    = var.image_picker_lambda_name
-  source_code_hash = filebase64sha256("${path.module}/../build/function.zip")
+  s3_key    = var.image_picker_api_lambda_name
+  source_code_hash = filebase64sha256("${path.module}/../image-picker-api/build/function.zip")
 
   depends_on = [aws_s3_object.file_upload]
 
@@ -63,7 +63,7 @@ data "aws_iam_policy_document" "lambda_s3" {
 }
 
 resource "aws_iam_role" "image_picker_lambda" {
-  name               = "${var.image_picker_lambda_name}-lambda"
+  name               = "${var.image_picker_api_lambda_name}-lambda"
   assume_role_policy = data.aws_iam_policy_document.assume_role.json
 }
 
@@ -85,7 +85,7 @@ resource "aws_iam_role_policy_attachment" "lambda_s3" {
 resource "aws_lambda_permission" "this" {
   statement_id  = "AllowAPIGatewayInvoke"
   action        = "lambda:InvokeFunction"
-  function_name = aws_lambda_function.image-picker.function_name
+  function_name = aws_lambda_function.image-picker-api.function_name
   principal     = "apigateway.amazonaws.com"
 
   source_arn = "${aws_api_gateway_stage.image_picker_api.execution_arn}/*"
@@ -93,15 +93,15 @@ resource "aws_lambda_permission" "this" {
 
 resource "aws_s3_object" "file_upload" {
   bucket        = aws_s3_bucket.lambda_source_bucket.bucket
-  key           = var.image_picker_lambda_name
+  key           = var.image_picker_api_lambda_name
   force_destroy = true
-  source        = "${path.module}/../build/function.zip"
-  etag          = filebase64sha256("${path.module}/../build/function.zip")
+  source        = "${path.module}/../image-picker-api/build/function.zip"
+  etag = filebase64sha256("${path.module}/../image-picker-api/build/function.zip")
 
   depends_on = [aws_s3_bucket.lambda_source_bucket]
 }
 
 resource "aws_cloudwatch_log_group" "image-picker" {
-  name              = "/aws/lambda/${aws_lambda_function.image-picker.function_name}"
+  name              = "/aws/lambda/${aws_lambda_function.image-picker-api.function_name}"
   retention_in_days = 30
 }

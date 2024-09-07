@@ -2,4 +2,4 @@
 *
 # use ! to include
 !terraform/
-!build/function.zip
+!image-picker-api/build/function.zip

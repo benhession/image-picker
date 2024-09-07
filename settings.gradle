@@ -9,3 +9,4 @@ pluginManagement {
     }
 }
 rootProject.name='image-picker'
+include 'image-picker-api'
