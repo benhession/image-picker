@@ -30,8 +30,13 @@ jobs:
           brew install colima
           colima version
           colima start --arch x86_64 --cpu-type max
+          docker context use colima
       - name: Run build with Gradle Wrapper
         run: ./gradlew build --warning-mode all
+      - name: Post setup docker
+        if: runner.os == 'macos'
+        run: |
+          colima stop
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
