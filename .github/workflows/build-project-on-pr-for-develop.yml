@@ -31,6 +31,8 @@ jobs:
           colima version
           colima start --arch x86_64 --cpu-type max
           docker context use colima
+          sudo ln -sf $HOME/.colima/default/docker.sock /var/run/docker.sock
+          export DOCKER_HOST="unix://${HOME}/.colima/default/docker.sock"
           export TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE="/var/run/docker.sock"
       - name: Run build with Gradle Wrapper
         run: ./gradlew build --warning-mode all
