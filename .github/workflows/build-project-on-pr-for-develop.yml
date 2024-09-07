@@ -31,10 +31,11 @@ jobs:
           colima version
           colima start --arch x86_64 --cpu-type max
           docker context use colima
+          export TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE="/var/run/docker.sock"
       - name: Run build with Gradle Wrapper
         run: ./gradlew build --warning-mode all
       - name: Post setup docker
-        if: runner.os == 'macos'
+        if: always() && runner.os == 'macos'
         run: |
           colima stop
       - name: Upload build artifacts
