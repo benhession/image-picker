@@ -27,11 +27,9 @@ jobs:
         if: runner.os == 'macos'
         run: |
           brew install docker
-          brew install qemu
-          brew install lima
           brew install colima
           colima version
-          colima start
+          colima start --arch x86_64 --cpu-type max
       - name: Run build with Gradle Wrapper
         run: ./gradlew build --warning-mode all
       - name: Upload build artifacts
