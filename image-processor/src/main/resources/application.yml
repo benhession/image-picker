@@ -1,0 +1,130 @@
+bucket.name: ${BUCKET_NAME}
+
+quarkus :
+  native:
+    additional-build-args: --initialize-at-run-time=net.coobird.thumbnailator.resizers.AbstractResizer\,net.coobird.thumbnailator.resizers.BilinearResizer\,net.coobird.thumbnailator.resizers.configurations.AlphaInterpolation\,net.coobird.thumbnailator.resizers.configurations.Antialiasing\,net.coobird.thumbnailator.resizers.configurations.Dithering\,net.coobird.thumbnailator.resizers.configurations.Rendering\,net.coobird.thumbnailator.resizers.NullResizer\,net.coobird.thumbnailator.resizers.ProgressiveBilinearResizer\,net.coobird.thumbnailator.resizers.Resizers
+
+  oidc:
+    auth-server-url: ${AUTH_SERVER_URL}
+    client-id: ${OIDC_CLIENT_ID}
+    credentials:
+      secret: ${OIDC_CLIENT_SECRET}
+
+  s3.aws:
+    region: ${AWS_REGION}
+    credentials.type: "default"
+
+  mongodb:
+    database: ${MONGODB_DATABASE_NAME}
+
+validation-messages:
+  system:
+    error: "An unexpected error has occurred."
+
+image:
+  accepted-mime-types:
+    - "image/jpeg"
+    - "image/png"
+    - "image/gif"
+
+  size:
+    square:
+      aspect-ratio: "1:1"
+      min-width: "400"
+      thumbnail:
+        scaling-factor: "0.1"
+      small:
+        scaling-factor: "0.4"
+      medium:
+        scaling-factor: "0.7"
+      large:
+        scaling-factor: "1"
+
+    panoramic:
+      aspect-ratio: "2:1"
+      min-width: "400"
+      thumbnail:
+        scaling-factor: "0.1"
+      small:
+        scaling-factor: "0.4"
+      medium:
+        scaling-factor: "0.7"
+      large:
+        scaling-factor: "1"
+
+    rectangular:
+      aspect-ratio: "4:3"
+      min-width: "800"
+      thumbnail:
+        scaling-factor: "0.1"
+      small:
+        scaling-factor: "0.4"
+      medium:
+        scaling-factor: "0.7"
+      large:
+        scaling-factor: "1"
+
+    landscape:
+      aspect-ratio: "16:9"
+      min-width: "400"
+      thumbnail:
+        scaling-factor: "0.1"
+      small:
+        scaling-factor: "0.4"
+      medium:
+        scaling-factor: "0.7"
+      large:
+        scaling-factor: "1"
+
+"%prod":
+  quarkus:
+    mongodb:
+      connection-string: ${MONGODB_CONNECTION_STRING}
+
+"%dev":
+
+  bucket:
+    name: "test-bucket"
+
+  quarkus:
+    s3:
+      devservices:
+        buckets: "test-bucket"
+      aws:
+        region: "us-east-1"
+        credentials:
+          type: "static"
+          static-provider:
+            access-key-id: "test-key"
+            secret-access-key: "test-secret"
+
+"%test":
+
+  bucket:
+    name: "test-bucket"
+
+  quarkus:
+    s3:
+      devservices:
+        buckets: "test-bucket"
+      aws:
+        region: "us-east-1"
+        credentials:
+          type: "static"
+          static-provider:
+            access-key-id: "test-key"
+            secret-access-key: "test-secret"
+
+  image:
+    size:
+      square:
+        aspect-ratio: "1:1"
+        min-width: "400"
+        thumbnail:
+          scaling-factor: "0.1"
+
+      panoramic:
+        aspect-ratio: "2:1"
+        min-width: "400"
+        medium:
+          scaling-factor: "0.7"
