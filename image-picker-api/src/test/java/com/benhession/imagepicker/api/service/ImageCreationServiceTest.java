@@ -1,6 +1,6 @@
 package com.benhession.imagepicker.api.service;
 
-import static com.benhession.imagepicker.api.model.ImageType.LANDSCAPE;
+import static com.benhession.imagepicker.data.model.ImageType.LANDSCAPE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
@@ -13,11 +13,12 @@ import com.benhession.imagepicker.api.dto.ImageUploadDto;
 import com.benhession.imagepicker.api.dto.ObjectUploadForm;
 import com.benhession.imagepicker.api.exception.AbstractMultipleErrorApplicationException;
 import com.benhession.imagepicker.api.exception.BadRequestException;
-import com.benhession.imagepicker.api.model.ImageMetadata;
-import com.benhession.imagepicker.api.model.ImageSize;
-import com.benhession.imagepicker.api.model.ImageType;
-import com.benhession.imagepicker.api.repository.ImageMetadataRepository;
+
 import com.benhession.imagepicker.api.testutil.TestFileLoader;
+import com.benhession.imagepicker.common.model.ImageSize;
+import com.benhession.imagepicker.data.model.ImageMetadata;
+import com.benhession.imagepicker.data.model.ImageType;
+import com.benhession.imagepicker.data.repository.ImageMetaDataRepository;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusMock;
 import io.quarkus.test.junit.QuarkusTest;
@@ -54,7 +55,7 @@ public class ImageCreationServiceTest {
     ObjectStorageService objectStorageService;
 
     @InjectMock
-    ImageMetadataRepository imageMetadataRepository;
+    ImageMetaDataRepository imageMetadataRepository;
 
 
     @SuppressWarnings("unchecked")

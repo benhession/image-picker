@@ -4,10 +4,10 @@ import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
 import org.junit.jupiter.api.Test;
 
-import static com.benhession.imagepicker.api.model.ImageSize.MEDIUM;
-import static com.benhession.imagepicker.api.model.ImageSize.THUMBNAIL;
-import static com.benhession.imagepicker.api.model.ImageType.PANORAMIC;
-import static com.benhession.imagepicker.api.model.ImageType.SQUARE;
+import static com.benhession.imagepicker.common.model.ImageSize.MEDIUM;
+import static com.benhession.imagepicker.common.model.ImageSize.THUMBNAIL;
+import static com.benhession.imagepicker.data.model.ImageType.PANORAMIC;
+import static com.benhession.imagepicker.data.model.ImageType.SQUARE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @QuarkusTest

@@ -1,4 +1,4 @@
-package com.benhession.imagepicker.api.model;
+package com.benhession.imagepicker.common.model;
 
 public enum ImageSize {
     THUMBNAIL,

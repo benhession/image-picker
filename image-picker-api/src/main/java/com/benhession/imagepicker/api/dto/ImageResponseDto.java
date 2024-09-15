@@ -1,7 +1,7 @@
 package com.benhession.imagepicker.api.dto;
 
-import com.benhession.imagepicker.api.model.ImageSize;
-import com.benhession.imagepicker.api.model.ImageType;
+import com.benhession.imagepicker.common.model.ImageSize;
+import com.benhession.imagepicker.data.model.ImageType;
 import lombok.Getter;
 import lombok.Setter;
 

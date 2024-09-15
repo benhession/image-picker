@@ -1,4 +1,4 @@
-package com.benhession.imagepicker.api.model;
+package com.benhession.imagepicker.data.model;
 
 public enum ImageType {
     SQUARE,

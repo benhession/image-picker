@@ -1,6 +1,6 @@
 package com.benhession.imagepicker.api.service;
 
-import com.benhession.imagepicker.api.model.PageInfo;
+import com.benhession.imagepicker.common.model.PageInfo;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.ws.rs.core.Link;
 import jakarta.ws.rs.core.UriBuilder;

@@ -1,7 +1,7 @@
-package com.benhession.imagepicker.api.model;
+package com.benhession.imagepicker.data.model;
 
 import io.quarkus.mongodb.panache.common.MongoEntity;
-
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
@@ -10,8 +10,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.bson.codecs.pojo.annotations.BsonId;
 import org.bson.types.ObjectId;
-
-import java.util.List;
 
 @MongoEntity(collection = "images")
 @Builder
@@ -31,4 +29,3 @@ public class ImageMetadata {
     @EqualsAndHashCode.Exclude
     private List<String> tags;
 }
-

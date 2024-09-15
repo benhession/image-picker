@@ -2,10 +2,10 @@ package com.benhession.imagepicker.api.mapper;
 
 
 import com.benhession.imagepicker.api.dto.ImageResponseDto;
-import com.benhession.imagepicker.api.model.ImageMetadata;
-import com.benhession.imagepicker.api.model.ImageSize;
 import com.benhession.imagepicker.api.service.ObjectStorageService;
 import com.benhession.imagepicker.api.util.FilenameUtil;
+import com.benhession.imagepicker.common.model.ImageSize;
+import com.benhession.imagepicker.data.model.ImageMetadata;
 import jakarta.inject.Inject;
 
 import java.util.Arrays;

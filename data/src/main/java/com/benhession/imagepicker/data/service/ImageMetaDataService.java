@@ -1,8 +1,8 @@
-package com.benhession.imagepicker.api.service;
+package com.benhession.imagepicker.data.service;
 
-import com.benhession.imagepicker.api.model.ImageMetadata;
-import com.benhession.imagepicker.api.model.PageInfo;
-import com.benhession.imagepicker.api.repository.ImageMetadataRepository;
+import com.benhession.imagepicker.common.model.PageInfo;
+import com.benhession.imagepicker.data.model.ImageMetadata;
+import com.benhession.imagepicker.data.repository.ImageMetaDataRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import java.util.List;
@@ -14,7 +14,7 @@ import org.bson.types.ObjectId;
 @RequiredArgsConstructor(onConstructor = @__(@Inject))
 public class ImageMetaDataService {
 
-    private final ImageMetadataRepository imageMetadataRepository;
+    private final ImageMetaDataRepository imageMetadataRepository;
 
     public Optional<ImageMetadata> getImageMetaData(ObjectId objectId) {
         return imageMetadataRepository.findByIdOptional(objectId);

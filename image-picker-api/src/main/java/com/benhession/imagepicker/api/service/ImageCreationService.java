@@ -4,13 +4,13 @@ import com.benhession.imagepicker.api.dto.ImageUploadDto;
 import com.benhession.imagepicker.api.dto.ObjectUploadForm;
 import com.benhession.imagepicker.api.exception.BadRequestException;
 import com.benhession.imagepicker.api.exception.ImageProcessingException;
-import com.benhession.imagepicker.api.model.ImageHeightWidth;
-import com.benhession.imagepicker.api.model.ImageMetadata;
-import com.benhession.imagepicker.api.model.ImageSize;
-import com.benhession.imagepicker.api.model.ImageType;
-import com.benhession.imagepicker.api.repository.ImageMetadataRepository;
 import com.benhession.imagepicker.api.util.FilenameUtil;
 import com.benhession.imagepicker.api.util.MimeTypeUtil;
+import com.benhession.imagepicker.common.model.ImageHeightWidth;
+import com.benhession.imagepicker.common.model.ImageSize;
+import com.benhession.imagepicker.data.model.ImageMetadata;
+import com.benhession.imagepicker.data.model.ImageType;
+import com.benhession.imagepicker.data.repository.ImageMetaDataRepository;
 import com.madgag.gif.fmsware.AnimatedGifEncoder;
 import com.madgag.gif.fmsware.GifDecoder;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -33,7 +33,7 @@ import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
-import static com.benhession.imagepicker.api.model.ImageSize.values;
+import static com.benhession.imagepicker.common.model.ImageSize.values;
 
 @ApplicationScoped
 @RequiredArgsConstructor(onConstructor = @__(@Inject))
@@ -42,7 +42,7 @@ public class ImageCreationService {
     private final ImageSizeService imageSizeService;
     private final FilenameUtil filenameUtil;
     private final ObjectStorageService objectStorageService;
-    private final ImageMetadataRepository imageMetadataRepository;
+    private final ImageMetaDataRepository imageMetadataRepository;
     private final MimeTypeUtil mimeTypeUtil;
 
     public ImageMetadata createNewImages(final ObjectUploadForm objectUploadForm) {

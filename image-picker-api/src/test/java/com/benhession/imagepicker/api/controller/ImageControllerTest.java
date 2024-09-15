@@ -9,12 +9,12 @@ import static org.mockito.Mockito.when;
 
 import com.benhession.imagepicker.api.dto.ImageResponseDto;
 import com.benhession.imagepicker.api.exception.ErrorResponse;
-import com.benhession.imagepicker.api.model.ImageMetadata;
-import com.benhession.imagepicker.api.model.PageInfo;
 import com.benhession.imagepicker.api.service.ImageCreationService;
-import com.benhession.imagepicker.api.service.ImageMetaDataService;
 import com.benhession.imagepicker.api.service.ObjectStorageService;
 import com.benhession.imagepicker.api.testutil.TestFileLoader;
+import com.benhession.imagepicker.common.model.PageInfo;
+import com.benhession.imagepicker.data.model.ImageMetadata;
+import com.benhession.imagepicker.data.service.ImageMetaDataService;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.common.http.TestHTTPEndpoint;
 import io.quarkus.test.junit.QuarkusTest;

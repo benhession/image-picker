@@ -10,11 +10,11 @@ import com.benhession.imagepicker.api.exception.AbstractMultipleErrorApplication
 import com.benhession.imagepicker.api.exception.BadRequestException;
 import com.benhession.imagepicker.api.exception.NotFoundException;
 import com.benhession.imagepicker.api.mapper.ImageResponseMapper;
-import com.benhession.imagepicker.api.model.ImageMetadata;
-import com.benhession.imagepicker.api.model.PageInfo;
 import com.benhession.imagepicker.api.service.ImageCreationService;
-import com.benhession.imagepicker.api.service.ImageMetaDataService;
 import com.benhession.imagepicker.api.service.PaginationLinksService;
+import com.benhession.imagepicker.common.model.PageInfo;
+import com.benhession.imagepicker.data.model.ImageMetadata;
+import com.benhession.imagepicker.data.service.ImageMetaDataService;
 import io.quarkus.resteasy.reactive.links.InjectRestLinks;
 import io.quarkus.resteasy.reactive.links.RestLink;
 import io.quarkus.resteasy.reactive.links.RestLinkType;

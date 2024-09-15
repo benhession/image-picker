@@ -1,7 +1,6 @@
-package com.benhession.imagepicker.api.repository;
+package com.benhession.imagepicker.data.repository;
 
-
-import com.benhession.imagepicker.api.model.ImageMetadata;
+import com.benhession.imagepicker.data.model.ImageMetadata;
 import io.quarkus.mongodb.panache.PanacheMongoRepository;
 import io.quarkus.panache.common.Page;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -9,10 +8,10 @@ import java.util.List;
 import java.util.Optional;
 
 @ApplicationScoped
-public class ImageMetadataRepository implements PanacheMongoRepository<ImageMetadata> {
+public class ImageMetaDataRepository implements PanacheMongoRepository<ImageMetadata> {
     public Optional<ImageMetadata> findByParentKey(String key) {
         return find("parentKey", key)
-                .firstResultOptional();
+          .firstResultOptional();
     }
 
     public List<ImageMetadata> findPage(int page, int size) {

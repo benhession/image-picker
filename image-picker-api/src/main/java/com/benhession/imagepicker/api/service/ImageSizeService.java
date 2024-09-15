@@ -2,9 +2,9 @@ package com.benhession.imagepicker.api.service;
 
 import com.benhession.imagepicker.api.config.ImageConfigProperties;
 import com.benhession.imagepicker.api.exception.InvalidConfigurationException;
-import com.benhession.imagepicker.api.model.ImageHeightWidth;
-import com.benhession.imagepicker.api.model.ImageSize;
-import com.benhession.imagepicker.api.model.ImageType;
+import com.benhession.imagepicker.common.model.ImageHeightWidth;
+import com.benhession.imagepicker.common.model.ImageSize;
+import com.benhession.imagepicker.data.model.ImageType;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import java.math.BigDecimal;
