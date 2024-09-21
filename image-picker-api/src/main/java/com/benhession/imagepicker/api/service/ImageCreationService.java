@@ -4,7 +4,6 @@ import com.benhession.imagepicker.api.dto.ImageUploadDto;
 import com.benhession.imagepicker.api.dto.ObjectUploadForm;
 import com.benhession.imagepicker.api.util.FilenameUtil;
 import com.benhession.imagepicker.api.util.MimeTypeUtil;
-import com.benhession.imagepicker.common.exception.BadRequestException;
 import com.benhession.imagepicker.common.exception.ImageProcessingException;
 import com.benhession.imagepicker.common.model.ImageHeightWidth;
 import com.benhession.imagepicker.common.model.ImageSize;
@@ -14,7 +13,6 @@ import com.benhession.imagepicker.data.repository.ImageMetaDataRepository;
 import com.madgag.gif.fmsware.AnimatedGifEncoder;
 import com.madgag.gif.fmsware.GifDecoder;
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -26,8 +24,6 @@ import net.coobird.thumbnailator.Thumbnails;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
@@ -36,7 +32,7 @@ import java.util.List;
 import static com.benhession.imagepicker.common.model.ImageSize.values;
 
 @ApplicationScoped
-@RequiredArgsConstructor(onConstructor = @__(@Inject))
+@RequiredArgsConstructor
 public class ImageCreationService {
 
     private final ImageSizeService imageSizeService;
@@ -46,10 +42,7 @@ public class ImageCreationService {
     private final MimeTypeUtil mimeTypeUtil;
 
     public ImageMetadata createNewImages(final ObjectUploadForm objectUploadForm) {
-        final File file = objectUploadForm.getData();
         final ImageType imageType = ImageType.valueOf(objectUploadForm.getImageType());
-
-        validateInputImage(file, imageType);
 
         List<ImageUploadDto> images = Arrays.stream(values())
           .map(imageSize -> new ImageUploadDto(
@@ -138,46 +131,4 @@ public class ImageCreationService {
             }
         }
     }
-
-    private void validateInputImage(File file, ImageType imageType) {
-        try {
-            BufferedImage bufferedImage = ImageIO.read(file);
-            List<BadRequestException.ErrorMessage> errorMessages = new ArrayList<>();
-            BigDecimal expectedAspectRatio = imageSizeService.findAspectRatio(imageType);
-            BigDecimal actualAspectRatio = calculateAspectRatio(bufferedImage.getWidth(),
-              bufferedImage.getHeight());
-            int minWidth = imageSizeService.findMinWidth(imageType);
-
-            if (!actualAspectRatio.equals(expectedAspectRatio)) {
-                errorMessages.add(BadRequestException.ErrorMessage.builder()
-                  .message(String.format("Expected aspect ratio for image type: %s to be %s, but was %s",
-                    imageType, expectedAspectRatio.floatValue(), actualAspectRatio.floatValue()))
-                  .build());
-            }
-
-            if (bufferedImage.getWidth() < minWidth) {
-                errorMessages.add(BadRequestException.ErrorMessage.builder()
-                  .message(String.format("Expected width of %s image to be more that %s, but was %s",
-                    imageType, minWidth, bufferedImage.getWidth()))
-                  .build());
-            }
-
-            if (!errorMessages.isEmpty()) {
-                throw new BadRequestException(errorMessages);
-            }
-
-        } catch (IOException e) {
-            throw new BadRequestException(List.of(BadRequestException.ErrorMessage.builder()
-              .message("Unable to read file data")
-              .build()));
-        }
-    }
-
-    private BigDecimal calculateAspectRatio(int width, int height) {
-        var widthBd = new BigDecimal(Integer.toString(width));
-        var heightBd = new BigDecimal(Integer.toString(height));
-
-        return widthBd.divide(heightBd, 2, RoundingMode.HALF_UP);
-    }
-
 }

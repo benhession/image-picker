@@ -10,8 +10,11 @@ import static org.mockito.Mockito.when;
 import com.benhession.imagepicker.api.dto.ImageResponseDto;
 import com.benhession.imagepicker.api.exception.ErrorResponse;
 import com.benhession.imagepicker.api.service.ImageCreationService;
+import com.benhession.imagepicker.api.service.ImageValidationService;
 import com.benhession.imagepicker.api.service.ObjectStorageService;
 import com.benhession.imagepicker.api.testutil.TestFileLoader;
+import com.benhession.imagepicker.common.exception.AbstractMultipleErrorApplicationException;
+import com.benhession.imagepicker.common.exception.BadRequestException;
 import com.benhession.imagepicker.common.model.PageInfo;
 import com.benhession.imagepicker.data.model.ImageMetadata;
 import com.benhession.imagepicker.data.service.ImageMetaDataService;
@@ -60,6 +63,8 @@ public class ImageControllerTest {
     ImageMetaDataService imageMetaDataService;
     @InjectMock
     ObjectStorageService objectStorageService;
+    @InjectMock
+    ImageValidationService imageValidationService;
 
     @Test
     @TestSecurity(user = "testUser", roles = {"Everyone", "blog-admin"})
@@ -86,6 +91,30 @@ public class ImageControllerTest {
         var error = errorResponse.getErrors().getFirst();
         assertThat(error.getMessage()).isEqualTo(SYSTEM_ERROR_MESSAGE);
         assertThat(error.getPath()).isNull();
+    }
+
+    @Test
+    @TestSecurity(user = "testUser", roles = {"Everyone", "blog-admin"})
+    public void When_AddImage_with_ImageValidationServiceThrowsBadRequest_Expect_400AndError() {
+        var errorMessage = AbstractMultipleErrorApplicationException
+          .ErrorMessage.builder().message("test exception").build();
+
+        doThrow(new BadRequestException(List.of(errorMessage)))
+          .when(imageValidationService).validateInputImage(any());
+
+        File file = testFileLoader.loadTestFile("test-image.jpg");
+
+        var errorResponse = given()
+          .multiPart("data", file)
+          .multiPart("filename", "test-image.jpg")
+          .multiPart("mime-type", "image/jpeg")
+          .multiPart("image-type", "SQUARE")
+          .when()
+          .post()
+          .then()
+          .statusCode(400)
+          .extract()
+          .as(ErrorResponse.class);
     }
 
     @Test

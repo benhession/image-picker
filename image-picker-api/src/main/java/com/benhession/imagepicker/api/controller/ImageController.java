@@ -8,6 +8,7 @@ import com.benhession.imagepicker.api.dto.ImageResponseDto;
 import com.benhession.imagepicker.api.dto.ObjectUploadForm;
 import com.benhession.imagepicker.api.mapper.ImageResponseMapper;
 import com.benhession.imagepicker.api.service.ImageCreationService;
+import com.benhession.imagepicker.api.service.ImageValidationService;
 import com.benhession.imagepicker.api.service.PaginationLinksService;
 import com.benhession.imagepicker.common.exception.AbstractMultipleErrorApplicationException;
 import com.benhession.imagepicker.common.exception.BadRequestException;
@@ -50,6 +51,7 @@ public class ImageController {
     private final ImageResponseMapper imageResponseMapper;
     private final ImageMetaDataService imageMetaDataService;
     private final PaginationLinksService paginationLinksService;
+    private final ImageValidationService imageValidationService;
 
     @POST
     @Consumes(MediaType.MULTIPART_FORM_DATA)
@@ -59,6 +61,7 @@ public class ImageController {
     public RestResponse<ImageResponseDto> addImage(@Valid @BeanParam ObjectUploadForm objectUploadForm) {
 
         validateMimeType(objectUploadForm.getMimetype());
+        imageValidationService.validateInputImage(objectUploadForm);
         ImageMetadata metadata = imageCreationService.createNewImages(objectUploadForm);
 
         return RestResponse.accepted(imageResponseMapper.toDto(metadata));

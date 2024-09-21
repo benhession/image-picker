@@ -10,25 +10,5 @@ java {
 }
 
 dependencies {
-    implementation 'io.quarkus:quarkus-awt'
-    implementation 'io.quarkus:quarkus-rest-links'
-    implementation 'io.quarkus:quarkus-oidc'
-    implementation 'io.quarkus:quarkus-hibernate-validator'
-    implementation 'io.quarkiverse.amazonservices:quarkus-amazon-s3'
-    implementation 'software.amazon.awssdk:url-connection-client'
     implementation enforcedPlatform("${quarkusPlatformGroupId}:quarkus-amazon-services-bom:${quarkusPlatformVersion}")
-    implementation 'io.quarkus:quarkus-amazon-lambda-rest'
-    implementation 'io.quarkus:quarkus-mongodb-panache'
-    implementation 'io.quarkus:quarkus-rest-jackson'
-    implementation 'org.mapstruct:mapstruct:1.5.5.Final'
-
-    implementation 'net.coobird:thumbnailator:0.4.20'
-    implementation 'org.jodd:jodd-util:6.2.2'
-    implementation 'com.madgag:animated-gif-lib:1.4'
-
-    testImplementation 'io.rest-assured:rest-assured'
-    testImplementation 'io.quarkus:quarkus-junit5-mockito'
-    testImplementation "io.quarkus:quarkus-test-security"
-
-    annotationProcessor 'org.mapstruct:mapstruct-processor:1.5.5.Final'
 }

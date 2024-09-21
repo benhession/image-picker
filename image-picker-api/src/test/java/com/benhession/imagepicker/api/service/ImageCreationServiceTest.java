@@ -2,7 +2,6 @@ package com.benhession.imagepicker.api.service;
 
 import static com.benhession.imagepicker.data.model.ImageType.LANDSCAPE;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
@@ -13,24 +12,19 @@ import com.benhession.imagepicker.api.dto.ImageUploadDto;
 import com.benhession.imagepicker.api.dto.ObjectUploadForm;
 
 import com.benhession.imagepicker.api.testutil.TestFileLoader;
-import com.benhession.imagepicker.common.exception.AbstractMultipleErrorApplicationException;
-import com.benhession.imagepicker.common.exception.BadRequestException;
 import com.benhession.imagepicker.common.model.ImageSize;
 import com.benhession.imagepicker.data.model.ImageMetadata;
 import com.benhession.imagepicker.data.model.ImageType;
 import com.benhession.imagepicker.data.repository.ImageMetaDataRepository;
 import io.quarkus.test.InjectMock;
-import io.quarkus.test.junit.QuarkusMock;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
-import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import org.bson.types.ObjectId;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
-import org.mockito.Mockito;
 
 @QuarkusTest
 public class ImageCreationServiceTest {
@@ -104,48 +98,4 @@ public class ImageCreationServiceTest {
           .allMatch(image -> image.length > 0);
         assertThat(allHaveData).isTrue();
     }
-
-    @Test
-    public void When_CreateNewImages_With_InvalidAspectRatio_Expect_BadRequestException() {
-        var objectUploadForm = ObjectUploadForm.builder()
-          .data(testFileLoader.loadTestFile("test.jpeg"))
-          .filename(TEST_FILENAME)
-          .mimetype(TEST_MIME_TYPE)
-          .imageType("SQUARE")
-          .build();
-
-        assertThatThrownBy(() -> imageCreationService.createNewImages(objectUploadForm))
-          .isInstanceOf(BadRequestException.class)
-          .matches(e -> ((BadRequestException) e).getErrorMessages().stream()
-              .map(AbstractMultipleErrorApplicationException.ErrorMessage::message)
-              .anyMatch(message ->
-                message.equals("Expected aspect ratio for image type: SQUARE to be 1.0, but was 1.78")),
-              "has expected message");
-    }
-
-    @Test
-    public void When_CreateNewImages_With_InvalidWidth_Expect_BadRequestException() {
-
-        var imageService = Mockito.mock(ImageSizeService.class);
-        QuarkusMock.installMockForType(imageService, ImageSizeService.class);
-
-        var objectUploadForm = ObjectUploadForm.builder()
-          .data(testFileLoader.loadTestFile("test.jpeg"))
-          .filename(TEST_FILENAME)
-          .mimetype(TEST_MIME_TYPE)
-          .imageType(TEST_IMAGE_TYPE.toString())
-          .build();
-
-        when(imageService.findAspectRatio(any())).thenReturn(new BigDecimal("1.78"));
-        when(imageService.findMinWidth(any())).thenReturn(2000);
-
-        assertThatThrownBy(() -> imageCreationService.createNewImages(objectUploadForm))
-          .isInstanceOf(BadRequestException.class)
-          .matches(e -> ((BadRequestException) e).getErrorMessages().stream()
-              .map(AbstractMultipleErrorApplicationException.ErrorMessage::message)
-              .anyMatch(message ->
-                message.equals("Expected width of LANDSCAPE image to be more that 2000, but was 800")),
-              "has expected message");
-    }
-
 }
