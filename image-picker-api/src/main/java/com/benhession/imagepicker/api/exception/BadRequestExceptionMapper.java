@@ -1,5 +1,6 @@
 package com.benhession.imagepicker.api.exception;
 
+import com.benhession.imagepicker.common.exception.BadRequestException;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.ext.ExceptionMapper;

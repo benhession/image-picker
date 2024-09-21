@@ -11,10 +11,10 @@ import static org.mockito.Mockito.when;
 
 import com.benhession.imagepicker.api.dto.ImageUploadDto;
 import com.benhession.imagepicker.api.dto.ObjectUploadForm;
-import com.benhession.imagepicker.api.exception.AbstractMultipleErrorApplicationException;
-import com.benhession.imagepicker.api.exception.BadRequestException;
 
 import com.benhession.imagepicker.api.testutil.TestFileLoader;
+import com.benhession.imagepicker.common.exception.AbstractMultipleErrorApplicationException;
+import com.benhession.imagepicker.common.exception.BadRequestException;
 import com.benhession.imagepicker.common.model.ImageSize;
 import com.benhession.imagepicker.data.model.ImageMetadata;
 import com.benhession.imagepicker.data.model.ImageType;

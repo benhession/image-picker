@@ -1,7 +1,7 @@
 package com.benhession.imagepicker.api.service;
 
 import com.benhession.imagepicker.api.dto.ImageUploadDto;
-import com.benhession.imagepicker.api.exception.ImageProcessingException;
+import com.benhession.imagepicker.common.exception.ImageProcessingException;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import java.io.ByteArrayInputStream;

@@ -1,5 +1,6 @@
 package com.benhession.imagepicker.api.exception;
 
+import com.benhession.imagepicker.common.exception.AbstractMultipleErrorApplicationException;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import java.util.List;

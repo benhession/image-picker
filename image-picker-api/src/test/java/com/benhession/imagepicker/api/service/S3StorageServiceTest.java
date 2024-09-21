@@ -6,9 +6,9 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doCallRealMethod;
 
 import com.benhession.imagepicker.api.dto.ImageUploadDto;
-import com.benhession.imagepicker.api.exception.ImageProcessingException;
 import com.benhession.imagepicker.api.testutil.TestFileLoader;
 import com.benhession.imagepicker.api.util.MimeTypeUtil;
+import com.benhession.imagepicker.common.exception.ImageProcessingException;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.junit.mockito.InjectSpy;
 import jakarta.inject.Inject;

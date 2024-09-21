@@ -1,4 +1,4 @@
-package com.benhession.imagepicker.api.exception;
+package com.benhession.imagepicker.common.exception;
 
 public class ImageProcessingException extends RuntimeException {
     public ImageProcessingException(String errorMessage) {

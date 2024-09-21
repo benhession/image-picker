@@ -1,6 +1,5 @@
 package com.benhession.imagepicker.api.mapper;
 
-
 import com.benhession.imagepicker.api.dto.ImageResponseDto;
 import com.benhession.imagepicker.api.service.ObjectStorageService;
 import com.benhession.imagepicker.api.util.FilenameUtil;

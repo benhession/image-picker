@@ -1,4 +1,4 @@
-package com.benhession.imagepicker.api.exception;
+package com.benhession.imagepicker.common.exception;
 
 import java.util.List;
 import lombok.Builder;

@@ -1,6 +1,6 @@
 package com.benhession.imagepicker.api.util;
 
-import com.benhession.imagepicker.api.exception.ImageProcessingException;
+import com.benhession.imagepicker.common.exception.ImageProcessingException;
 import jakarta.enterprise.context.ApplicationScoped;
 import jodd.net.MimeTypes;
 

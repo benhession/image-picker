@@ -2,10 +2,10 @@ package com.benhession.imagepicker.api.service;
 
 import com.benhession.imagepicker.api.dto.ImageUploadDto;
 import com.benhession.imagepicker.api.dto.ObjectUploadForm;
-import com.benhession.imagepicker.api.exception.BadRequestException;
-import com.benhession.imagepicker.api.exception.ImageProcessingException;
 import com.benhession.imagepicker.api.util.FilenameUtil;
 import com.benhession.imagepicker.api.util.MimeTypeUtil;
+import com.benhession.imagepicker.common.exception.BadRequestException;
+import com.benhession.imagepicker.common.exception.ImageProcessingException;
 import com.benhession.imagepicker.common.model.ImageHeightWidth;
 import com.benhession.imagepicker.common.model.ImageSize;
 import com.benhession.imagepicker.data.model.ImageMetadata;

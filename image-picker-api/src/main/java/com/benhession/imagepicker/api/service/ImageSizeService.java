@@ -1,7 +1,7 @@
 package com.benhession.imagepicker.api.service;
 
 import com.benhession.imagepicker.api.config.ImageConfigProperties;
-import com.benhession.imagepicker.api.exception.InvalidConfigurationException;
+import com.benhession.imagepicker.common.exception.InvalidConfigurationException;
 import com.benhession.imagepicker.common.model.ImageHeightWidth;
 import com.benhession.imagepicker.common.model.ImageSize;
 import com.benhession.imagepicker.data.model.ImageType;
