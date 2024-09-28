@@ -1,15 +1,16 @@
 package com.benhession.imagepicker.api.service;
 
-import com.benhession.imagepicker.api.dto.ImageUploadDto;
 import com.benhession.imagepicker.api.dto.ObjectUploadForm;
 import com.benhession.imagepicker.api.util.FilenameUtil;
-import com.benhession.imagepicker.api.util.MimeTypeUtil;
 import com.benhession.imagepicker.common.exception.ImageProcessingException;
 import com.benhession.imagepicker.common.model.ImageHeightWidth;
 import com.benhession.imagepicker.common.model.ImageSize;
+import com.benhession.imagepicker.common.util.MimeTypeUtil;
+import com.benhession.imagepicker.data.dto.ImageUploadDto;
 import com.benhession.imagepicker.data.model.ImageMetadata;
 import com.benhession.imagepicker.data.model.ImageType;
 import com.benhession.imagepicker.data.repository.ImageMetaDataRepository;
+import com.benhession.imagepicker.data.service.ObjectStorageService;
 import com.madgag.gif.fmsware.AnimatedGifEncoder;
 import com.madgag.gif.fmsware.GifDecoder;
 import jakarta.enterprise.context.ApplicationScoped;

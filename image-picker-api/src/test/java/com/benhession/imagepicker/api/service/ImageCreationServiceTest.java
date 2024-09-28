@@ -8,14 +8,15 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.benhession.imagepicker.api.dto.ImageUploadDto;
 import com.benhession.imagepicker.api.dto.ObjectUploadForm;
 
-import com.benhession.imagepicker.api.testutil.TestFileLoader;
 import com.benhession.imagepicker.common.model.ImageSize;
+import com.benhession.imagepicker.data.dto.ImageUploadDto;
 import com.benhession.imagepicker.data.model.ImageMetadata;
 import com.benhession.imagepicker.data.model.ImageType;
 import com.benhession.imagepicker.data.repository.ImageMetaDataRepository;
+import com.benhession.imagepicker.data.service.ObjectStorageService;
+import com.benhession.imagepicker.testutil.TestFileLoader;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;

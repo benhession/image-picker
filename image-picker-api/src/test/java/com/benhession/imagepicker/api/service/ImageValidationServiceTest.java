@@ -6,10 +6,10 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import com.benhession.imagepicker.api.dto.ObjectUploadForm;
-import com.benhession.imagepicker.api.testutil.TestFileLoader;
 import com.benhession.imagepicker.common.exception.AbstractMultipleErrorApplicationException;
 import com.benhession.imagepicker.common.exception.BadRequestException;
 import com.benhession.imagepicker.data.model.ImageType;
+import com.benhession.imagepicker.testutil.TestFileLoader;
 import io.quarkus.test.junit.QuarkusMock;
 import io.quarkus.test.junit.QuarkusTest;
 import java.math.BigDecimal;
@@ -42,7 +42,7 @@ public class ImageValidationServiceTest {
               .map(AbstractMultipleErrorApplicationException.ErrorMessage::message)
               .anyMatch(message ->
                 message.equals("Expected aspect ratio for image type: SQUARE to be 1.0, but was 1.78")),
-            "has expected message");
+                "has expected message");
     }
 
     @Test
@@ -66,6 +66,6 @@ public class ImageValidationServiceTest {
               .map(AbstractMultipleErrorApplicationException.ErrorMessage::message)
               .anyMatch(message ->
                 message.equals("Expected width of LANDSCAPE image to be more that 2000, but was 800")),
-            "has expected message");
+                "has expected message");
     }
 }

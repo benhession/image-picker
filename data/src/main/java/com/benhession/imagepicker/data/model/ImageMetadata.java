@@ -28,4 +28,5 @@ public class ImageMetadata {
     private ImageType type;
     @EqualsAndHashCode.Exclude
     private List<String> tags;
+    private ImageProcessingStatus status;
 }

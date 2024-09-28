@@ -11,13 +11,13 @@ import com.benhession.imagepicker.api.dto.ImageResponseDto;
 import com.benhession.imagepicker.api.exception.ErrorResponse;
 import com.benhession.imagepicker.api.service.ImageCreationService;
 import com.benhession.imagepicker.api.service.ImageValidationService;
-import com.benhession.imagepicker.api.service.ObjectStorageService;
-import com.benhession.imagepicker.api.testutil.TestFileLoader;
 import com.benhession.imagepicker.common.exception.AbstractMultipleErrorApplicationException;
 import com.benhession.imagepicker.common.exception.BadRequestException;
 import com.benhession.imagepicker.common.model.PageInfo;
 import com.benhession.imagepicker.data.model.ImageMetadata;
 import com.benhession.imagepicker.data.service.ImageMetaDataService;
+import com.benhession.imagepicker.data.service.ObjectStorageService;
+import com.benhession.imagepicker.testutil.TestFileLoader;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.common.http.TestHTTPEndpoint;
 import io.quarkus.test.junit.QuarkusTest;
@@ -104,7 +104,7 @@ public class ImageControllerTest {
 
         File file = testFileLoader.loadTestFile("test-image.jpg");
 
-        var errorResponse = given()
+        given()
           .multiPart("data", file)
           .multiPart("filename", "test-image.jpg")
           .multiPart("mime-type", "image/jpeg")

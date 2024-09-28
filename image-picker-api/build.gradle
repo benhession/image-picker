@@ -26,12 +26,11 @@ dependencies {
     implementation 'org.mapstruct:mapstruct:1.5.5.Final'
 
     implementation 'net.coobird:thumbnailator:0.4.20'
-    implementation 'org.jodd:jodd-util:6.2.2'
     implementation 'com.madgag:animated-gif-lib:1.4'
 
     testImplementation 'io.rest-assured:rest-assured'
-    testImplementation 'io.quarkus:quarkus-junit5-mockito'
     testImplementation "io.quarkus:quarkus-test-security"
+    testImplementation project(':test-util')
 
     annotationProcessor 'org.mapstruct:mapstruct-processor:1.5.5.Final'
 }
