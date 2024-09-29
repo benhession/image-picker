@@ -1,7 +1,6 @@
-package com.benhession.imagepicker.api.config;
+package com.benhession.imagepicker.common.config;
 
 import io.smallrye.config.ConfigMapping;
-
 import java.util.List;
 
 @ConfigMapping(prefix = "image")

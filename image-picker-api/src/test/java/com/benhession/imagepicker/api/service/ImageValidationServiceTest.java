@@ -1,6 +1,6 @@
 package com.benhession.imagepicker.api.service;
 
-import static com.benhession.imagepicker.data.model.ImageType.LANDSCAPE;
+import static com.benhession.imagepicker.common.model.ImageType.LANDSCAPE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
@@ -9,7 +9,8 @@ import static org.mockito.Mockito.when;
 import com.benhession.imagepicker.api.dto.ObjectUploadForm;
 import com.benhession.imagepicker.common.exception.AbstractMultipleErrorApplicationException;
 import com.benhession.imagepicker.common.exception.BadRequestException;
-import com.benhession.imagepicker.data.model.ImageType;
+import com.benhession.imagepicker.common.model.ImageType;
+import com.benhession.imagepicker.common.service.ImageSizeService;
 import com.benhession.imagepicker.testutil.TestFileLoader;
 import io.quarkus.test.junit.QuarkusMock;
 import io.quarkus.test.junit.QuarkusTest;

@@ -1,7 +1,7 @@
 package com.benhession.imagepicker.api.dto;
 
 import com.benhession.imagepicker.api.validation.EnumValidator;
-import com.benhession.imagepicker.data.model.ImageType;
+import com.benhession.imagepicker.common.model.ImageType;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.ws.rs.core.MediaType;

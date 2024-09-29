@@ -1,7 +1,7 @@
 package com.benhession.imagepicker.api.util;
 
 import com.benhession.imagepicker.common.model.ImageSize;
-import com.benhession.imagepicker.data.model.ImageType;
+import com.benhession.imagepicker.common.model.ImageType;
 import jakarta.enterprise.context.ApplicationScoped;
 
 @ApplicationScoped

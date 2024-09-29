@@ -1,12 +1,11 @@
-package com.benhession.imagepicker.api.service;
+package com.benhession.imagepicker.common.service;
 
-import com.benhession.imagepicker.api.config.ImageConfigProperties;
+import com.benhession.imagepicker.common.config.ImageConfigProperties;
 import com.benhession.imagepicker.common.exception.InvalidConfigurationException;
 import com.benhession.imagepicker.common.model.ImageHeightWidth;
 import com.benhession.imagepicker.common.model.ImageSize;
-import com.benhession.imagepicker.data.model.ImageType;
+import com.benhession.imagepicker.common.model.ImageType;
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.regex.Matcher;
@@ -14,7 +13,7 @@ import java.util.regex.Pattern;
 import lombok.RequiredArgsConstructor;
 
 @ApplicationScoped
-@RequiredArgsConstructor(onConstructor = @__(@Inject))
+@RequiredArgsConstructor
 public class ImageSizeService {
 
     private final ImageConfigProperties imageConfigProperties;
@@ -52,27 +51,27 @@ public class ImageSizeService {
     }
 
     private ImageHeightWidth heightWidthFromImageSize(ImageSize imageSize,
-                                                      ImageConfigProperties.ImageType.ImageSize imageSizeConfig) {
+        ImageConfigProperties.ImageType.ImageSize imageSizeConfig) {
         return switch (imageSize) {
             case THUMBNAIL -> calculateHeightWidth(
-              new BigDecimal(imageSizeConfig.minWidth()),
-              new BigDecimal(imageSizeConfig.thumbnail().scalingFactor()),
-              aspectRatioFromString(imageSizeConfig.aspectRatio())
+                new BigDecimal(imageSizeConfig.minWidth()),
+                new BigDecimal(imageSizeConfig.thumbnail().scalingFactor()),
+                aspectRatioFromString(imageSizeConfig.aspectRatio())
             );
             case SMALL -> calculateHeightWidth(
-              new BigDecimal(imageSizeConfig.minWidth()),
-              new BigDecimal(imageSizeConfig.small().scalingFactor()),
-              aspectRatioFromString(imageSizeConfig.aspectRatio())
+                new BigDecimal(imageSizeConfig.minWidth()),
+                new BigDecimal(imageSizeConfig.small().scalingFactor()),
+                aspectRatioFromString(imageSizeConfig.aspectRatio())
             );
             case MEDIUM -> calculateHeightWidth(
-              new BigDecimal(imageSizeConfig.minWidth()),
-              new BigDecimal(imageSizeConfig.medium().scalingFactor()),
-              aspectRatioFromString(imageSizeConfig.aspectRatio())
+                new BigDecimal(imageSizeConfig.minWidth()),
+                new BigDecimal(imageSizeConfig.medium().scalingFactor()),
+                aspectRatioFromString(imageSizeConfig.aspectRatio())
             );
             case LARGE -> calculateHeightWidth(
-              new BigDecimal(imageSizeConfig.minWidth()),
-              new BigDecimal(imageSizeConfig.large().scalingFactor()),
-              aspectRatioFromString(imageSizeConfig.aspectRatio())
+                new BigDecimal(imageSizeConfig.minWidth()),
+                new BigDecimal(imageSizeConfig.large().scalingFactor()),
+                aspectRatioFromString(imageSizeConfig.aspectRatio())
             );
         };
     }
@@ -85,12 +84,11 @@ public class ImageSizeService {
         return minWidth.multiply(scaleFactor).divide(aspectRatio, 0, RoundingMode.HALF_UP).intValue();
     }
 
-
     private ImageHeightWidth calculateHeightWidth(BigDecimal minWidth, BigDecimal scaleFactor, BigDecimal aspectRatio) {
         return ImageHeightWidth.builder()
-          .height(calculateHeight(minWidth, scaleFactor, aspectRatio))
-          .width(calculateWidth(minWidth, scaleFactor))
-          .build();
+            .height(calculateHeight(minWidth, scaleFactor, aspectRatio))
+            .width(calculateWidth(minWidth, scaleFactor))
+            .build();
     }
 
     private BigDecimal aspectRatioFromString(String ratio) {

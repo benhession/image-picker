@@ -1,16 +1,14 @@
-package com.benhession.imagepicker.api.service;
-
-import com.benhession.imagepicker.common.service.ImageSizeService;
-import io.quarkus.test.junit.QuarkusTest;
-import jakarta.inject.Inject;
-import org.junit.jupiter.api.Test;
+package com.benhession.imagepicker.common.service;
 
 import static com.benhession.imagepicker.common.model.ImageSize.MEDIUM;
 import static com.benhession.imagepicker.common.model.ImageSize.THUMBNAIL;
-
 import static com.benhession.imagepicker.common.model.ImageType.PANORAMIC;
 import static com.benhession.imagepicker.common.model.ImageType.SQUARE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import io.quarkus.test.junit.QuarkusTest;
+import jakarta.inject.Inject;
+import org.junit.jupiter.api.Test;
 
 @QuarkusTest
 public class ImageSizeServiceTest {

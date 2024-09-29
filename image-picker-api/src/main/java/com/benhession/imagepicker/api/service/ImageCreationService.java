@@ -5,10 +5,11 @@ import com.benhession.imagepicker.common.exception.ImageProcessingException;
 import com.benhession.imagepicker.common.model.FileData;
 import com.benhession.imagepicker.common.model.ImageHeightWidth;
 import com.benhession.imagepicker.common.model.ImageSize;
+import com.benhession.imagepicker.common.model.ImageType;
+import com.benhession.imagepicker.common.service.ImageSizeService;
 import com.benhession.imagepicker.common.util.MimeTypeUtil;
 import com.benhession.imagepicker.data.dto.ImageUploadDto;
 import com.benhession.imagepicker.data.model.ImageMetadata;
-import com.benhession.imagepicker.data.model.ImageType;
 import com.benhession.imagepicker.data.repository.ImageMetaDataRepository;
 import com.benhession.imagepicker.data.service.ObjectStorageService;
 import com.madgag.gif.fmsware.AnimatedGifEncoder;
@@ -46,10 +47,11 @@ public class ImageCreationService {
         final ImageType imageType = ImageType.valueOf(fileData.imageType());
 
         List<ImageUploadDto> images = Arrays.stream(values())
-            .map(imageSize -> new ImageUploadDto(
-                filenameUtil.getFilename(fileData.filename(), imageType, imageSize),
-                fileData.mimeType(),
-                resizeAsNewImage(fileData, imageSize, fileData.mimeType())))
+            .map(imageSize -> ImageUploadDto.builder()
+                .filename(filenameUtil.getFilename(fileData.filename(), imageType, imageSize))
+                .mimetype(fileData.mimeType())
+                .image(resizeAsNewImage(fileData, imageSize, fileData.mimeType()))
+                .build())
             .toList();
 
         String parentKey = objectStorageService.uploadFiles(fileData.filename(), images);

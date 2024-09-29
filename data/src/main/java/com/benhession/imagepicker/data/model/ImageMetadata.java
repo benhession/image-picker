@@ -1,5 +1,6 @@
 package com.benhession.imagepicker.data.model;
 
+import com.benhession.imagepicker.common.model.ImageType;
 import io.quarkus.mongodb.panache.common.MongoEntity;
 import java.util.List;
 import lombok.AllArgsConstructor;

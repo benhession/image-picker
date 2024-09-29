@@ -1,9 +1,10 @@
 package com.benhession.imagepicker.api.service;
 
-import com.benhession.imagepicker.api.config.ImageConfigProperties;
 import com.benhession.imagepicker.api.dto.ObjectUploadForm;
+import com.benhession.imagepicker.common.config.ImageConfigProperties;
 import com.benhession.imagepicker.common.exception.BadRequestException;
-import com.benhession.imagepicker.data.model.ImageType;
+import com.benhession.imagepicker.common.model.ImageType;
+import com.benhession.imagepicker.common.service.ImageSizeService;
 import jakarta.enterprise.context.ApplicationScoped;
 import java.awt.image.BufferedImage;
 import java.io.File;
