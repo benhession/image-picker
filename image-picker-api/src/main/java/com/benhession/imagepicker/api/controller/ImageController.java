@@ -6,12 +6,14 @@ import static org.jboss.resteasy.reactive.RestResponse.Status.OK;
 import com.benhession.imagepicker.api.dto.ImageResponseDto;
 import com.benhession.imagepicker.api.dto.ObjectUploadForm;
 import com.benhession.imagepicker.api.mapper.ImageResponseMapper;
+import com.benhession.imagepicker.api.service.FileDataFactory;
 import com.benhession.imagepicker.api.service.ImageCreationService;
 import com.benhession.imagepicker.api.service.ImageValidationService;
 import com.benhession.imagepicker.api.service.PaginationLinksService;
 import com.benhession.imagepicker.common.exception.AbstractMultipleErrorApplicationException;
 import com.benhession.imagepicker.common.exception.BadRequestException;
 import com.benhession.imagepicker.common.exception.NotFoundException;
+import com.benhession.imagepicker.common.model.FileData;
 import com.benhession.imagepicker.common.model.PageInfo;
 import com.benhession.imagepicker.data.model.ImageMetadata;
 import com.benhession.imagepicker.data.service.ImageMetaDataService;
@@ -49,6 +51,7 @@ public class ImageController {
     private final ImageMetaDataService imageMetaDataService;
     private final PaginationLinksService paginationLinksService;
     private final ImageValidationService imageValidationService;
+    private final FileDataFactory fileDataFactory;
 
     @POST
     @Consumes(MediaType.MULTIPART_FORM_DATA)
@@ -57,8 +60,8 @@ public class ImageController {
     @InjectRestLinks(RestLinkType.INSTANCE)
     public RestResponse<ImageResponseDto> addImage(@Valid @BeanParam ObjectUploadForm objectUploadForm) {
         imageValidationService.validateInputImage(objectUploadForm);
-        ImageMetadata metadata = imageCreationService.createNewImages(objectUploadForm);
-
+        FileData fileData = fileDataFactory.fromObjectUploadForm(objectUploadForm);
+        ImageMetadata metadata = imageCreationService.createNewImages(fileData);
         return RestResponse.accepted(imageResponseMapper.toDto(metadata));
     }
 

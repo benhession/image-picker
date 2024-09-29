@@ -1,8 +1,8 @@
 package com.benhession.imagepicker.api.service;
 
-import com.benhession.imagepicker.api.dto.ObjectUploadForm;
 import com.benhession.imagepicker.api.util.FilenameUtil;
 import com.benhession.imagepicker.common.exception.ImageProcessingException;
+import com.benhession.imagepicker.common.model.FileData;
 import com.benhession.imagepicker.common.model.ImageHeightWidth;
 import com.benhession.imagepicker.common.model.ImageSize;
 import com.benhession.imagepicker.common.util.MimeTypeUtil;
@@ -42,35 +42,35 @@ public class ImageCreationService {
     private final ImageMetaDataRepository imageMetadataRepository;
     private final MimeTypeUtil mimeTypeUtil;
 
-    public ImageMetadata createNewImages(final ObjectUploadForm objectUploadForm) {
-        final ImageType imageType = ImageType.valueOf(objectUploadForm.getImageType());
+    public ImageMetadata createNewImages(final FileData fileData) {
+        final ImageType imageType = ImageType.valueOf(fileData.imageType());
 
         List<ImageUploadDto> images = Arrays.stream(values())
-          .map(imageSize -> new ImageUploadDto(
-            filenameUtil.getFilename(objectUploadForm.getFilename(), imageType, imageSize),
-            objectUploadForm.getMimetype(),
-            resizeAsNewImage(objectUploadForm, imageSize, objectUploadForm.getMimetype())))
-          .toList();
+            .map(imageSize -> new ImageUploadDto(
+                filenameUtil.getFilename(fileData.filename(), imageType, imageSize),
+                fileData.mimeType(),
+                resizeAsNewImage(fileData, imageSize, fileData.mimeType())))
+            .toList();
 
-        String parentKey = objectStorageService.uploadFiles(objectUploadForm.getFilename(), images);
+        String parentKey = objectStorageService.uploadFiles(fileData.filename(), images);
 
         var imageMetaData = ImageMetadata.builder()
-          .parentKey(parentKey)
-          .filename(objectUploadForm.getFilename())
-          .type(imageType)
-          .build();
+            .parentKey(parentKey)
+            .filename(fileData.filename())
+            .type(imageType)
+            .build();
 
         imageMetadataRepository.persist(imageMetaData);
 
         return imageMetadataRepository.findByParentKey(parentKey)
-          .orElseThrow(
-            () -> new ImageProcessingException("Error retrieving metadata for key: " + parentKey));
+            .orElseThrow(
+                () -> new ImageProcessingException("Error retrieving metadata for key: " + parentKey));
     }
 
-    private byte[] resizeAsNewImage(ObjectUploadForm objectUploadForm, ImageSize imageSize,
-                                    String mimeType) {
-        File file = objectUploadForm.getData();
-        ImageType imageType = ImageType.valueOf(objectUploadForm.getImageType());
+    private byte[] resizeAsNewImage(FileData fileData, ImageSize imageSize,
+        String mimeType) {
+        File file = fileData.data();
+        ImageType imageType = ImageType.valueOf(fileData.imageType());
         var heightWidth = imageSizeService.findImageHeightWidth(imageType, imageSize);
 
         try {
@@ -80,9 +80,9 @@ public class ImageCreationService {
 
             try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
                 var bufferedImage = Thumbnails.of(file)
-                  .width(heightWidth.getWidth())
-                  .height(heightWidth.getHeight())
-                  .asBufferedImage();
+                    .width(heightWidth.getWidth())
+                    .height(heightWidth.getHeight())
+                    .asBufferedImage();
 
                 ImageIO.write(bufferedImage, mimeTypeUtil.mimeTypeToFileFormat(mimeType), outputStream);
                 return outputStream.toByteArray();
@@ -90,7 +90,7 @@ public class ImageCreationService {
 
         } catch (IOException e) {
             throw new ImageProcessingException(String.format("Error resizing file: %s to %s %s",
-              file.getName(), imageSize, imageType));
+                file.getName(), imageSize, imageType));
         }
     }
 
@@ -107,17 +107,17 @@ public class ImageCreationService {
                 int frameCount = gifDecoder.getFrameCount();
                 for (int i = 0; i < frameCount; i++) {
                     var newFrame = Thumbnails.of(gifDecoder.getFrame(i))
-                      .width(imageHeightWidth.getWidth())
-                      .height(imageHeightWidth.getHeight())
-                      .asBufferedImage();
+                        .width(imageHeightWidth.getWidth())
+                        .height(imageHeightWidth.getHeight())
+                        .asBufferedImage();
                     frames.add(newFrame);
                     delays.add(gifDecoder.getDelay(i));
                 }
 
                 var averageDelay = delays.stream()
-                  .mapToInt(a -> a)
-                  .summaryStatistics()
-                  .getAverage();
+                    .mapToInt(a -> a)
+                    .summaryStatistics()
+                    .getAverage();
                 var roundedDelay = Math.toIntExact(Math.round(averageDelay));
 
                 gifEncoder.start(outputStream);

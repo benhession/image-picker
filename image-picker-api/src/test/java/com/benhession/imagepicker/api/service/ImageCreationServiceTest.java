@@ -10,6 +10,7 @@ import static org.mockito.Mockito.when;
 
 import com.benhession.imagepicker.api.dto.ObjectUploadForm;
 
+import com.benhession.imagepicker.common.model.FileData;
 import com.benhession.imagepicker.common.model.ImageSize;
 import com.benhession.imagepicker.data.dto.ImageUploadDto;
 import com.benhession.imagepicker.data.model.ImageMetadata;
@@ -42,6 +43,8 @@ public class ImageCreationServiceTest {
 
     @Inject
     TestFileLoader testFileLoader;
+    @Inject
+    FileDataFactory fileDataFactory;
 
     @Inject
     ImageCreationService imageCreationService;
@@ -66,11 +69,13 @@ public class ImageCreationServiceTest {
           .imageType(TEST_IMAGE_TYPE.toString())
           .build();
 
+        FileData fileData = fileDataFactory.fromObjectUploadForm(objectUploadForm);
+
         when(objectStorageService.uploadFiles(any(), any())).thenReturn(PARENT_TEST_KEY);
         when(imageMetadataRepository.findByParentKey(eq(PARENT_TEST_KEY))).thenReturn(Optional.of(TEST_META_DATA));
 
         // act
-        ImageMetadata returnedMetadata = imageCreationService.createNewImages(objectUploadForm);
+        ImageMetadata returnedMetadata = imageCreationService.createNewImages(fileData);
 
         // assert
         verify(objectStorageService, times(1)).uploadFiles(eq(TEST_FILENAME), imagesCaptor.capture());
