@@ -3,7 +3,6 @@ package com.benhession.imagepicker.api.controller;
 import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
 import static org.jboss.resteasy.reactive.RestResponse.Status.OK;
 
-import com.benhession.imagepicker.api.config.ImageConfigProperties;
 import com.benhession.imagepicker.api.dto.ImageResponseDto;
 import com.benhession.imagepicker.api.dto.ObjectUploadForm;
 import com.benhession.imagepicker.api.mapper.ImageResponseMapper;
@@ -22,7 +21,6 @@ import io.quarkus.resteasy.reactive.links.RestLinkType;
 import jakarta.annotation.security.PermitAll;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.ws.rs.BeanParam;
 import jakarta.ws.rs.Consumes;
@@ -44,9 +42,8 @@ import org.jboss.resteasy.reactive.RestResponse;
 
 @ApplicationScoped
 @Path("/image")
-@RequiredArgsConstructor(onConstructor = @__(@Inject))
+@RequiredArgsConstructor
 public class ImageController {
-    private final ImageConfigProperties imageConfigProperties;
     private final ImageCreationService imageCreationService;
     private final ImageResponseMapper imageResponseMapper;
     private final ImageMetaDataService imageMetaDataService;
@@ -59,8 +56,6 @@ public class ImageController {
     @RolesAllowed({"blog-admin"})
     @InjectRestLinks(RestLinkType.INSTANCE)
     public RestResponse<ImageResponseDto> addImage(@Valid @BeanParam ObjectUploadForm objectUploadForm) {
-
-        validateMimeType(objectUploadForm.getMimetype());
         imageValidationService.validateInputImage(objectUploadForm);
         ImageMetadata metadata = imageCreationService.createNewImages(objectUploadForm);
 
@@ -150,15 +145,5 @@ public class ImageController {
         }
 
         return 0;
-    }
-
-    private void validateMimeType(String mimeType) {
-        if (!imageConfigProperties.acceptedMimeTypes().contains(mimeType)) {
-            var errorMessage = BadRequestException.ErrorMessage.builder()
-              .path("/image")
-              .message("Mime type must be one of the following " + imageConfigProperties.acceptedMimeTypes())
-              .build();
-            throw new BadRequestException(List.of(errorMessage));
-        }
     }
 }

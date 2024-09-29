@@ -1,5 +1,6 @@
 package com.benhession.imagepicker.api.service;
 
+import com.benhession.imagepicker.api.config.ImageConfigProperties;
 import com.benhession.imagepicker.api.dto.ObjectUploadForm;
 import com.benhession.imagepicker.common.exception.BadRequestException;
 import com.benhession.imagepicker.data.model.ImageType;
@@ -19,8 +20,11 @@ import lombok.RequiredArgsConstructor;
 public class ImageValidationService {
 
     private final ImageSizeService imageSizeService;
+    private final ImageConfigProperties imageConfigProperties;
 
-    public void validateInputImage(ObjectUploadForm objectUploadForm) {
+    public void validateInputImage(ObjectUploadForm objectUploadForm) throws BadRequestException {
+        validateMimeType(objectUploadForm.getMimetype());
+
         final File file = objectUploadForm.getData();
         final ImageType imageType = ImageType.valueOf(objectUploadForm.getImageType());
 
@@ -62,5 +66,15 @@ public class ImageValidationService {
         var heightBd = new BigDecimal(Integer.toString(height));
 
         return widthBd.divide(heightBd, 2, RoundingMode.HALF_UP);
+    }
+
+    private void validateMimeType(String mimeType) throws BadRequestException {
+        if (!imageConfigProperties.acceptedMimeTypes().contains(mimeType)) {
+            var errorMessage = BadRequestException.ErrorMessage.builder()
+              .path("/image")
+              .message("Mime type must be one of the following " + imageConfigProperties.acceptedMimeTypes())
+              .build();
+            throw new BadRequestException(List.of(errorMessage));
+        }
     }
 }

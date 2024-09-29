@@ -12,6 +12,7 @@ import com.benhession.imagepicker.api.exception.ErrorResponse;
 import com.benhession.imagepicker.api.service.ImageCreationService;
 import com.benhession.imagepicker.api.service.ImageValidationService;
 import com.benhession.imagepicker.common.exception.AbstractMultipleErrorApplicationException;
+import com.benhession.imagepicker.common.exception.AbstractMultipleErrorApplicationException.ErrorMessage;
 import com.benhession.imagepicker.common.exception.BadRequestException;
 import com.benhession.imagepicker.common.model.PageInfo;
 import com.benhession.imagepicker.data.model.ImageMetadata;
@@ -121,6 +122,14 @@ public class ImageControllerTest {
     @TestSecurity(user = "testUser", roles = {"Everyone", "blog-admin"})
     public void When_AddImage_With_InvalidMimeType_Expect_BadRequestAndErrorMessage() {
 
+        ErrorMessage thrownErrorMessage = ErrorMessage.builder()
+          .message("test message")
+          .path("test path")
+          .build();
+
+        doThrow(new BadRequestException(List.of(thrownErrorMessage)))
+          .when(imageValidationService).validateInputImage(any());
+
         File file = testFileLoader.loadTestFile("test-text-file.txt");
         var errorResponse = given()
           .multiPart("data", file)
@@ -137,8 +146,8 @@ public class ImageControllerTest {
         assertThat(errorResponse.getErrors().size()).isEqualTo(1);
 
         var error = errorResponse.getErrors().getFirst();
-        assertThat(error.getMessage()).contains("Mime type must be one of the following");
-        assertThat(error.getPath()).isEqualTo("/image");
+        assertThat(error.getMessage()).isEqualTo("test message");
+        assertThat(error.getPath()).isEqualTo("test path");
     }
 
     @Test
