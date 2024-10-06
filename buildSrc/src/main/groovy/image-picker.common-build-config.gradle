@@ -13,6 +13,7 @@ repositories {
 test {
     systemProperty "java.util.logging.manager", "org.jboss.logmanager.LogManager"
 }
+
 compileJava {
     options.encoding = 'UTF-8'
     options.compilerArgs << '-parameters'
@@ -48,6 +49,6 @@ checkstyle {
 
     configProperties = [
             "org.checkstyle.google.suppressionfilter.config":
-                    "${projectDir}/config/checkstyle/suppressions.xml",
+                    "${rootProject.projectDir}/config/checkstyle/suppressions.xml",
     ]
 }

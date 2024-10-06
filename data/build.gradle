@@ -11,7 +11,7 @@ java {
 
 dependencies {
     implementation project(':common')
-    implementation 'io.quarkus:quarkus-mongodb-panache'
+    api 'io.quarkus:quarkus-mongodb-panache'
     implementation 'io.quarkiverse.amazonservices:quarkus-amazon-s3'
     implementation 'software.amazon.awssdk:url-connection-client'
     implementation enforcedPlatform("${quarkusPlatformGroupId}:quarkus-amazon-services-bom:${quarkusPlatformVersion}")

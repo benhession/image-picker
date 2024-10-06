@@ -1,4 +1,9 @@
-package com.benhession.imagepicker.api.service;
+package com.benhession.imagepicker.imageprocessor.service;
+
+import static com.benhession.imagepicker.common.model.ImageSize.values;
+import static com.benhession.imagepicker.data.model.ImageProcessingStage.ORIGINAL_UPLOADED;
+import static com.benhession.imagepicker.data.model.ImageProcessingStage.PROCESSING;
+import static com.benhession.imagepicker.data.model.ImageProcessingStage.PROCESSING_COMPLETE;
 
 import com.benhession.imagepicker.common.exception.ImageProcessingException;
 import com.benhession.imagepicker.common.model.FileData;
@@ -10,28 +15,24 @@ import com.benhession.imagepicker.common.util.FilenameUtil;
 import com.benhession.imagepicker.common.util.MimeTypeUtil;
 import com.benhession.imagepicker.data.dto.ImageUploadDto;
 import com.benhession.imagepicker.data.model.ImageMetadata;
-import com.benhession.imagepicker.data.repository.ImageMetaDataRepository;
+import com.benhession.imagepicker.data.service.ImageMetaDataService;
 import com.benhession.imagepicker.data.service.ObjectStorageService;
 import com.madgag.gif.fmsware.AnimatedGifEncoder;
 import com.madgag.gif.fmsware.GifDecoder;
 import jakarta.enterprise.context.ApplicationScoped;
+import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import lombok.RequiredArgsConstructor;
-import net.coobird.thumbnailator.Thumbnails;
-
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
-
-import static com.benhession.imagepicker.common.model.ImageSize.values;
+import javax.imageio.ImageIO;
+import lombok.RequiredArgsConstructor;
+import net.coobird.thumbnailator.Thumbnails;
 
 @ApplicationScoped
 @RequiredArgsConstructor
@@ -40,10 +41,21 @@ public class ImageCreationService {
     private final ImageSizeService imageSizeService;
     private final FilenameUtil filenameUtil;
     private final ObjectStorageService objectStorageService;
-    private final ImageMetaDataRepository imageMetadataRepository;
+    private final ImageMetaDataService imageMetaDataService;
     private final MimeTypeUtil mimeTypeUtil;
 
-    public ImageMetadata createNewImages(final FileData fileData) {
+    public void createNewImages(final FileData fileData, ImageMetadata imageMetadata)
+        throws ImageProcessingException {
+
+        final String imageId = imageMetadata.getId().toString();
+
+        if (!imageMetadata.getStatus().stage().equals(ORIGINAL_UPLOADED)) {
+            throw new ImageProcessingException("Image metadata is not in the processing stage for imageId: "
+                + imageId);
+        }
+
+        imageMetadata = imageMetaDataService.setImageProcessingStage(imageMetadata, PROCESSING);
+
         final ImageType imageType = ImageType.valueOf(fileData.imageType());
 
         List<ImageUploadDto> images = Arrays.stream(values())
@@ -54,20 +66,8 @@ public class ImageCreationService {
                 .build())
             .toList();
 
-        String parentKey = filenameUtil.generateParentKey(fileData.filename());
-        objectStorageService.uploadFiles(images, parentKey);
-
-        var imageMetaData = ImageMetadata.builder()
-            .parentKey(parentKey)
-            .filename(fileData.filename())
-            .type(imageType)
-            .build();
-
-        imageMetadataRepository.persist(imageMetaData);
-
-        return imageMetadataRepository.findByParentKey(parentKey)
-            .orElseThrow(
-                () -> new ImageProcessingException("Error retrieving metadata for key: " + parentKey));
+        objectStorageService.uploadFiles(images, imageMetadata.getParentKey());
+        imageMetaDataService.setImageProcessingStage(imageMetadata, PROCESSING_COMPLETE);
     }
 
     private byte[] resizeAsNewImage(FileData fileData, ImageSize imageSize,

@@ -9,5 +9,4 @@ import lombok.Setter;
 @Setter
 public abstract class BaseSqsMessage {
     private String authJwt;
-    private String uploadFormKey;
 }

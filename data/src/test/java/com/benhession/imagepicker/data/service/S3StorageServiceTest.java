@@ -6,6 +6,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doCallRealMethod;
 
 import com.benhession.imagepicker.common.exception.ImageProcessingException;
+import com.benhession.imagepicker.common.model.FileData;
 import com.benhession.imagepicker.common.util.MimeTypeUtil;
 import com.benhession.imagepicker.data.dto.ImageUploadDto;
 import com.benhession.imagepicker.testutil.TestFileLoader;
@@ -14,6 +15,7 @@ import io.quarkus.test.junit.mockito.InjectSpy;
 import jakarta.inject.Inject;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
@@ -66,7 +68,7 @@ public class S3StorageServiceTest {
     @Test
     public void When_UploadFiles_With_NoError_Expect_ImagesUploaded() throws IOException {
 
-        s3StorageService.uploadFiles(TEST_ORIGINAL_FILENAME, getTestDto());
+        s3StorageService.uploadFiles(getTestDto(), TEST_ORIGINAL_FILENAME + "_" + UUID.randomUUID());
 
         var listObjectsV2Response = s3Client.listObjectsV2(ListObjectsV2Request.builder()
             .bucket(bucketName)
@@ -101,7 +103,7 @@ public class S3StorageServiceTest {
             .doThrow(AwsServiceException.class)
             .when(s3Client).putObject(any(PutObjectRequest.class), any(RequestBody.class));
 
-        assertThatThrownBy(() -> s3StorageService.uploadFiles(TEST_ORIGINAL_FILENAME, getTestDto()))
+        assertThatThrownBy(() -> s3StorageService.uploadFiles(getTestDto(), UUID.randomUUID().toString()))
             .isInstanceOf(ImageProcessingException.class)
             .hasMessageContaining("Error uploading file to S3 for filename: " + testFilename2);
 
@@ -111,6 +113,21 @@ public class S3StorageServiceTest {
 
         assertThat(listObjectsV2Response.contents().isEmpty()).isTrue();
 
+    }
+
+    @Test
+    public void When_UploadOriginalFileData_WithNoError_Expect_DataRetrievable() {
+        // arrange
+        File testFile = testFileLoader.loadTestFile("test.jpeg");
+        FileData fileData = new FileData(testFile, "test.jpeg", TEST_MIME_TYPE, "RECTANGULAR");
+        String testFileDataKey = UUID.randomUUID().toString();
+
+        // act
+        s3StorageService.uploadOriginalFileData(fileData, testFileDataKey);
+        FileData actualFileData = s3StorageService.getOriginalFileData(testFileDataKey);
+
+        // assert
+        assertThat(actualFileData).isEqualTo(fileData);
     }
 
     private List<ImageUploadDto> getTestDto() throws IOException {

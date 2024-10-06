@@ -1,14 +1,17 @@
 package com.benhession.imagepicker.data.service;
 
 import com.benhession.imagepicker.common.exception.ImageProcessingException;
+import com.benhession.imagepicker.common.model.FileData;
 import com.benhession.imagepicker.data.dto.ImageUploadDto;
 import jakarta.enterprise.context.ApplicationScoped;
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
@@ -16,6 +19,7 @@ import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetUrlRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
@@ -23,15 +27,16 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 @ApplicationScoped
 public class S3StorageService implements ObjectStorageService {
 
+    private final String ORIGINAL_FILES_PREFIX = "originalFileData/";
+
     private final S3Client s3Client;
 
     @ConfigProperty(name = "bucket.name")
     String bucketName;
 
     @Override
-    public String uploadFiles(String originalFilename, List<ImageUploadDto> images) {
+    public void uploadFiles(List<ImageUploadDto> images, String parentKey) {
 
-        String parentKey = String.format("%s-%s", originalFilename, UUID.randomUUID());
         List<String> uploadedKeys = new ArrayList<>();
 
         for (ImageUploadDto imageDto : images) {
@@ -56,8 +61,6 @@ public class S3StorageService implements ObjectStorageService {
                     + imageDto.filename(), e);
             }
         }
-
-        return parentKey;
     }
 
     @Override
@@ -68,6 +71,40 @@ public class S3StorageService implements ObjectStorageService {
             .build());
 
         return url.toString();
+    }
+
+    @Override
+    public FileData getOriginalFileData(String fileDataKey) {
+        var byteStream = s3Client.getObject(GetObjectRequest.builder()
+                .bucket(bucketName)
+                .key(ORIGINAL_FILES_PREFIX + fileDataKey)
+            .build());
+
+        try (var objectInputStream = new ObjectInputStream(byteStream)) {
+            return  (FileData) objectInputStream.readObject();
+        } catch (IOException | ClassNotFoundException e) {
+            throw new ImageProcessingException("Error reading original file data from s3", e);
+        }
+    }
+
+    @Override
+    public void uploadOriginalFileData(FileData fileData, String fileDataKey) {
+
+        try (var byteArrayOutputStream = new ByteArrayOutputStream();
+            var objectOutputStream = new ObjectOutputStream(byteArrayOutputStream)) {
+
+            objectOutputStream.writeObject(fileData);
+            objectOutputStream.flush();
+
+            s3Client.putObject(PutObjectRequest.builder()
+                .bucket(bucketName)
+                .key(ORIGINAL_FILES_PREFIX + fileDataKey)
+                .build(),
+                RequestBody.fromBytes(byteArrayOutputStream.toByteArray()));
+
+        } catch (IOException e) {
+            throw new ImageProcessingException("Error uploading original file data to S3", e);
+        }
     }
 
     private void uploadImage(PutObjectRequest putObjectRequest, ImageUploadDto imageDto)

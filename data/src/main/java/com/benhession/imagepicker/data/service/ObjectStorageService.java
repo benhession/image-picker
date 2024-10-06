@@ -1,10 +1,15 @@
 package com.benhession.imagepicker.data.service;
 
+import com.benhession.imagepicker.common.model.FileData;
 import com.benhession.imagepicker.data.dto.ImageUploadDto;
 import java.util.List;
 
 public interface ObjectStorageService {
-    String uploadFiles(String originalFilename, List<ImageUploadDto> images);
+    void uploadFiles(List<ImageUploadDto> images, String parentKey);
 
     String getBaseResourcePath(String parentKey);
+
+    FileData getOriginalFileData(String parentKey);
+
+    void uploadOriginalFileData(FileData fileData, String fileDataKey);
 }

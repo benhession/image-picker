@@ -2,18 +2,18 @@ package com.benhession.imagepicker.data.service;
 
 import com.benhession.imagepicker.common.model.PageInfo;
 import com.benhession.imagepicker.data.model.ImageMetadata;
+import com.benhession.imagepicker.data.model.ImageProcessingStage;
+import com.benhession.imagepicker.data.model.ImageProcessingStatus;
 import com.benhession.imagepicker.data.repository.ImageMetaDataRepository;
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.bson.types.ObjectId;
 
 @ApplicationScoped
-@RequiredArgsConstructor(onConstructor = @__(@Inject))
+@RequiredArgsConstructor
 public class ImageMetaDataService {
-
     private final ImageMetaDataRepository imageMetadataRepository;
 
     public Optional<ImageMetadata> getImageMetaData(ObjectId objectId) {
@@ -32,4 +32,18 @@ public class ImageMetaDataService {
 
         return new PageInfo(numberOfItems, currentPage, lastPage, size);
     }
+
+    public void persist(ImageMetadata imageMetadata) {
+        imageMetadataRepository.persist(imageMetadata);
+    }
+
+    public ImageMetadata setImageProcessingStage(ImageMetadata imageMetadata,
+        ImageProcessingStage imageProcessingStage) {
+
+        imageMetadata.setStatus(ImageProcessingStatus.of(imageProcessingStage));
+        persist(imageMetadata);
+        return imageMetadata;
+    }
+
+
 }
