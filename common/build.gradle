@@ -10,5 +10,6 @@ java {
 }
 
 dependencies {
+    implementation 'io.quarkus:quarkus-jackson'
     implementation 'org.jodd:jodd-util:6.2.2'
 }

@@ -6,7 +6,6 @@ import com.benhession.imagepicker.imageprocessor.controller.ImageProcessingContr
 import com.benhession.imagepicker.imageprocessor.security.UserInfo;
 import com.benhession.imagepicker.imageprocessor.security.UserInfoProducer;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import jakarta.enterprise.context.Dependent;
 import jakarta.enterprise.context.control.ActivateRequestContext;
@@ -16,7 +15,7 @@ import org.slf4j.MDC;
 @Dependent
 @RequiredArgsConstructor
 public class ImageProcessingMessageHandler {
-    private static final ObjectReader creationMessageReader = new ObjectMapper().readerFor(ImageCreationMessage.class);
+    private final ObjectReader creationMessageReader;
     private final UserInfoProducer userInfoProducer;
     private final ImageProcessingController imageProcessingController;
 

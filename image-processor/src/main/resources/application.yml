@@ -1,3 +1,10 @@
+test-variables:
+  bucket-name: "test-bucket"
+  queue-name: "test-queue"
+  aws-region: "us-east-1"
+  aws-access-key-id: "test-key"
+  aws-secret-access-key: "test-secret"
+
 bucket.name: ${BUCKET_NAME}
 
 quarkus :
@@ -19,10 +26,6 @@ quarkus :
 validation-messages:
   system:
     error: "An unexpected error has occurred."
-
-queue:
-  image-processing-queue:
-    url: ${IMAGE_PROCESSING_QUEUE_URL}
 
 image:
   accepted-mime-types:
@@ -87,36 +90,36 @@ image:
 "%dev":
 
   bucket:
-    name: "test-bucket"
+    name: ${test-variables.bucket-name}
 
   quarkus:
     s3:
       devservices:
-        buckets: "test-bucket"
+        buckets: ${test-variables.bucket-name}
       aws:
-        region: "us-east-1"
+        region: ${test-variables.aws-region}
         credentials:
           type: "static"
           static-provider:
-            access-key-id: "test-key"
-            secret-access-key: "test-secret"
+            access-key-id: ${test-variables.aws-access-key-id}
+            secret-access-key: ${test-variables.aws-secret-access-key}
 
 "%test":
 
   bucket:
-    name: "test-bucket"
+    name: ${test-variables.bucket-name}
 
   quarkus:
     s3:
       devservices:
-        buckets: "test-bucket"
+        buckets: ${test-variables.bucket-name}
       aws:
-        region: "us-east-1"
+        region: ${test-variables.aws-region}
         credentials:
           type: "static"
           static-provider:
-            access-key-id: "test-key"
-            secret-access-key: "test-secret"
+            access-key-id: ${test-variables.aws-access-key-id}
+            secret-access-key: ${test-variables.aws-secret-access-key}
 
   image:
     size:

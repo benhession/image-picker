@@ -18,6 +18,7 @@ dependencies {
     implementation 'io.quarkus:quarkus-oidc'
     implementation 'io.quarkus:quarkus-hibernate-validator'
     implementation 'io.quarkiverse.amazonservices:quarkus-amazon-s3'
+    implementation 'io.quarkiverse.amazonservices:quarkus-amazon-sqs'
     implementation 'software.amazon.awssdk:url-connection-client'
     implementation enforcedPlatform("${quarkusPlatformGroupId}:quarkus-amazon-services-bom:${quarkusPlatformVersion}")
     implementation 'io.quarkus:quarkus-amazon-lambda-rest'

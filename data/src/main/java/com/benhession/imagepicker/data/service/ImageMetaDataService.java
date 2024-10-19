@@ -37,6 +37,10 @@ public class ImageMetaDataService {
         imageMetadataRepository.persist(imageMetadata);
     }
 
+    public Optional<ImageMetadata> findByParentKey(String parentKey) {
+        return imageMetadataRepository.findByParentKey(parentKey);
+    }
+
     public ImageMetadata setImageProcessingStage(ImageMetadata imageMetadata,
         ImageProcessingStage imageProcessingStage) {
 
