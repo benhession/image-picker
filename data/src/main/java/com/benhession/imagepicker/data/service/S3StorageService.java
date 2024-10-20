@@ -27,7 +27,7 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 @ApplicationScoped
 public class S3StorageService implements ObjectStorageService {
 
-    private final String ORIGINAL_FILES_PREFIX = "originalFileData/";
+    private static final String ORIGINAL_FILES_PREFIX = "originalFileData/";
 
     private final S3Client s3Client;
 

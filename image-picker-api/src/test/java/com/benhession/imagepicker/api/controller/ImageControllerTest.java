@@ -427,7 +427,7 @@ public class ImageControllerTest {
 
     @Test
     @TestSecurity(user = "testUser", roles = {"blog-admin", "Everyone"})
-    public void When_GetImage_With_ProcessingComplete_Expect_OKAndImageURLs() {
+    public void When_GetImage_With_ProcessingComplete_Expect_OkAndImageUrls() {
         // arrange
         var testId = ObjectId.get();
         var testParentKey = String.format("%s-%s", RECTANGULAR_TEST_IMAGE_NAME, UUID.randomUUID());
@@ -530,13 +530,13 @@ public class ImageControllerTest {
 
     @Test
     @TestSecurity(user = "testUser", roles = {"blog-admin", "Everyone"})
-    public void When_GetImage_With_OriginalUploaded_Expect_MetaDataWithoutImageURLs() {
+    public void When_GetImage_With_OriginalUploaded_Expect_MetaDataWithoutImageUrls() {
         checkForNoImagesResponse(ORIGINAL_UPLOADED);
     }
 
     @Test
     @TestSecurity(user = "testUser", roles = {"blog-admin", "Everyone"})
-    public void When_GetImage_With_Processing_Expect_MetaDataWithoutImageURLs() {
+    public void When_GetImage_With_Processing_Expect_MetaDataWithoutImageUrls() {
         checkForNoImagesResponse(PROCESSING);
     }
 
