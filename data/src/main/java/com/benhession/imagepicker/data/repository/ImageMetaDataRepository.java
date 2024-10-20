@@ -1,5 +1,7 @@
 package com.benhession.imagepicker.data.repository;
 
+import static com.benhession.imagepicker.data.model.ImageProcessingStage.PROCESSING_COMPLETE;
+
 import com.benhession.imagepicker.data.model.ImageMetadata;
 import io.quarkus.mongodb.panache.PanacheMongoRepository;
 import io.quarkus.panache.common.Page;
@@ -14,9 +16,13 @@ public class ImageMetaDataRepository implements PanacheMongoRepository<ImageMeta
           .firstResultOptional();
     }
 
-    public List<ImageMetadata> findPage(int page, int size) {
-        return findAll()
+    public List<ImageMetadata> findProcessedImages(int page, int size) {
+        return find("status.stage", PROCESSING_COMPLETE)
           .page(Page.of(page, size))
           .list();
+    }
+
+    public long countNumberOfProcessedImages() {
+        return count("status.stage", PROCESSING_COMPLETE);
     }
 }

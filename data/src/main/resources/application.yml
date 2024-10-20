@@ -29,3 +29,6 @@
           static-provider:
             access-key-id: "test-key"
             secret-access-key: "test-secret"
+
+    mongodb:
+      database: "test-db"

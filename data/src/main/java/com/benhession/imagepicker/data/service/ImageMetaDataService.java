@@ -20,12 +20,12 @@ public class ImageMetaDataService {
         return imageMetadataRepository.findByIdOptional(objectId);
     }
 
-    public List<ImageMetadata> getImageMetaDataList(int page, int size) {
-        return imageMetadataRepository.findPage(page, size);
+    public List<ImageMetadata> findProcessedImages(int page, int size) {
+        return imageMetadataRepository.findProcessedImages(page, size);
     }
 
-    public PageInfo getPageInfo(int page, int size) {
-        long numberOfItems = imageMetadataRepository.count();
+    public PageInfo findProcessedImagesPageInfo(int page, int size) {
+        long numberOfItems = imageMetadataRepository.countNumberOfProcessedImages();
         int numberOfPages = (int) Math.ceil((double) numberOfItems / size);
         int lastPage = numberOfPages - 1;
         int currentPage = Math.min(page, lastPage);
@@ -34,7 +34,7 @@ public class ImageMetaDataService {
     }
 
     public void persist(ImageMetadata imageMetadata) {
-        imageMetadataRepository.persist(imageMetadata);
+        imageMetadataRepository.persistOrUpdate(imageMetadata);
     }
 
     public Optional<ImageMetadata> findByParentKey(String parentKey) {

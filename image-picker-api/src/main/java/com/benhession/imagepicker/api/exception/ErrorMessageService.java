@@ -1,15 +1,15 @@
 package com.benhession.imagepicker.api.exception;
 
 import com.benhession.imagepicker.common.exception.AbstractMultipleErrorApplicationException;
+import com.benhession.imagepicker.common.exception.AbstractSingleErrorApplicationException;
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.jboss.logging.Logger;
 
 @ApplicationScoped
-@RequiredArgsConstructor(onConstructor = @__(@Inject))
+@RequiredArgsConstructor
 public class ErrorMessageService {
 
     private final Logger log;
@@ -30,5 +30,17 @@ public class ErrorMessageService {
           .errorId(errorId)
           .errors(errorMessages)
           .build();
+    }
+
+    public ErrorResponse mapSingleMessageError(AbstractSingleErrorApplicationException e) {
+        String errorId = UUID.randomUUID().toString();
+        log.error("errorId[{}]", errorId, e);
+
+        return ErrorResponse.builder()
+            .errorId(errorId)
+            .errors(List.of(ErrorResponse.ErrorMessage.builder()
+                .message(e.getMessage())
+                .build()))
+            .build();
     }
 }

@@ -7,11 +7,13 @@ import com.benhession.imagepicker.api.dto.ImageResponseDto;
 import com.benhession.imagepicker.api.dto.ObjectUploadForm;
 import com.benhession.imagepicker.api.mapper.ImageResponseMapper;
 import com.benhession.imagepicker.api.service.FileDataFactory;
-import com.benhession.imagepicker.api.service.ImageCreationService;
+import com.benhession.imagepicker.api.service.ImageProcessingService;
 import com.benhession.imagepicker.api.service.ImageValidationService;
 import com.benhession.imagepicker.api.service.PaginationLinksService;
 import com.benhession.imagepicker.common.exception.AbstractMultipleErrorApplicationException;
 import com.benhession.imagepicker.common.exception.BadRequestException;
+import com.benhession.imagepicker.common.exception.DownStreamServerException;
+import com.benhession.imagepicker.common.exception.DownStreamServerTimeoutException;
 import com.benhession.imagepicker.common.exception.NotFoundException;
 import com.benhession.imagepicker.common.model.FileData;
 import com.benhession.imagepicker.common.model.PageInfo;
@@ -37,7 +39,6 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.UriInfo;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.bson.types.ObjectId;
 import org.jboss.resteasy.reactive.RestResponse;
@@ -46,12 +47,12 @@ import org.jboss.resteasy.reactive.RestResponse;
 @Path("/image")
 @RequiredArgsConstructor
 public class ImageController {
-    private final ImageCreationService imageCreationService;
     private final ImageResponseMapper imageResponseMapper;
     private final ImageMetaDataService imageMetaDataService;
     private final PaginationLinksService paginationLinksService;
     private final ImageValidationService imageValidationService;
     private final FileDataFactory fileDataFactory;
+    private final ImageProcessingService imageProcessingService;
 
     @POST
     @Consumes(MediaType.MULTIPART_FORM_DATA)
@@ -59,10 +60,12 @@ public class ImageController {
     @RolesAllowed({"blog-admin"})
     @InjectRestLinks(RestLinkType.INSTANCE)
     public RestResponse<ImageResponseDto> addImage(@Valid @BeanParam ObjectUploadForm objectUploadForm) {
+
         imageValidationService.validateInputImage(objectUploadForm);
         FileData fileData = fileDataFactory.fromObjectUploadForm(objectUploadForm);
-        ImageMetadata metadata = imageCreationService.createNewImages(fileData);
-        return RestResponse.accepted(imageResponseMapper.toDto(metadata));
+
+        ImageMetadata metadata = imageProcessingService.processImage(fileData);
+        return RestResponse.accepted(imageResponseMapper.toDtoWithoutImages(metadata));
     }
 
     @GET
@@ -72,16 +75,26 @@ public class ImageController {
     @RestLink(rel = "self")
     @InjectRestLinks(RestLinkType.INSTANCE)
     public RestResponse<ImageResponseDto> getImage(@PathParam("id") ObjectId id) {
-        Optional<ImageMetadata> metadataOptional = imageMetaDataService.getImageMetaData(id);
+        ImageMetadata metadata = imageMetaDataService.getImageMetaData(id)
+            .orElseThrow(() -> new NotFoundException(List.of(
+                AbstractMultipleErrorApplicationException.ErrorMessage.builder()
+                    .path("/image/" + id.toString())
+                    .message("Unable to find image with id: " + id)
+                    .build())));
 
-        return metadataOptional
-          .map(metadata -> RestResponse
-            .ok(imageResponseMapper.toDto(metadata)))
-          .orElseThrow(() -> new NotFoundException(List.of(
-            AbstractMultipleErrorApplicationException.ErrorMessage.builder()
-              .path("/image/" + id.toString())
-              .message("Unable to find image with id: " + id)
-              .build())));
+        return switch (metadata.getStatus().stage()) {
+            case PROCESSING_FAILED ->
+                throw new DownStreamServerException(
+                    String.format(
+                        "The image could not be processed successfully. id: %s status: %s", id, metadata.getStatus()));
+            case PROCESSING_TIMEOUT ->
+                throw new DownStreamServerTimeoutException(
+                    String.format(
+                        "The image processing timed out. id: %s status: %s", id, metadata.getStatus()));
+            case ORIGINAL_UPLOADED, PROCESSING -> RestResponse.ok(imageResponseMapper.toDtoWithoutImages(metadata));
+            case PROCESSING_COMPLETE -> RestResponse.ok(imageResponseMapper.toDto(metadata));
+            case null -> throw new IllegalStateException("Processing status not found for image id: " + id);
+        };
     }
 
     @GET
@@ -112,13 +125,13 @@ public class ImageController {
             throw new BadRequestException(errorMessages);
         }
 
-        PageInfo pageInfo = imageMetaDataService.getPageInfo(page, size);
+        PageInfo pageInfo = imageMetaDataService.findProcessedImagesPageInfo(page, size);
         if (pageInfo.numberItems() == 0) {
             return RestResponse.noContent();
         }
 
         List<ImageMetadata> imageMetadataList =
-          imageMetaDataService.getImageMetaDataList(pageInfo.page(), pageInfo.size());
+          imageMetaDataService.findProcessedImages(pageInfo.page(), pageInfo.size());
 
         return RestResponse.ResponseBuilder
           .create(OK, imageMetadataList.stream()

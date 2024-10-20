@@ -53,7 +53,7 @@ public class ImageCreationServiceTest {
     public void When_CreateNewImages_With_ValidJpg_Expect_ImagesUploadedAndMetaDataPersisted() {
         // arrange
         ImageMetadata imageMetadata = ImageMetadata.builder()
-            .id(new ObjectId())
+            .id(ObjectId.get())
             .type(TEST_IMAGE_TYPE)
             .filename(TEST_FILENAME)
             .parentKey(PARENT_TEST_KEY)
@@ -101,7 +101,7 @@ public class ImageCreationServiceTest {
     public void When_CreateImages_With_InvalidProcessingStage_Expect_ImageProcessingExceptionThrown() {
         // arrange
         ImageMetadata imageMetadata = ImageMetadata.builder()
-            .id(new ObjectId())
+            .id(ObjectId.get())
             .type(TEST_IMAGE_TYPE)
             .filename(TEST_FILENAME)
             .parentKey(PARENT_TEST_KEY)
