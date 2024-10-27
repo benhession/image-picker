@@ -11,10 +11,12 @@ import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.bson.types.ObjectId;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.services.sqs.SqsClient;
 import software.amazon.awssdk.services.sqs.model.Message;
+import software.amazon.awssdk.services.sqs.model.PurgeQueueRequest;
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
 
 @QuarkusTest
@@ -33,6 +35,13 @@ public class ImageProcessingQueueServiceTest {
     public void init() {
         testFileDataKey = UUID.randomUUID().toString();
         testMetaDataId = new ObjectId().toString();
+    }
+
+    @AfterEach
+    public void tearDown() {
+        sqsClient.purgeQueue(PurgeQueueRequest.builder()
+                .queueUrl(sqsConfigProperties.getQueueUrl())
+            .build());
     }
 
     @Test
