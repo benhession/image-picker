@@ -11,10 +11,11 @@ quarkus :
   native:
     additional-build-args: --initialize-at-run-time=net.coobird.thumbnailator.resizers.AbstractResizer\,net.coobird.thumbnailator.resizers.BilinearResizer\,net.coobird.thumbnailator.resizers.configurations.AlphaInterpolation\,net.coobird.thumbnailator.resizers.configurations.Antialiasing\,net.coobird.thumbnailator.resizers.configurations.Dithering\,net.coobird.thumbnailator.resizers.configurations.Rendering\,net.coobird.thumbnailator.resizers.NullResizer\,net.coobird.thumbnailator.resizers.ProgressiveBilinearResizer\,net.coobird.thumbnailator.resizers.Resizers
 
-  index-dependency:
-    smallrye-jwt:
-      group-id: "io.smallrye"
-      artifact-id: "smallrye-jwt"
+  oidc:
+    auth-server-url: ${AUTH_SERVER_URL}
+    client-id: ${OIDC_CLIENT_ID}
+    credentials:
+      secret: ${OIDC_CLIENT_SECRET}
 
   mongodb:
     database: ${MONGODB_DATABASE_NAME}
@@ -93,6 +94,16 @@ image:
     name: ${test-variables.bucket-name}
 
   quarkus:
+    sqs:
+      aws:
+        region: ${test-variables.aws-region}
+        credentials:
+          type: static
+          static-provider:
+            access-key-id: ${test-variables.aws-access-key-id}
+            secret-access-key: ${test-variables.aws-secret-access-key}
+      devservices:
+        queues: ${test-variables.queue-name}
     s3:
       devservices:
         buckets: ${test-variables.bucket-name}
@@ -105,12 +116,30 @@ image:
             secret-access-key: ${test-variables.aws-secret-access-key}
 
 "%test":
-
   bucket:
     name: ${test-variables.bucket-name}
 
   quarkus:
+    mongodb:
+      devservices:
+        port: "56000"
+    lambda:
+      mock-event-server:
+        test-port: "8082"
+    sqs:
+      aws:
+        region: ${test-variables.aws-region}
+        credentials:
+          type: static
+          static-provider:
+            access-key-id: ${test-variables.aws-access-key-id}
+            secret-access-key: ${test-variables.aws-secret-access-key}
+      devservices:
+        queues: ${test-variables.queue-name}
+        enabled: true
+        shared: true
     s3:
+      region: ${test-variables.aws-region}
       devservices:
         buckets: ${test-variables.bucket-name}
       aws:
@@ -120,6 +149,10 @@ image:
           static-provider:
             access-key-id: ${test-variables.aws-access-key-id}
             secret-access-key: ${test-variables.aws-secret-access-key}
+    aws:
+      devservices:
+        localstack:
+          port: "56100"
 
   image:
     size:

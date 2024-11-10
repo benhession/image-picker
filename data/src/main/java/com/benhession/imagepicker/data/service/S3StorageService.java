@@ -22,6 +22,7 @@ import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetUrlRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.S3Exception;
 
 @RequiredArgsConstructor
 @ApplicationScoped
@@ -75,14 +76,17 @@ public class S3StorageService implements ObjectStorageService {
 
     @Override
     public FileData getOriginalFileData(String fileDataKey) {
-        var byteStream = s3Client.getObject(GetObjectRequest.builder()
+        try {
+            var byteStream = s3Client.getObject(GetObjectRequest.builder()
                 .bucket(bucketName)
                 .key(ORIGINAL_FILES_PREFIX + fileDataKey)
-            .build());
+                .build());
 
-        try (var objectInputStream = new ObjectInputStream(byteStream)) {
-            return  (FileData) objectInputStream.readObject();
-        } catch (IOException | ClassNotFoundException e) {
+            try (var objectInputStream = new ObjectInputStream(byteStream)) {
+                return (FileData) objectInputStream.readObject();
+            }
+
+        } catch (S3Exception | IOException | ClassNotFoundException e) {
             throw new ImageProcessingException("Error reading original file data from s3", e);
         }
     }

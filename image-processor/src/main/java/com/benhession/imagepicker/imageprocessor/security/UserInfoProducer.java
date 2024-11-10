@@ -1,49 +1,44 @@
 package com.benhession.imagepicker.imageprocessor.security;
 
-import static com.benhession.imagepicker.imageprocessor.security.UserInfo.USERNAME_ATTRIBUTE_KEY;
-
 import com.benhession.imagepicker.common.exception.SecurityException;
+import io.quarkus.oidc.AccessTokenCredential;
+import io.quarkus.oidc.TenantIdentityProvider;
 import io.quarkus.security.identity.SecurityIdentity;
-import io.quarkus.security.runtime.QuarkusSecurityIdentity;
-import io.smallrye.jwt.auth.principal.JWTParser;
-import io.smallrye.jwt.auth.principal.ParseException;
 import jakarta.annotation.Priority;
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.enterprise.inject.Produces;
+import java.time.Duration;
 import lombok.RequiredArgsConstructor;
-import org.eclipse.microprofile.jwt.JsonWebToken;
+import org.jboss.logging.Logger;
 
 @RequestScoped
 @RequiredArgsConstructor
 public class UserInfoProducer {
+    private final TenantIdentityProvider defaultIdentityProvider;
+    private final Logger logger;
 
-    private final JWTParser jwtParser;
-    private SecurityIdentity securityIdentity;
+    private UserInfo userInfo;
 
     public UserInfo init(String token) {
-        securityIdentity = parse(token);
-        return UserInfo.of(securityIdentity);
+        userInfo = UserInfo.of(parse(token));
+        return userInfo;
     }
 
     @Produces
     @RequestScoped
     @Priority(Integer.MAX_VALUE)
     public UserInfo getUserInfo() {
-        return UserInfo.of(securityIdentity);
+        return userInfo;
     }
 
     private SecurityIdentity parse(String token) throws SecurityException {
-        JsonWebToken jwt;
         try {
-            jwt = jwtParser.parse(token);
-        } catch (ParseException e) {
+            AccessTokenCredential tokenCredential = new AccessTokenCredential(token);
+            return defaultIdentityProvider.authenticate(tokenCredential).await()
+                .atMost(Duration.ofSeconds(10));
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
             throw new SecurityException(e.getMessage());
         }
-
-        var builder = QuarkusSecurityIdentity.builder()
-          .addAttribute(USERNAME_ATTRIBUTE_KEY, jwt.getClaim("sub"))
-          .addRoles(jwt.getGroups());
-
-        return builder.build();
     }
 }

@@ -5,16 +5,15 @@ import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor(staticName = "of")
 public class UserInfo {
-    static final String USERNAME_ATTRIBUTE_KEY = "username";
     public static final String EDITOR_ROLE = "blog-admin";
 
     private final SecurityIdentity securityIdentity;
 
     public String getUserName() {
-        return securityIdentity.getAttribute(USERNAME_ATTRIBUTE_KEY);
+        return securityIdentity.getPrincipal().getName();
     }
 
     public boolean isEditor() {
-        return securityIdentity.hasRole(EDITOR_ROLE);
+        return securityIdentity != null && securityIdentity.hasRole(EDITOR_ROLE);
     }
 }

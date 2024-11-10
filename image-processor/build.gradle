@@ -17,13 +17,19 @@ dependencies {
     implementation 'io.quarkus:quarkus-rest-jackson'
     implementation 'io.quarkiverse.amazonservices:quarkus-amazon-sqs'
     implementation 'software.amazon.awssdk:url-connection-client'
-    implementation 'io.smallrye:smallrye-jwt'
-    implementation 'io.quarkus:quarkus-security'
     implementation enforcedPlatform("${quarkusPlatformGroupId}:quarkus-amazon-services-bom:${quarkusPlatformVersion}")
     implementation 'net.coobird:thumbnailator:0.4.20'
     implementation 'com.madgag:animated-gif-lib:1.4'
+    implementation 'io.quarkus:quarkus-oidc'
 
     testImplementation project(":test-util")
     testImplementation project(":common")
     testImplementation project(":data")
+    testImplementation 'io.rest-assured:rest-assured:5.4.0'
+    testImplementation platform("software.amazon.awssdk:bom:2.27.0")
+    testImplementation 'software.amazon.awssdk:s3'
+
+    integrationTestCompileOnly "org.projectlombok:lombok:${lombokVersion}"
+    integrationTestAnnotationProcessor "org.projectlombok:lombok:${lombokVersion}"
+
 }
