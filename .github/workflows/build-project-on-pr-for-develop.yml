@@ -26,13 +26,13 @@ jobs:
       - name: Run build with Gradle Wrapper
         run: ./gradlew build --warning-mode all
       - name: Upload image-processor build artifacts
-        if: ${{hashFiles('image-processor/build/reports') != ''}}
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: image-processor build reports
           path: image-processor/build/reports
       - name: Upload image-picker-api build artifacts
-        if: ${{hashFiles('image-picker-api/build/reports/build/reports') != ''}}
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: image-picker-api build reports
