@@ -15,7 +15,7 @@ import org.bson.types.ObjectId;
 
 @UtilityClass
 public class MongoDbHelper {
-    private static final String DATABASE_NAME = System.getenv("MONGODB_DATABASE_NAME");
+    private static final String DATABASE_NAME = "image-picker";
     private static final CodecRegistry CODEC_REGISTRY = CodecRegistries.fromRegistries(
         MongoClientSettings.getDefaultCodecRegistry(),
         CodecRegistries.fromProviders(PojoCodecProvider.builder().automatic(true).build()),

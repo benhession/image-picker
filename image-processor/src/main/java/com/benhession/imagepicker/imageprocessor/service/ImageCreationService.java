@@ -21,9 +21,8 @@ import com.madgag.gif.fmsware.AnimatedGifEncoder;
 import com.madgag.gif.fmsware.GifDecoder;
 import jakarta.enterprise.context.ApplicationScoped;
 import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -72,17 +71,17 @@ public class ImageCreationService {
 
     private byte[] resizeAsNewImage(FileData fileData, ImageSize imageSize,
         String mimeType) {
-        File file = fileData.data();
         ImageType imageType = ImageType.valueOf(fileData.imageType());
         var heightWidth = imageSizeService.findImageHeightWidth(imageType, imageSize);
 
         try {
             if (mimeType.equals("image/gif")) {
-                return resizeGif(file, heightWidth);
+                return resizeGif(fileData.data(), heightWidth);
             }
 
-            try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
-                var bufferedImage = Thumbnails.of(file)
+            try (ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(fileData.data());
+                ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
+                var bufferedImage = Thumbnails.of(byteArrayInputStream)
                     .width(heightWidth.getWidth())
                     .height(heightWidth.getHeight())
                     .asBufferedImage();
@@ -93,46 +92,46 @@ public class ImageCreationService {
 
         } catch (IOException e) {
             throw new ImageProcessingException(String.format("Error resizing file: %s to %s %s",
-                file.getName(), imageSize, imageType));
+                fileData.filename(), imageSize, imageType));
         }
     }
 
-    private byte[] resizeGif(File file, ImageHeightWidth imageHeightWidth) throws IOException {
+    private byte[] resizeGif(byte[] data, ImageHeightWidth imageHeightWidth) throws IOException {
 
-        try (InputStream inputStream = new FileInputStream(file)) {
-            try (var outputStream = new ByteArrayOutputStream()) {
-                List<Integer> delays = new ArrayList<>();
-                List<BufferedImage> frames = new LinkedList<>();
-                var gifDecoder = new GifDecoder();
-                var gifEncoder = new AnimatedGifEncoder();
-                gifDecoder.read(inputStream);
+        try (InputStream inputStream = new ByteArrayInputStream(data);
+            var outputStream = new ByteArrayOutputStream()) {
 
-                int frameCount = gifDecoder.getFrameCount();
-                for (int i = 0; i < frameCount; i++) {
-                    var newFrame = Thumbnails.of(gifDecoder.getFrame(i))
-                        .width(imageHeightWidth.getWidth())
-                        .height(imageHeightWidth.getHeight())
-                        .asBufferedImage();
-                    frames.add(newFrame);
-                    delays.add(gifDecoder.getDelay(i));
-                }
+            List<Integer> delays = new ArrayList<>();
+            List<BufferedImage> frames = new LinkedList<>();
+            var gifDecoder = new GifDecoder();
+            var gifEncoder = new AnimatedGifEncoder();
+            gifDecoder.read(inputStream);
 
-                var averageDelay = delays.stream()
-                    .mapToInt(a -> a)
-                    .summaryStatistics()
-                    .getAverage();
-                var roundedDelay = Math.toIntExact(Math.round(averageDelay));
-
-                gifEncoder.start(outputStream);
-                gifEncoder.setRepeat(gifDecoder.getLoopCount());
-                gifEncoder.setDelay(roundedDelay);
-                for (var frame : frames) {
-                    gifEncoder.addFrame(frame);
-                }
-                gifEncoder.finish();
-
-                return outputStream.toByteArray();
+            int frameCount = gifDecoder.getFrameCount();
+            for (int i = 0; i < frameCount; i++) {
+                var newFrame = Thumbnails.of(gifDecoder.getFrame(i))
+                    .width(imageHeightWidth.getWidth())
+                    .height(imageHeightWidth.getHeight())
+                    .asBufferedImage();
+                frames.add(newFrame);
+                delays.add(gifDecoder.getDelay(i));
             }
+
+            var averageDelay = delays.stream()
+                .mapToInt(a -> a)
+                .summaryStatistics()
+                .getAverage();
+            var roundedDelay = Math.toIntExact(Math.round(averageDelay));
+
+            gifEncoder.start(outputStream);
+            gifEncoder.setRepeat(gifDecoder.getLoopCount());
+            gifEncoder.setDelay(roundedDelay);
+            for (var frame : frames) {
+                gifEncoder.addFrame(frame);
+            }
+            gifEncoder.finish();
+
+            return outputStream.toByteArray();
         }
     }
 }

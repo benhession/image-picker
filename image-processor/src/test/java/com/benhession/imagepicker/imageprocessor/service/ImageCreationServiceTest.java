@@ -23,6 +23,7 @@ import com.benhession.imagepicker.testutil.TestFileLoader;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import org.bson.types.ObjectId;
@@ -50,7 +51,7 @@ public class ImageCreationServiceTest {
     ArgumentCaptor<List<ImageUploadDto>> imagesCaptor = ArgumentCaptor.forClass(List.class);
 
     @Test
-    public void When_CreateNewImages_With_ValidJpg_Expect_ImagesUploadedAndMetaDataPersisted() {
+    public void When_CreateNewImages_With_ValidJpg_Expect_ImagesUploadedAndMetaDataPersisted() throws IOException {
         // arrange
         ImageMetadata imageMetadata = ImageMetadata.builder()
             .id(ObjectId.get())
@@ -60,8 +61,7 @@ public class ImageCreationServiceTest {
             .status(ImageProcessingStatus.of(ORIGINAL_UPLOADED))
             .build();
 
-        FileData fileData = new FileData(testFileLoader.loadTestFile(
-            "test.jpeg"),
+        FileData fileData = new FileData(testFileLoader.loadTestFileBytes("test.jpeg"),
             TEST_FILENAME,
             TEST_MIME_TYPE,
             TEST_IMAGE_TYPE.toString());
@@ -98,7 +98,8 @@ public class ImageCreationServiceTest {
     }
 
     @Test
-    public void When_CreateImages_With_InvalidProcessingStage_Expect_ImageProcessingExceptionThrown() {
+    public void When_CreateImages_With_InvalidProcessingStage_Expect_ImageProcessingExceptionThrown()
+        throws IOException {
         // arrange
         ImageMetadata imageMetadata = ImageMetadata.builder()
             .id(ObjectId.get())
@@ -108,8 +109,7 @@ public class ImageCreationServiceTest {
             .status(ImageProcessingStatus.of(PROCESSING))
             .build();
 
-        FileData fileData = new FileData(testFileLoader.loadTestFile(
-            "test.jpeg"),
+        FileData fileData = new FileData(testFileLoader.loadTestFileBytes("test.jpeg"),
             TEST_FILENAME,
             TEST_MIME_TYPE,
             TEST_IMAGE_TYPE.toString());

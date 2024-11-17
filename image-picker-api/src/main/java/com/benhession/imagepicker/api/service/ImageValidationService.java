@@ -7,7 +7,7 @@ import com.benhession.imagepicker.common.model.ImageType;
 import com.benhession.imagepicker.common.service.ImageSizeService;
 import jakarta.enterprise.context.ApplicationScoped;
 import java.awt.image.BufferedImage;
-import java.io.File;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -26,11 +26,10 @@ public class ImageValidationService {
     public void validateInputImage(ObjectUploadForm objectUploadForm) throws BadRequestException {
         validateMimeType(objectUploadForm.getMimetype());
 
-        final File file = objectUploadForm.getData();
         final ImageType imageType = ImageType.valueOf(objectUploadForm.getImageType());
 
-        try {
-            BufferedImage bufferedImage = ImageIO.read(file);
+        try (var byteArrayInputStream = new ByteArrayInputStream(objectUploadForm.getData())) {
+            BufferedImage bufferedImage = ImageIO.read(byteArrayInputStream);
             List<BadRequestException.ErrorMessage> errorMessages = new ArrayList<>();
             BigDecimal expectedAspectRatio = imageSizeService.findAspectRatio(imageType);
             BigDecimal actualAspectRatio = calculateAspectRatio(bufferedImage.getWidth(),

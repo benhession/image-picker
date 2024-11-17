@@ -2,6 +2,7 @@ package com.benhession.imagepicker.api.exception;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 
+import io.quarkus.runtime.annotations.RegisterForReflection;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -18,6 +19,7 @@ import lombok.ToString;
 @EqualsAndHashCode
 @NoArgsConstructor
 @ToString
+@RegisterForReflection
 public class ErrorResponse {
 
     @JsonInclude(JsonInclude.Include.NON_NULL)

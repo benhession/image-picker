@@ -5,6 +5,7 @@ import static com.benhession.imagepicker.imageprocessor.security.UserInfo.EDITOR
 
 import com.benhession.imagepicker.common.exception.ImageProcessingException;
 import com.benhession.imagepicker.common.exception.SecurityException;
+import com.benhession.imagepicker.common.model.FileData;
 import com.benhession.imagepicker.common.sqs.ImageCreationMessage;
 import com.benhession.imagepicker.data.model.ImageMetadata;
 import com.benhession.imagepicker.data.service.ImageMetaDataService;
@@ -46,9 +47,16 @@ public class ImageProcessingController {
                     String.format("User: %s must have role %s to process images", userInfo.getUserName(), EDITOR_ROLE));
             }
 
-            var fileData = fileDataRetrievalService.retrieve(message.getFileDataKey())
-                .orElseThrow(() -> new ImageProcessingException("File data not found for key: "
+            var imageUploadDto = fileDataRetrievalService.retrieve(message.getFileDataKey())
+                .orElseThrow(() -> new ImageProcessingException("ImageUploadDto not found for key: "
                     + message.getFileDataKey()));
+
+            FileData fileData = FileData.builder()
+                .imageType(imageMetadata.getType().name())
+                .mimeType(imageUploadDto.mimetype())
+                .data(imageUploadDto.image())
+                .filename(imageUploadDto.filename())
+                .build();
 
             imageCreationService.createNewImages(fileData, imageMetadata);
 

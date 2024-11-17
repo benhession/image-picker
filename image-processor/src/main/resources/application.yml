@@ -22,7 +22,7 @@ quarkus :
 
   log:
     console:
-      format: "%d{HH:mm:ss} %-5p message.id=%X{message.id} requester=%X{requester} [%c{2.}] (%t) %s%n"
+      format: "%d{yyyy.MM.dd HH:mm:ss:SSSZ} %-5p [%c{2.}] (%t) message id= %X{message.id}, requester= %X{requester}, message= %m %n"
 
 validation-messages:
   system:

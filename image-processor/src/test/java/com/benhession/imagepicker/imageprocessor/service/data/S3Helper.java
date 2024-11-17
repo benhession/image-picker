@@ -1,9 +1,11 @@
 package com.benhession.imagepicker.imageprocessor.service.data;
 
+import static com.benhession.imagepicker.data.service.S3StorageService.FILENAME_TAG;
+import static com.benhession.imagepicker.data.service.S3StorageService.MIME_TYPE_TAG;
+
 import com.benhession.imagepicker.common.model.FileData;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.ObjectOutputStream;
 import java.net.URI;
 import lombok.experimental.UtilityClass;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
@@ -14,12 +16,14 @@ import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Response;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.Tag;
+import software.amazon.awssdk.services.s3.model.Tagging;
 
 @UtilityClass
 public class S3Helper {
     private static final String ORIGINAL_FILES_PREFIX = "originalFileData/";
     private static final String BUCKET_NAME = "test-bucket";
-    private static final URI LOCALSTACK_ENDPOINT = URI.create(System.getenv("LOCALSTACK_S3_ENDPOINT"));
+    private static final URI LOCALSTACK_ENDPOINT = URI.create("http://localhost:56100");
 
     private static final S3Client S3_CLIENT = S3Client.builder()
         .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.builder()
@@ -32,17 +36,24 @@ public class S3Helper {
         .build();
 
     public static void uploadOriginalFile(FileData fileData, String fileDataKey) {
-        try (var byteArrayOutputStream = new ByteArrayOutputStream();
-            var objectOutputStream = new ObjectOutputStream(byteArrayOutputStream)) {
-
-            objectOutputStream.writeObject(fileData);
-            objectOutputStream.flush();
-
-            String key = ORIGINAL_FILES_PREFIX + fileDataKey;
+        try (var byteArrayOutputStream = new ByteArrayOutputStream()) {
+            byteArrayOutputStream.write(fileData.data());
+            var tagging = Tagging.builder()
+                .tagSet(
+                    Tag.builder()
+                        .key(FILENAME_TAG)
+                        .value(fileData.filename())
+                        .build(),
+                    Tag.builder()
+                        .key(MIME_TYPE_TAG)
+                        .value(fileData.mimeType())
+                        .build())
+                .build();
 
             S3_CLIENT.putObject(PutObjectRequest.builder()
                     .bucket(BUCKET_NAME)
-                    .key(key)
+                    .key(ORIGINAL_FILES_PREFIX + fileDataKey)
+                    .tagging(tagging)
                     .build(),
                 RequestBody.fromBytes(byteArrayOutputStream.toByteArray()));
 

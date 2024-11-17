@@ -14,6 +14,7 @@ import com.benhession.imagepicker.common.service.ImageSizeService;
 import com.benhession.imagepicker.testutil.TestFileLoader;
 import io.quarkus.test.junit.QuarkusMock;
 import io.quarkus.test.junit.QuarkusTest;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -32,9 +33,9 @@ public class ImageValidationServiceTest {
     private final ImageValidationService imageValidationService;
 
     @Test
-    public void When_CreateNewImages_With_InvalidAspectRatio_Expect_BadRequestException() {
+    public void When_CreateNewImages_With_InvalidAspectRatio_Expect_BadRequestException() throws IOException {
         var objectUploadForm = ObjectUploadForm.builder()
-            .data(testFileLoader.loadTestFile("test.jpeg"))
+            .data(testFileLoader.loadTestFileBytes("test.jpeg"))
             .filename(TEST_FILENAME)
             .mimetype(TEST_MIME_TYPE)
             .imageType("SQUARE")
@@ -50,12 +51,12 @@ public class ImageValidationServiceTest {
     }
 
     @Test
-    public void When_CreateNewImages_With_InvalidWidth_Expect_BadRequestException() {
+    public void When_CreateNewImages_With_InvalidWidth_Expect_BadRequestException() throws IOException {
         var imageService = Mockito.mock(ImageSizeService.class);
         QuarkusMock.installMockForType(imageService, ImageSizeService.class);
 
         var objectUploadForm = ObjectUploadForm.builder()
-            .data(testFileLoader.loadTestFile("test.jpeg"))
+            .data(testFileLoader.loadTestFileBytes("test.jpeg"))
             .filename(TEST_FILENAME)
             .mimetype(TEST_MIME_TYPE)
             .imageType(TEST_IMAGE_TYPE.toString())
@@ -74,9 +75,9 @@ public class ImageValidationServiceTest {
     }
 
     @Test
-    public void When_ValidateImage_With_InvalidMimeType_Expect_BadRequestException() {
+    public void When_ValidateImage_With_InvalidMimeType_Expect_BadRequestException() throws IOException {
         var objectUploadForm = ObjectUploadForm.builder()
-            .data(testFileLoader.loadTestFile("test.jpeg"))
+            .data(testFileLoader.loadTestFileBytes("test.jpeg"))
             .filename(TEST_FILENAME)
             .mimetype("text/plain")
             .imageType("SQUARE")

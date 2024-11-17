@@ -6,7 +6,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doCallRealMethod;
 
 import com.benhession.imagepicker.common.exception.ImageProcessingException;
-import com.benhession.imagepicker.common.model.FileData;
 import com.benhession.imagepicker.common.util.MimeTypeUtil;
 import com.benhession.imagepicker.data.dto.ImageUploadDto;
 import com.benhession.imagepicker.testutil.TestFileLoader;
@@ -16,6 +15,7 @@ import jakarta.inject.Inject;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
@@ -116,18 +116,28 @@ public class S3StorageServiceTest {
     }
 
     @Test
-    public void When_UploadOriginalFileData_WithNoError_Expect_DataRetrievable() {
+    public void When_UploadOriginalFileData_WithNoError_Expect_DataRetrievable() throws IOException {
         // arrange
         File testFile = testFileLoader.loadTestFile("test.jpeg");
-        FileData fileData = new FileData(testFile, "test.jpeg", TEST_MIME_TYPE, "RECTANGULAR");
+        byte[] fileBytes;
+        try (var fileInputStream = new FileInputStream(testFile)) {
+            fileBytes = fileInputStream.readAllBytes();
+        }
+        ImageUploadDto imageUploadDto = ImageUploadDto.builder()
+            .filename("test.jpeg")
+            .mimetype(TEST_MIME_TYPE)
+            .image(fileBytes)
+            .build();
         String testFileDataKey = UUID.randomUUID().toString();
 
         // act
-        s3StorageService.uploadOriginalFileData(fileData, testFileDataKey);
-        FileData actualFileData = s3StorageService.getOriginalFileData(testFileDataKey);
+        s3StorageService.uploadOriginalFileData(imageUploadDto, testFileDataKey);
+        ImageUploadDto actualImageDto = s3StorageService.getOriginalFileData(testFileDataKey);
 
         // assert
-        assertThat(actualFileData).isEqualTo(fileData);
+        assertThat(actualImageDto.filename()).isEqualTo(imageUploadDto.filename());
+        assertThat(actualImageDto.mimetype()).isEqualTo(imageUploadDto.mimetype());
+        assertThat(actualImageDto.image()).containsExactly(imageUploadDto.image());
     }
 
     private List<ImageUploadDto> getTestDto() throws IOException {

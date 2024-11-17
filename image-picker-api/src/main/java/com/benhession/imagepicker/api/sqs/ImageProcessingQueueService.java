@@ -23,7 +23,7 @@ public class ImageProcessingQueueService {
     private final JsonWebToken jwt;
 
     public void sendMessage(ImageCreationMessage imageCreationMessage) throws ImageProcessingException {
-        imageCreationMessage.setAuthJwt(jwt.toString());
+        imageCreationMessage.setAuthJwt(jwt.getRawToken());
         try {
             String message = imageCreationMessageWriter.writeValueAsString(imageCreationMessage);
             SendMessageResponse response = sqsClient.sendMessage(m -> m

@@ -16,6 +16,7 @@ import com.benhession.imagepicker.imageprocessor.service.security.AccessTokenHel
 import com.benhession.imagepicker.imageprocessor.service.sqs.SqsTestHelper;
 import io.quarkus.test.junit.QuarkusTest;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URL;
 import java.util.UUID;
@@ -65,9 +66,13 @@ public class ProcessImageTest {
         assertThat(s3Objects.keyCount()).isEqualTo(ImageSize.values().length);
     }
 
-    private File loadFile(String filename) {
+    private byte[] loadFile(String filename) throws IOException {
         URL url = getClass().getClassLoader().getResource(filename);
         assert url != null;
-        return new File(url.getFile());
+        File file = new File(url.getFile());
+
+        try (FileInputStream fileInputStream = new FileInputStream(file)) {
+            return fileInputStream.readAllBytes();
+        }
     }
 }

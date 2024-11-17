@@ -1,36 +1,40 @@
 package com.benhession.imagepicker.data.service;
 
 import com.benhession.imagepicker.common.exception.ImageProcessingException;
-import com.benhession.imagepicker.common.model.FileData;
 import com.benhession.imagepicker.data.dto.ImageUploadDto;
 import jakarta.enterprise.context.ApplicationScoped;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.jboss.logging.Logger;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.GetObjectTaggingRequest;
 import software.amazon.awssdk.services.s3.model.GetUrlRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.S3Exception;
+import software.amazon.awssdk.services.s3.model.Tag;
+import software.amazon.awssdk.services.s3.model.Tagging;
 
 @RequiredArgsConstructor
 @ApplicationScoped
 public class S3StorageService implements ObjectStorageService {
 
     private static final String ORIGINAL_FILES_PREFIX = "originalFileData/";
+    public static final String FILENAME_TAG = "filename";
+    public static final String MIME_TYPE_TAG = "mimeType";
 
     private final S3Client s3Client;
+    private final Logger logger;
 
     @ConfigProperty(name = "bucket.name")
     String bucketName;
@@ -75,34 +79,64 @@ public class S3StorageService implements ObjectStorageService {
     }
 
     @Override
-    public FileData getOriginalFileData(String fileDataKey) {
-        try {
-            var byteStream = s3Client.getObject(GetObjectRequest.builder()
+    public ImageUploadDto getOriginalFileData(String fileDataKey) {
+        try (var objectByteStream = s3Client.getObject(GetObjectRequest.builder()
                 .bucket(bucketName)
                 .key(ORIGINAL_FILES_PREFIX + fileDataKey)
+                .build())) {
+
+            var taggingResponse = s3Client.getObjectTagging(GetObjectTaggingRequest.builder()
+                    .bucket(bucketName)
+                    .key(ORIGINAL_FILES_PREFIX + fileDataKey)
                 .build());
 
-            try (var objectInputStream = new ObjectInputStream(byteStream)) {
-                return (FileData) objectInputStream.readObject();
-            }
+            var filename = taggingResponse.tagSet()
+                .stream()
+                .filter(tag -> tag.key().equals(FILENAME_TAG))
+                .findFirst()
+                .map(Tag::value)
+                .orElseThrow(() -> new ImageProcessingException("Filename tag not found for filename: " + fileDataKey));
 
-        } catch (S3Exception | IOException | ClassNotFoundException e) {
+            var mimeType = taggingResponse.tagSet()
+                .stream()
+                .filter(tag -> tag.key().equals(MIME_TYPE_TAG))
+                .findFirst()
+                .map(Tag::value)
+                .orElseThrow(() -> new ImageProcessingException("MimeType tag not found for filename: " + fileDataKey));
+
+           return ImageUploadDto.builder()
+               .image(objectByteStream.readAllBytes())
+               .filename(filename)
+               .mimetype(mimeType)
+               .build();
+
+        } catch (S3Exception | IOException e) {
+            logger.error(e.getMessage(), e);
             throw new ImageProcessingException("Error reading original file data from s3", e);
         }
     }
 
     @Override
-    public void uploadOriginalFileData(FileData fileData, String fileDataKey) {
+    public void uploadOriginalFileData(ImageUploadDto imageUploadDto, String fileDataKey) {
 
-        try (var byteArrayOutputStream = new ByteArrayOutputStream();
-            var objectOutputStream = new ObjectOutputStream(byteArrayOutputStream)) {
-
-            objectOutputStream.writeObject(fileData);
-            objectOutputStream.flush();
+        try (var byteArrayOutputStream = new ByteArrayOutputStream()) {
+            byteArrayOutputStream.write(imageUploadDto.image());
+            var tagging = Tagging.builder()
+                    .tagSet(
+                        Tag.builder()
+                            .key(FILENAME_TAG)
+                            .value(imageUploadDto.filename())
+                            .build(),
+                        Tag.builder()
+                            .key(MIME_TYPE_TAG)
+                            .value(imageUploadDto.mimetype())
+                            .build())
+                    .build();
 
             s3Client.putObject(PutObjectRequest.builder()
                 .bucket(bucketName)
                 .key(ORIGINAL_FILES_PREFIX + fileDataKey)
+                .tagging(tagging)
                 .build(),
                 RequestBody.fromBytes(byteArrayOutputStream.toByteArray()));
 

@@ -9,7 +9,7 @@ public interface ObjectStorageService {
 
     String getBaseResourcePath(String parentKey);
 
-    FileData getOriginalFileData(String parentKey);
+    ImageUploadDto getOriginalFileData(String parentKey);
 
-    void uploadOriginalFileData(FileData fileData, String fileDataKey);
+    void uploadOriginalFileData(ImageUploadDto imageUploadDto, String fileDataKey);
 }

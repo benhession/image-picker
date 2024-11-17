@@ -8,6 +8,11 @@ variable "image_picker_api_lambda_name" {
   default = "image-picker-api"
 }
 
+variable "image_processor_lambda_name" {
+  type    = string
+  default = "image-processor"
+}
+
 variable "auth_server_url" {
   type = string
 }
@@ -49,7 +54,17 @@ variable "mongodb_atlas_project_id" {
   type = string
 }
 
+variable "mongodb_atlas_role_name" {
+  type = string
+  default = "sandbox-lambda-access"
+}
+
 variable "mongodb_atlas_cluster_name" {
   type = string
   default = "blog-cluster"
+}
+
+variable "image_processor_max_concurrency" {
+  type = number
+  default = 10
 }

@@ -17,6 +17,7 @@ import com.benhession.imagepicker.common.exception.ImageProcessingException;
 import com.benhession.imagepicker.common.model.FileData;
 import com.benhession.imagepicker.common.sqs.ImageCreationMessage;
 import com.benhession.imagepicker.common.util.FilenameUtil;
+import com.benhession.imagepicker.data.dto.ImageUploadDto;
 import com.benhession.imagepicker.data.model.ImageMetadata;
 import com.benhession.imagepicker.data.model.ImageProcessingStatus;
 import com.benhession.imagepicker.data.service.ImageMetaDataService;
@@ -25,6 +26,8 @@ import com.benhession.imagepicker.testutil.TestFileLoader;
 import io.quarkus.panache.common.exception.PanacheQueryException;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -53,14 +56,15 @@ public class ImageProcessingServiceTest {
     FilenameUtil filenameUtil;
     private ArgumentCaptor<ImageCreationMessage> creationMessageCaptor;
     private ArgumentCaptor<ImageMetadata> imageMetadataCaptor;
+    private ArgumentCaptor<ImageUploadDto> imageUploadDtoCaptor;
 
     private FileData testFileData;
     private String testParentKey;
 
     @BeforeEach
-    public void init() {
+    public void init() throws IOException {
         testFileData = FileData.builder()
-            .data(testFileLoader.loadTestFile(TEST_FILENAME))
+            .data(testFileLoader.loadTestFileBytes(TEST_FILENAME))
             .imageType(RECTANGULAR.toString())
             .mimeType("image/jpeg")
             .filename(TEST_FILENAME)
@@ -69,10 +73,11 @@ public class ImageProcessingServiceTest {
         testParentKey = UUID.randomUUID() + "_" + TEST_FILENAME;
         imageMetadataCaptor = ArgumentCaptor.forClass(ImageMetadata.class);
         creationMessageCaptor = ArgumentCaptor.forClass(ImageCreationMessage.class);
+        imageUploadDtoCaptor = ArgumentCaptor.forClass(ImageUploadDto.class);
     }
 
     @Test
-    public void When_ProcessImage_Expect_ProcessingPrepDone() {
+    public void When_ProcessImage_Expect_ProcessingPrepDone() throws IOException {
         // arrange
         when(filenameUtil.generateParentKey(eq(TEST_FILENAME)))
             .thenReturn(testParentKey);
@@ -91,7 +96,16 @@ public class ImageProcessingServiceTest {
         assertThat(returnedMetaData).isEqualTo(mockMetaData);
 
         verify(objectStorageService, times(1))
-            .uploadOriginalFileData(eq(testFileData), eq(testParentKey));
+            .uploadOriginalFileData(imageUploadDtoCaptor.capture(), eq(testParentKey));
+
+        var imageUploadDto = imageUploadDtoCaptor.getValue();
+        assertThat(imageUploadDto.filename()).isEqualTo(testFileData.filename());
+        assertThat(imageUploadDto.mimetype()).isEqualTo(testFileData.mimeType());
+
+        try (var byteArrayInputStream = new ByteArrayInputStream(testFileData.data())) {
+            byte[] expectedBytes = byteArrayInputStream.readAllBytes();
+            assertThat(imageUploadDto.image()).containsExactly(expectedBytes);
+        }
 
         verify(imageMetaDataService, times(1))
             .persist(imageMetadataCaptor.capture());
@@ -118,7 +132,7 @@ public class ImageProcessingServiceTest {
     public void When_ProcessImage_With_S3ImageProcessingException_Expect_StatusPersisted() {
         // arrange
         doThrow(ImageProcessingException.class)
-            .when(objectStorageService).uploadOriginalFileData(eq(testFileData), eq(testParentKey));
+            .when(objectStorageService).uploadOriginalFileData(any(), eq(testParentKey));
 
         when(filenameUtil.generateParentKey(eq(TEST_FILENAME)))
             .thenReturn(testParentKey);

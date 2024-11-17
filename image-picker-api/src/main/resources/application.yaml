@@ -12,9 +12,6 @@ queue:
     url: ${IMAGE_PROCESSING_QUEUE_URL}
 
 quarkus :
-  native:
-    additional-build-args: --initialize-at-run-time=net.coobird.thumbnailator.resizers.AbstractResizer\,net.coobird.thumbnailator.resizers.BilinearResizer\,net.coobird.thumbnailator.resizers.configurations.AlphaInterpolation\,net.coobird.thumbnailator.resizers.configurations.Antialiasing\,net.coobird.thumbnailator.resizers.configurations.Dithering\,net.coobird.thumbnailator.resizers.configurations.Rendering\,net.coobird.thumbnailator.resizers.NullResizer\,net.coobird.thumbnailator.resizers.ProgressiveBilinearResizer\,net.coobird.thumbnailator.resizers.Resizers
-
   oidc:
     auth-server-url: ${AUTH_SERVER_URL}
     client-id: ${OIDC_CLIENT_ID}

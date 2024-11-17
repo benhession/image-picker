@@ -9,11 +9,14 @@ import com.benhession.imagepicker.common.model.FileData;
 import com.benhession.imagepicker.common.model.ImageType;
 import com.benhession.imagepicker.common.sqs.ImageCreationMessage;
 import com.benhession.imagepicker.common.util.FilenameUtil;
+import com.benhession.imagepicker.data.dto.ImageUploadDto;
 import com.benhession.imagepicker.data.model.ImageMetadata;
 import com.benhession.imagepicker.data.model.ImageProcessingStatus;
 import com.benhession.imagepicker.data.service.ImageMetaDataService;
 import com.benhession.imagepicker.data.service.ObjectStorageService;
 import jakarta.enterprise.context.ApplicationScoped;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import lombok.RequiredArgsConstructor;
 import org.jboss.logging.Logger;
 
@@ -37,7 +40,18 @@ public class ImageProcessingService {
             .build();
 
         try {
-            objectStorageService.uploadOriginalFileData(fileData, parentKey);
+            ImageUploadDto imageUploadDto;
+            try (var inputStream = new ByteArrayInputStream(fileData.data())) {
+                imageUploadDto = ImageUploadDto.builder()
+                    .image(inputStream.readAllBytes())
+                    .filename(fileData.filename())
+                    .mimetype(fileData.mimeType())
+                    .build();
+            } catch (IOException e) {
+                throw new ImageProcessingException("Unable to get image byte array", e);
+            }
+
+            objectStorageService.uploadOriginalFileData(imageUploadDto, parentKey);
             imageMetadata.setStatus(ImageProcessingStatus.of(ORIGINAL_UPLOADED));
             imageMetadata = persistAndFindMetadata(imageMetadata);
 
