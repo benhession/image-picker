@@ -81,13 +81,13 @@ public class S3StorageService implements ObjectStorageService {
     @Override
     public ImageUploadDto getOriginalFileData(String fileDataKey) {
         try (var objectByteStream = s3Client.getObject(GetObjectRequest.builder()
-                .bucket(bucketName)
-                .key(ORIGINAL_FILES_PREFIX + fileDataKey)
-                .build())) {
+            .bucket(bucketName)
+            .key(ORIGINAL_FILES_PREFIX + fileDataKey)
+            .build())) {
 
             var taggingResponse = s3Client.getObjectTagging(GetObjectTaggingRequest.builder()
-                    .bucket(bucketName)
-                    .key(ORIGINAL_FILES_PREFIX + fileDataKey)
+                .bucket(bucketName)
+                .key(ORIGINAL_FILES_PREFIX + fileDataKey)
                 .build());
 
             var filename = taggingResponse.tagSet()
@@ -104,11 +104,11 @@ public class S3StorageService implements ObjectStorageService {
                 .map(Tag::value)
                 .orElseThrow(() -> new ImageProcessingException("MimeType tag not found for filename: " + fileDataKey));
 
-           return ImageUploadDto.builder()
-               .image(objectByteStream.readAllBytes())
-               .filename(filename)
-               .mimetype(mimeType)
-               .build();
+            return ImageUploadDto.builder()
+                .image(objectByteStream.readAllBytes())
+                .filename(filename)
+                .mimetype(mimeType)
+                .build();
 
         } catch (S3Exception | IOException e) {
             logger.error(e.getMessage(), e);
@@ -122,22 +122,22 @@ public class S3StorageService implements ObjectStorageService {
         try (var byteArrayOutputStream = new ByteArrayOutputStream()) {
             byteArrayOutputStream.write(imageUploadDto.image());
             var tagging = Tagging.builder()
-                    .tagSet(
-                        Tag.builder()
-                            .key(FILENAME_TAG)
-                            .value(imageUploadDto.filename())
-                            .build(),
-                        Tag.builder()
-                            .key(MIME_TYPE_TAG)
-                            .value(imageUploadDto.mimetype())
-                            .build())
-                    .build();
+                .tagSet(
+                    Tag.builder()
+                        .key(FILENAME_TAG)
+                        .value(imageUploadDto.filename())
+                        .build(),
+                    Tag.builder()
+                        .key(MIME_TYPE_TAG)
+                        .value(imageUploadDto.mimetype())
+                        .build())
+                .build();
 
             s3Client.putObject(PutObjectRequest.builder()
-                .bucket(bucketName)
-                .key(ORIGINAL_FILES_PREFIX + fileDataKey)
-                .tagging(tagging)
-                .build(),
+                    .bucket(bucketName)
+                    .key(ORIGINAL_FILES_PREFIX + fileDataKey)
+                    .tagging(tagging)
+                    .build(),
                 RequestBody.fromBytes(byteArrayOutputStream.toByteArray()));
 
         } catch (IOException e) {
