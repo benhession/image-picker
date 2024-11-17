@@ -25,9 +25,15 @@ jobs:
         uses: gradle/gradle-build-action@v2
       - name: Run build with Gradle Wrapper
         run: ./gradlew build --warning-mode all
-      - name: Upload build artifacts
+      - name: Upload image-processor build artifacts
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: Build reports
-          path: build/reports
+          name: image-processor build reports
+          path: image-processor/build/reports
+      - name: Upload image-picker-api build artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: image-picker-api build reports
+          path: image-picker-api/build/reports
