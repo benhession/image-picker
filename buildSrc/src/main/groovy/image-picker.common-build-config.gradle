@@ -1,0 +1,54 @@
+plugins {
+    id 'checkstyle'
+}
+
+group 'com.benhession.imagepicker'
+version '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+    mavenLocal()
+}
+
+test {
+    systemProperty "java.util.logging.manager", "org.jboss.logmanager.LogManager"
+}
+
+compileJava {
+    options.encoding = 'UTF-8'
+    options.compilerArgs << '-parameters'
+}
+
+compileTestJava {
+    options.encoding = 'UTF-8'
+}
+
+dependencies {
+    implementation enforcedPlatform("${quarkusPlatformGroupId}:${quarkusPlatformArtifactId}:${quarkusPlatformVersion}")
+    implementation 'io.quarkus:quarkus-arc'
+    implementation 'io.quarkus:quarkus-config-yaml'
+
+    testImplementation 'io.quarkus:quarkus-junit5'
+    testImplementation 'org.assertj:assertj-core:3.25.3'
+    testImplementation('io.quarkus:quarkus-junit5-mockito') {
+        exclude group: 'org.mockito', module: 'mockito-subclass'
+    }
+    testImplementation 'org.mockito:mockito-core:5.14.0'
+
+    compileOnly "org.projectlombok:lombok:${lombokVersion}"
+    annotationProcessor "org.projectlombok:lombok:${lombokVersion}"
+
+    testCompileOnly "org.projectlombok:lombok:${lombokVersion}"
+    testAnnotationProcessor "org.projectlombok:lombok:${lombokVersion}"
+}
+
+checkstyle {
+    toolVersion = '10.12.1'
+    ignoreFailures = false
+    maxWarnings = 0
+
+    configProperties = [
+            "org.checkstyle.google.suppressionfilter.config":
+                    "${rootProject.projectDir}/config/checkstyle/suppressions.xml",
+    ]
+}

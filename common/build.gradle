@@ -1,0 +1,15 @@
+plugins {
+    id 'java-library'
+    id 'io.quarkus'
+    id 'image-picker.common-build-config'
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
+}
+
+dependencies {
+    implementation 'io.quarkus:quarkus-jackson'
+    implementation 'org.jodd:jodd-util:6.2.2'
+}

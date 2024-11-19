@@ -1,0 +1,169 @@
+test-variables:
+  bucket-name: "test-bucket"
+  queue-name: "test-queue"
+  aws-region: "us-east-1"
+  aws-access-key-id: "test-key"
+  aws-secret-access-key: "test-secret"
+
+bucket.name: ${BUCKET_NAME}
+
+quarkus :
+  native:
+    additional-build-args: --initialize-at-run-time=net.coobird.thumbnailator.resizers.AbstractResizer\,net.coobird.thumbnailator.resizers.BilinearResizer\,net.coobird.thumbnailator.resizers.configurations.AlphaInterpolation\,net.coobird.thumbnailator.resizers.configurations.Antialiasing\,net.coobird.thumbnailator.resizers.configurations.Dithering\,net.coobird.thumbnailator.resizers.configurations.Rendering\,net.coobird.thumbnailator.resizers.NullResizer\,net.coobird.thumbnailator.resizers.ProgressiveBilinearResizer\,net.coobird.thumbnailator.resizers.Resizers
+
+  oidc:
+    auth-server-url: ${AUTH_SERVER_URL}
+    client-id: ${OIDC_CLIENT_ID}
+    credentials:
+      secret: ${OIDC_CLIENT_SECRET}
+
+  mongodb:
+    database: ${MONGODB_DATABASE_NAME}
+
+  log:
+    console:
+      format: "%d{yyyy.MM.dd HH:mm:ss:SSSZ} %-5p [%c{2.}] (%t) message id= %X{message.id}, requester= %X{requester}, message= %m %n"
+
+validation-messages:
+  system:
+    error: "An unexpected error has occurred."
+
+image:
+  accepted-mime-types:
+    - "image/jpeg"
+    - "image/png"
+    - "image/gif"
+
+  size:
+    square:
+      aspect-ratio: "1:1"
+      min-width: "400"
+      thumbnail:
+        scaling-factor: "0.1"
+      small:
+        scaling-factor: "0.4"
+      medium:
+        scaling-factor: "0.7"
+      large:
+        scaling-factor: "1"
+
+    panoramic:
+      aspect-ratio: "2:1"
+      min-width: "400"
+      thumbnail:
+        scaling-factor: "0.1"
+      small:
+        scaling-factor: "0.4"
+      medium:
+        scaling-factor: "0.7"
+      large:
+        scaling-factor: "1"
+
+    rectangular:
+      aspect-ratio: "4:3"
+      min-width: "800"
+      thumbnail:
+        scaling-factor: "0.1"
+      small:
+        scaling-factor: "0.4"
+      medium:
+        scaling-factor: "0.7"
+      large:
+        scaling-factor: "1"
+
+    landscape:
+      aspect-ratio: "16:9"
+      min-width: "400"
+      thumbnail:
+        scaling-factor: "0.1"
+      small:
+        scaling-factor: "0.4"
+      medium:
+        scaling-factor: "0.7"
+      large:
+        scaling-factor: "1"
+
+"%prod":
+  quarkus:
+    mongodb:
+      connection-string: ${MONGODB_CONNECTION_STRING}
+
+"%dev":
+
+  bucket:
+    name: ${test-variables.bucket-name}
+
+  quarkus:
+    sqs:
+      aws:
+        region: ${test-variables.aws-region}
+        credentials:
+          type: static
+          static-provider:
+            access-key-id: ${test-variables.aws-access-key-id}
+            secret-access-key: ${test-variables.aws-secret-access-key}
+      devservices:
+        queues: ${test-variables.queue-name}
+    s3:
+      devservices:
+        buckets: ${test-variables.bucket-name}
+      aws:
+        region: ${test-variables.aws-region}
+        credentials:
+          type: "static"
+          static-provider:
+            access-key-id: ${test-variables.aws-access-key-id}
+            secret-access-key: ${test-variables.aws-secret-access-key}
+
+"%test":
+  bucket:
+    name: ${test-variables.bucket-name}
+
+  quarkus:
+    mongodb:
+      devservices:
+        port: "56000"
+    lambda:
+      mock-event-server:
+        test-port: "8082"
+    sqs:
+      aws:
+        region: ${test-variables.aws-region}
+        credentials:
+          type: static
+          static-provider:
+            access-key-id: ${test-variables.aws-access-key-id}
+            secret-access-key: ${test-variables.aws-secret-access-key}
+      devservices:
+        queues: ${test-variables.queue-name}
+        enabled: true
+        shared: true
+    s3:
+      region: ${test-variables.aws-region}
+      devservices:
+        buckets: ${test-variables.bucket-name}
+      aws:
+        region: ${test-variables.aws-region}
+        credentials:
+          type: "static"
+          static-provider:
+            access-key-id: ${test-variables.aws-access-key-id}
+            secret-access-key: ${test-variables.aws-secret-access-key}
+    aws:
+      devservices:
+        localstack:
+          port: "56100"
+
+  image:
+    size:
+      square:
+        aspect-ratio: "1:1"
+        min-width: "400"
+        thumbnail:
+          scaling-factor: "0.1"
+
+      panoramic:
+        aspect-ratio: "2:1"
+        min-width: "400"
+        medium:
+          scaling-factor: "0.7"
