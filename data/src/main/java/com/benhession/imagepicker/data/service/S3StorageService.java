@@ -16,10 +16,14 @@ import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.Delete;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
+import software.amazon.awssdk.services.s3.model.DeleteObjectsRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectTaggingRequest;
 import software.amazon.awssdk.services.s3.model.GetUrlRequest;
+import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
+import software.amazon.awssdk.services.s3.model.ObjectIdentifier;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.S3Exception;
 import software.amazon.awssdk.services.s3.model.Tag;
@@ -142,6 +146,34 @@ public class S3StorageService implements ObjectStorageService {
 
         } catch (IOException e) {
             throw new ImageProcessingException("Error uploading original file data to S3", e);
+        }
+    }
+
+    @Override
+    public void deleteImagesByParentKey(String parentKey) {
+        // remove original image if it exists
+        s3Client.deleteObject(DeleteObjectRequest.builder()
+            .bucket(bucketName)
+            .key(ORIGINAL_FILES_PREFIX + parentKey)
+            .build());
+
+        // remove processed images if they exist
+        var listObjectsResponse = s3Client.listObjectsV2(ListObjectsV2Request.builder()
+            .bucket(bucketName)
+            .prefix(parentKey)
+            .build());
+
+        if (!listObjectsResponse.contents().isEmpty()) {
+            s3Client.deleteObjects(DeleteObjectsRequest.builder()
+                .bucket(bucketName)
+                .delete(Delete.builder()
+                    .objects(listObjectsResponse.contents().stream()
+                        .map(s3Object -> ObjectIdentifier.builder()
+                            .key(s3Object.key())
+                            .build())
+                        .toList())
+                    .build())
+                .build());
         }
     }
 

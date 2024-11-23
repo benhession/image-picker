@@ -5,5 +5,9 @@ public enum ImageProcessingStage {
     PROCESSING,
     PROCESSING_COMPLETE,
     PROCESSING_TIMEOUT,
-    PROCESSING_FAILED
+    PROCESSING_FAILED;
+
+    public static boolean isInProgress(ImageProcessingStage imageProcessingStage) {
+        return imageProcessingStage.equals(ORIGINAL_UPLOADED) || imageProcessingStage.equals(PROCESSING);
+    }
 }

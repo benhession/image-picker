@@ -11,4 +11,6 @@ public interface ObjectStorageService {
     ImageUploadDto getOriginalFileData(String parentKey);
 
     void uploadOriginalFileData(ImageUploadDto imageUploadDto, String fileDataKey);
+
+    void deleteImagesByParentKey(String parentKey);
 }

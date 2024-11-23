@@ -39,6 +39,7 @@ public class S3StorageServiceTest {
 
     private static final String TEST_MIME_TYPE = "image/jpeg";
     private static final String TEST_ORIGINAL_FILENAME = "test-filename.jpg";
+    private static final String ORIGINAL_FILE_PREFIX = "originalFileData/";
     @Inject
     MimeTypeUtil mimeTypeUtil;
     @Inject
@@ -138,6 +139,60 @@ public class S3StorageServiceTest {
         assertThat(actualImageDto.filename()).isEqualTo(imageUploadDto.filename());
         assertThat(actualImageDto.mimetype()).isEqualTo(imageUploadDto.mimetype());
         assertThat(actualImageDto.image()).containsExactly(imageUploadDto.image());
+    }
+
+    @Test
+    public void When_DeleteByParentKey_WithNoImages_Expect_NoError() throws IOException {
+        // arrange
+        String parentKey = UUID.randomUUID().toString();
+
+        // act
+        s3StorageService.deleteImagesByParentKey(parentKey);
+    }
+
+    @Test
+    public void When_DeleteByParentKey_WithFiles_Expect_ObjectsDeleted() throws IOException {
+        // arrange
+        String parentKey = UUID.randomUUID().toString();
+        byte[] imageBytes = testFileLoader.loadTestFileBytes("test.jpeg");
+        String testFile1DataKey = UUID.randomUUID().toString();
+        String testFile2DataKey = UUID.randomUUID().toString();
+
+        s3Client.putObject(PutObjectRequest.builder()
+            .bucket(bucketName)
+            .key(ORIGINAL_FILE_PREFIX + parentKey)
+            .contentType("image/jpeg")
+            .build(), RequestBody.fromBytes(imageBytes));
+
+        s3Client.putObject(PutObjectRequest.builder()
+            .bucket(bucketName)
+            .key(parentKey + "/" + testFile1DataKey)
+            .contentType("image/jpeg")
+            .build(), RequestBody.fromBytes(imageBytes));
+
+        s3Client.putObject(PutObjectRequest.builder()
+            .bucket(bucketName)
+            .key(parentKey + "/" + testFile2DataKey)
+            .contentType("image/jpeg")
+            .build(), RequestBody.fromBytes(imageBytes));
+
+        // act
+        s3StorageService.deleteImagesByParentKey(parentKey);
+
+        // assert
+        var originalFilesListResponse = s3Client.listObjectsV2(ListObjectsV2Request.builder()
+                .bucket(bucketName)
+                .prefix(ORIGINAL_FILE_PREFIX + parentKey)
+            .build());
+
+        assertThat(originalFilesListResponse.contents()).isEmpty();
+
+        var processedFilesListResponse = s3Client.listObjectsV2(ListObjectsV2Request.builder()
+                .bucket(bucketName)
+                .prefix(parentKey)
+            .build());
+
+        assertThat(processedFilesListResponse.contents()).isEmpty();
     }
 
     private List<ImageUploadDto> getTestDto() throws IOException {

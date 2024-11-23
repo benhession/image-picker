@@ -1,4 +1,7 @@
 "%test":
+  image-processing-properties:
+    timeout: PT10M
+
   image:
     accepted-mime-types:
       - "image/jpeg"
