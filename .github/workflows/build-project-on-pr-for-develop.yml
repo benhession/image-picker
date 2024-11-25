@@ -15,10 +15,14 @@ env:
 
 jobs:
   build-gradle-project:
-    runs-on: ubuntu-latest
+    runs-on: macos-15
     steps:
       - name: Checkout project sources
         uses: actions/checkout@v3
+      - name: Install docker
+        run: brew install docker
+      - name: Start Colima
+        run: colima start
       - name: Set up JDK 21
         uses: actions/setup-java@v3
         with:
