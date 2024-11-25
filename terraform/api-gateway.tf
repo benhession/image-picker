@@ -124,7 +124,7 @@ module "get_all_images" {
   http_method = "GET"
   resource_id = aws_api_gateway_resource.image_resource.id
   rest_api_id = aws_api_gateway_rest_api.image_picker_api.id
-  uri         = aws_lambda_function.image-picker-api.invoke_arn
+  uri         = aws_lambda_function.image_picker_api.invoke_arn
 }
 
 
@@ -133,7 +133,7 @@ module "post_image" {
   http_method = "POST"
   resource_id = aws_api_gateway_resource.image_resource.id
   rest_api_id = aws_api_gateway_rest_api.image_picker_api.id
-  uri         = aws_lambda_function.image-picker-api.invoke_arn
+  uri         = aws_lambda_function.image_picker_api.invoke_arn
 }
 
 module "get_image" {
@@ -141,5 +141,5 @@ module "get_image" {
   http_method = "GET"
   resource_id = aws_api_gateway_resource.image_by_id_resource.id
   rest_api_id = aws_api_gateway_rest_api.image_picker_api.id
-  uri         = aws_lambda_function.image-picker-api.invoke_arn
+  uri         = aws_lambda_function.image_picker_api.invoke_arn
 }

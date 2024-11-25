@@ -1,9 +1,17 @@
+test-variables:
+  bucket-name: "test-bucket"
+  queue-name: "test-queue"
+  aws-region: "us-east-1"
+  aws-access-key-id: "test-key"
+  aws-secret-access-key: "test-secret"
+
 bucket.name: ${BUCKET_NAME}
 
-quarkus :
-  native:
-    additional-build-args: --initialize-at-run-time=net.coobird.thumbnailator.resizers.AbstractResizer\,net.coobird.thumbnailator.resizers.BilinearResizer\,net.coobird.thumbnailator.resizers.configurations.AlphaInterpolation\,net.coobird.thumbnailator.resizers.configurations.Antialiasing\,net.coobird.thumbnailator.resizers.configurations.Dithering\,net.coobird.thumbnailator.resizers.configurations.Rendering\,net.coobird.thumbnailator.resizers.NullResizer\,net.coobird.thumbnailator.resizers.ProgressiveBilinearResizer\,net.coobird.thumbnailator.resizers.Resizers
+queue:
+  image-processing-queue:
+    url: ${IMAGE_PROCESSING_QUEUE_URL}
 
+quarkus :
   oidc:
     auth-server-url: ${AUTH_SERVER_URL}
     client-id: ${OIDC_CLIENT_ID}
@@ -20,6 +28,9 @@ quarkus :
 validation-messages:
   system:
     error: "An unexpected error has occurred."
+
+image-processing-properties:
+  timeout: ${IMAGE_PROCESSING_TIMEOUT:PT10M}
 
 image:
   accepted-mime-types:
@@ -82,38 +93,67 @@ image:
       connection-string: ${MONGODB_CONNECTION_STRING}
 
 "%dev":
+  queue:
+    image-processing-queue:
+      url: ${test-variables.queue-name}
 
   bucket:
-    name: "test-bucket"
+    name: ${test-variables.bucket-name}
 
   quarkus:
-    s3:
+    sqs:
       devservices:
-        buckets: "test-bucket"
+        queues: ${test-variables.queue-name}
       aws:
-        region: "us-east-1"
+        region: ${test-variables.aws-region}
         credentials:
           type: "static"
           static-provider:
-            access-key-id: "test-key"
-            secret-access-key: "test-secret"
+            access-key-id: ${test-variables.aws-access-key-id}
+            secret-access-key: ${test-variables.aws-secret-access-key}
+
+    s3:
+      devservices:
+        buckets: ${test-variables.bucket-name}
+      aws:
+        region: ${test-variables.aws-region}
+        credentials:
+          type: "static"
+          static-provider:
+            access-key-id: ${test-variables.aws-access-key-id}
+            secret-access-key: ${test-variables.aws-secret-access-key}
 
 "%test":
 
+  queue:
+    image-processing-queue:
+      url: ${test-variables.queue-name}
+
   bucket:
-    name: "test-bucket"
+    name: ${test-variables.bucket-name}
 
   quarkus:
-    s3:
+    sqs:
       devservices:
-        buckets: "test-bucket"
+        queues: ${test-variables.queue-name}
       aws:
-        region: "us-east-1"
+        region: ${test-variables.aws-region}
         credentials:
           type: "static"
           static-provider:
-            access-key-id: "test-key"
-            secret-access-key: "test-secret"
+            access-key-id: ${test-variables.aws-access-key-id}
+            secret-access-key: ${test-variables.aws-secret-access-key}
+
+    s3:
+      devservices:
+        buckets: ${test-variables.bucket-name}
+      aws:
+        region: ${test-variables.aws-region}
+        credentials:
+          type: "static"
+          static-provider:
+            access-key-id: ${test-variables.aws-access-key-id}
+            secret-access-key: ${test-variables.aws-secret-access-key}
 
   image:
     size:

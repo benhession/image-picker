@@ -1,0 +1,34 @@
+"%dev":
+  bucket:
+    name: "test-bucket"
+
+  quarkus:
+    s3:
+      devservices:
+        buckets: "test-bucket"
+      aws:
+        region: "us-east-1"
+        credentials:
+          type: "static"
+          static-provider:
+            access-key-id: "test-key"
+            secret-access-key: "test-secret"
+
+"%test":
+  bucket:
+    name: "test-bucket"
+
+  quarkus:
+    s3:
+      devservices:
+        buckets: "test-bucket"
+      aws:
+        region: "us-east-1"
+        credentials:
+          type: "static"
+          static-provider:
+            access-key-id: "test-key"
+            secret-access-key: "test-secret"
+
+    mongodb:
+      database: "test-db"

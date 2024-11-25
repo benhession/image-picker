@@ -42,4 +42,21 @@ resource "aws_s3_bucket_policy" "image-picker-images" {
       },
     ],
   })
+
+  depends_on = [aws_s3_bucket_public_access_block.image-picker-images]
+}
+
+resource "aws_s3_bucket_lifecycle_configuration" "image-picker-images" {
+  bucket = aws_s3_bucket.image-picker-images.id
+  rule {
+    id = "delete-original-files-after-timeout"
+    status = "Enabled"
+    filter {
+      prefix = "originalFileData/"
+    }
+    expiration {
+      days        = "1"
+    }
+  }
+  depends_on = [aws_s3_bucket.image-picker-images]
 }
