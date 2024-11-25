@@ -46,11 +46,9 @@ public class ImageCreationService {
     public void createNewImages(final FileData fileData, ImageMetadata imageMetadata)
         throws ImageProcessingException {
 
-        final String imageId = imageMetadata.getId().toString();
-
         if (!imageMetadata.getStatus().stage().equals(ORIGINAL_UPLOADED)) {
             throw new ImageProcessingException("Image metadata is not in the processing stage for imageId: "
-                + imageId);
+                + imageMetadata.getId().toString());
         }
 
         imageMetadata = imageMetaDataService.setImageProcessingStage(imageMetadata, PROCESSING);
@@ -66,7 +64,13 @@ public class ImageCreationService {
             .toList();
 
         objectStorageService.uploadFiles(images, imageMetadata.getParentKey());
-        imageMetaDataService.setImageProcessingStage(imageMetadata, PROCESSING_COMPLETE);
+
+        // this will cancel the process if the timeout is reached
+        imageMetadata = imageMetaDataService.getImageMetaData(imageMetadata.getId()).orElseThrow();
+
+        if (imageMetadata.getStatus().stage().equals(PROCESSING)) {
+            imageMetaDataService.setImageProcessingStage(imageMetadata, PROCESSING_COMPLETE);
+        }
     }
 
     private byte[] resizeAsNewImage(FileData fileData, ImageSize imageSize,

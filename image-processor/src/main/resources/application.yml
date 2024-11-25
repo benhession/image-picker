@@ -28,6 +28,9 @@ validation-messages:
   system:
     error: "An unexpected error has occurred."
 
+image-processing-properties:
+  timeout: ${IMAGE_PROCESSING_TIMEOUT:PT10M}
+
 image:
   accepted-mime-types:
     - "image/jpeg"
