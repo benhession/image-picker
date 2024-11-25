@@ -46,3 +46,9 @@ jobs:
         with:
           name: image-picker-api build reports
           path: image-picker-api/build/reports
+      - name: Uploas colima log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: colima logs
+          path: /Users/runner/.colima/_lima/colima/ha.stderr.log
