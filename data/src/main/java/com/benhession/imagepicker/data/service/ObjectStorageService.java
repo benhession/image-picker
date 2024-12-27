@@ -13,4 +13,6 @@ public interface ObjectStorageService {
     void uploadOriginalFileData(ImageUploadDto imageUploadDto, String fileDataKey);
 
     void deleteImagesByParentKey(String parentKey);
+
+    String getPreSignedUrl(ImageUploadDto imageUploadDto, String fileDataKey);
 }

@@ -24,7 +24,7 @@ public class ImageValidationService {
     private final ImageConfigProperties imageConfigProperties;
 
     public void validateInputImage(ObjectUploadForm objectUploadForm) throws BadRequestException {
-        validateMimeType(objectUploadForm.getMimetype());
+        validateMimeType(objectUploadForm.getMimetype(), "/image");
 
         final ImageType imageType = ImageType.valueOf(objectUploadForm.getImageType());
 
@@ -68,10 +68,10 @@ public class ImageValidationService {
         return widthBd.divide(heightBd, 2, RoundingMode.HALF_UP);
     }
 
-    private void validateMimeType(String mimeType) throws BadRequestException {
+    public void validateMimeType(String mimeType, String path) throws BadRequestException {
         if (!imageConfigProperties.acceptedMimeTypes().contains(mimeType)) {
             var errorMessage = BadRequestException.ErrorMessage.builder()
-              .path("/image")
+              .path(path)
               .message("Mime type must be one of the following " + imageConfigProperties.acceptedMimeTypes())
               .build();
             throw new BadRequestException(List.of(errorMessage));
