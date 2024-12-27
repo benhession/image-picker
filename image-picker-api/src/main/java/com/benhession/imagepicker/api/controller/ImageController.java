@@ -3,8 +3,10 @@ package com.benhession.imagepicker.api.controller;
 import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
 import static org.jboss.resteasy.reactive.RestResponse.Status.OK;
 
+import com.benhession.imagepicker.api.dto.GetUploadUrlDto;
 import com.benhession.imagepicker.api.dto.ImageResponseDto;
 import com.benhession.imagepicker.api.dto.ObjectUploadForm;
+import com.benhession.imagepicker.api.dto.UploadUrlResponseDto;
 import com.benhession.imagepicker.api.mapper.ImageResponseMapper;
 import com.benhession.imagepicker.api.service.FileDataFactory;
 import com.benhession.imagepicker.api.service.ImageProcessingService;
@@ -17,8 +19,10 @@ import com.benhession.imagepicker.common.exception.DownStreamServerTimeoutExcept
 import com.benhession.imagepicker.common.exception.NotFoundException;
 import com.benhession.imagepicker.common.model.FileData;
 import com.benhession.imagepicker.common.model.PageInfo;
+import com.benhession.imagepicker.data.dto.ImageUploadDto;
 import com.benhession.imagepicker.data.model.ImageMetadata;
 import com.benhession.imagepicker.data.service.ImageMetaDataService;
+import com.benhession.imagepicker.data.service.ObjectStorageService;
 import io.quarkus.resteasy.reactive.links.InjectRestLinks;
 import io.quarkus.resteasy.reactive.links.RestLink;
 import io.quarkus.resteasy.reactive.links.RestLinkType;
@@ -53,6 +57,31 @@ public class ImageController {
     private final ImageValidationService imageValidationService;
     private final FileDataFactory fileDataFactory;
     private final ImageProcessingService imageProcessingService;
+    private final ObjectStorageService objectStorageService;
+
+    @POST
+    @Path("/pre-signed")
+    @RolesAllowed({"blog-admin"})
+    @InjectRestLinks(RestLinkType.INSTANCE)
+    public RestResponse<UploadUrlResponseDto> getUploadUrl(@Valid @BeanParam GetUploadUrlDto getUploadUrlDto) {
+        imageValidationService.validateMimeType(getUploadUrlDto.getMimetype(), "/image/pre-signed");
+
+        var imageMetadata =
+            imageMetaDataService.newImageMetaData(getUploadUrlDto.getFilename(), getUploadUrlDto.getTags());
+
+        var imageUploadDto = ImageUploadDto.builder()
+            .filename(imageMetadata.getFilename())
+            .mimetype(getUploadUrlDto.getMimetype())
+            .build();
+
+        String uploadUrl = objectStorageService.getPreSignedUrl(imageUploadDto, imageMetadata.getParentKey());
+
+        return RestResponse.ok(UploadUrlResponseDto.builder()
+                .imageId(imageMetadata.getId().toString())
+                .uploadUrl(uploadUrl)
+            .build());
+    }
+
 
     @POST
     @Consumes(MediaType.MULTIPART_FORM_DATA)
@@ -91,7 +120,8 @@ public class ImageController {
                 throw new DownStreamServerTimeoutException(
                     String.format(
                         "The image processing timed out. id: %s status: %s", id, metadata.getStatus()));
-            case ORIGINAL_UPLOADED, PROCESSING -> RestResponse.ok(imageResponseMapper.toDtoWithoutImages(metadata));
+            case INITIALISED, ORIGINAL_UPLOADED, PROCESSING ->
+                RestResponse.ok(imageResponseMapper.toDtoWithoutImages(metadata));
             case PROCESSING_COMPLETE -> RestResponse.ok(imageResponseMapper.toDto(metadata));
             case null -> throw new IllegalStateException("Processing status not found for image id: " + id);
         };

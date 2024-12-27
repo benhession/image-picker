@@ -1,13 +1,19 @@
 package com.benhession.imagepicker.data.model;
 
-public enum ImageProcessingStage {
-    ORIGINAL_UPLOADED,
-    PROCESSING,
-    PROCESSING_COMPLETE,
-    PROCESSING_TIMEOUT,
-    PROCESSING_FAILED;
+import lombok.Getter;
 
-    public static boolean isInProgress(ImageProcessingStage imageProcessingStage) {
-        return imageProcessingStage.equals(ORIGINAL_UPLOADED) || imageProcessingStage.equals(PROCESSING);
+@Getter
+public enum ImageProcessingStage {
+    INITIALISED(true),
+    ORIGINAL_UPLOADED(true),
+    PROCESSING(true),
+    PROCESSING_COMPLETE(false),
+    PROCESSING_TIMEOUT(false),
+    PROCESSING_FAILED(false);
+
+    private final boolean isInProgress;
+
+    ImageProcessingStage(boolean isInProgress) {
+        this.isInProgress = isInProgress;
     }
 }

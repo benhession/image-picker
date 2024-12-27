@@ -1,6 +1,7 @@
 package com.benhession.imagepicker.data.service;
 
 import static com.benhession.imagepicker.common.model.ImageType.RECTANGULAR;
+import static com.benhession.imagepicker.data.model.ImageProcessingStage.INITIALISED;
 import static com.benhession.imagepicker.data.model.ImageProcessingStage.ORIGINAL_UPLOADED;
 import static com.benhession.imagepicker.data.model.ImageProcessingStage.PROCESSING_COMPLETE;
 import static com.benhession.imagepicker.data.model.ImageProcessingStage.PROCESSING_TIMEOUT;
@@ -89,5 +90,20 @@ public class ImageMetaDataServiceTest {
             .build();
 
         imageMetaDataRepository.persist(mockMetaData);
+    }
+
+    @Test
+    public void When_NewMetaData_Expect_InitialisedStatus() {
+        String filename = UUID.randomUUID().toString();
+
+        imageMetaDataService.newImageMetaData(filename, List.of("test-tag"));
+
+        ImageMetadata imageMetadata = imageMetaDataRepository.find("filename", filename)
+            .list()
+            .getFirst();
+
+        assertThat(imageMetadata.getStatus().stage()).isEqualTo(INITIALISED);
+        assertThat(imageMetadata.getTags()).hasSize(1).contains("test-tag");
+        assertThat(imageMetadata.getParentKey()).isNotBlank().contains(filename);
     }
 }

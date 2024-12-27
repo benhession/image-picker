@@ -6,6 +6,7 @@ import static com.benhession.imagepicker.common.model.ImageSize.SMALL;
 import static com.benhession.imagepicker.common.model.ImageSize.THUMBNAIL;
 import static com.benhession.imagepicker.common.model.ImageType.RECTANGULAR;
 import static com.benhession.imagepicker.common.model.ImageType.SQUARE;
+import static com.benhession.imagepicker.data.model.ImageProcessingStage.INITIALISED;
 import static com.benhession.imagepicker.data.model.ImageProcessingStage.ORIGINAL_UPLOADED;
 import static com.benhession.imagepicker.data.model.ImageProcessingStage.PROCESSING;
 import static com.benhession.imagepicker.data.model.ImageProcessingStage.PROCESSING_COMPLETE;
@@ -16,9 +17,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.benhession.imagepicker.api.dto.ImageResponseDto;
+import com.benhession.imagepicker.api.dto.UploadUrlResponseDto;
 import com.benhession.imagepicker.api.exception.ErrorResponse;
 import com.benhession.imagepicker.api.service.ImageProcessingService;
 import com.benhession.imagepicker.api.service.ImageValidationService;
@@ -53,6 +57,7 @@ public class ImageControllerTest {
     private static final String SYSTEM_ERROR_MESSAGE = "An unexpected error has occurred.";
     private static final String RECTANGULAR_TEST_IMAGE_NAME = "test-image.jpg";
     private static final String JPEG_MIME_TYPE = "image/jpeg";
+    private static final List<String> TEST_TAGS = List.of("test", "another tag");
 
     private static final List<ImageMetadata> FIVE_METADATA_RESULTS = List.of(
       ImageMetadata.builder()
@@ -538,6 +543,82 @@ public class ImageControllerTest {
     @TestSecurity(user = "testUser", roles = {"blog-admin", "Everyone"})
     public void When_GetImage_With_Processing_Expect_MetaDataWithoutImageUrls() {
         checkForNoImagesResponse(PROCESSING);
+    }
+
+    @Test
+    @TestSecurity(user = "testuser", roles = {"blog-admin", "Everyone"})
+    public void When_GetUploadUrl_With_ValidRequest_Expect_MetadataAndCorrectResponse() {
+        var stubMetadata = ImageMetadata.builder()
+            .id(ObjectId.get())
+            .parentKey(UUID.randomUUID().toString())
+            .filename(RECTANGULAR_TEST_IMAGE_NAME)
+            .status(ImageProcessingStatus.of(INITIALISED))
+            .build();
+
+        when(imageMetaDataService.newImageMetaData(any(), any()))
+            .thenReturn(stubMetadata);
+        when(imageMetaDataService.getImageMetaData(any()))
+            .thenCallRealMethod();
+        when(objectStorageService.getPreSignedUrl(any(), any()))
+            .thenReturn("http://test-url");
+
+        var response = given()
+            .multiPart("filename", RECTANGULAR_TEST_IMAGE_NAME)
+            .multiPart("mime-type", JPEG_MIME_TYPE)
+            .multiPart("tag", TEST_TAGS.getFirst())
+            .multiPart("tag", TEST_TAGS.getLast())
+            .post("/pre-signed")
+            .then()
+            .statusCode(200)
+            .extract()
+            .as(UploadUrlResponseDto.class);
+
+        assertThat(response).isNotNull();
+        assertThat(response.getUploadUrl())
+            .isNotBlank()
+            .isEqualTo("http://test-url");
+        assertThat(response.getImageId())
+            .isNotBlank()
+            .isEqualTo(stubMetadata.getId().toString());
+
+        verify(imageMetaDataService, times(1))
+            .newImageMetaData(eq(RECTANGULAR_TEST_IMAGE_NAME), eq(TEST_TAGS));
+    }
+
+    @Test
+    @TestSecurity(user = "unauthorisedUser", roles = {"Everyone"})
+    public void When_GetUploadUrl_With_UnauthorisedUser_Expect_Forbidden() {
+        given()
+            .multiPart("filename", RECTANGULAR_TEST_IMAGE_NAME)
+            .multiPart("mime-type", JPEG_MIME_TYPE)
+            .post("/pre-signed")
+            .then()
+            .statusCode(403);
+    }
+
+    @Test
+    @TestSecurity(user = "testUser", roles = {"blog-admin", "Everyone"})
+    public void When_GetUploadUrl_With_invalidMimeType_Expect_BadRequest() {
+        doThrow(new BadRequestException(List.of(ErrorMessage.builder().message("test").build())))
+            .doCallRealMethod()
+            .when(imageValidationService).validateMimeType(any(), any());
+
+        given()
+            .multiPart("filename", RECTANGULAR_TEST_IMAGE_NAME)
+            .multiPart("mime-type", JPEG_MIME_TYPE)
+            .post("/pre-signed")
+            .then()
+            .statusCode(400);
+    }
+
+    @Test
+    @TestSecurity(user = "testuser", roles = {"blog-admin", "Everyone"})
+    public void When_GetUploadUrl_With_MissingFilename_Expect_BadRequest() {
+        given()
+            .multiPart("mime-type", JPEG_MIME_TYPE)
+            .post("/pre-signed")
+            .then()
+            .statusCode(400);
     }
 
     private void checkForNoImagesResponse(ImageProcessingStage stage) {

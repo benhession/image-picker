@@ -1,7 +1,10 @@
 package com.benhession.imagepicker.data.service;
 
+import static com.benhession.imagepicker.data.model.ImageProcessingStage.INITIALISED;
+
 import com.benhession.imagepicker.common.config.ImageProcessingProperties;
 import com.benhession.imagepicker.common.model.PageInfo;
+import com.benhession.imagepicker.common.util.FilenameUtil;
 import com.benhession.imagepicker.data.model.ImageMetadata;
 import com.benhession.imagepicker.data.model.ImageProcessingStage;
 import com.benhession.imagepicker.data.model.ImageProcessingStatus;
@@ -19,6 +22,7 @@ public class ImageMetaDataService {
     private final ImageMetaDataRepository imageMetadataRepository;
     private final ImageProcessingProperties imageProcessingProperties;
     private final ObjectStorageService objectStorageService;
+    private final FilenameUtil filenameUtil;
 
     public Optional<ImageMetadata> getImageMetaData(ObjectId objectId) {
         var metaDataOptional = imageMetadataRepository.findByIdOptional(objectId);
@@ -65,11 +69,23 @@ public class ImageMetaDataService {
         return imageMetadata;
     }
 
+    public ImageMetadata newImageMetaData(String filename, List<String> tags) {
+        ImageMetadata imageMetadata = ImageMetadata.builder()
+            .tags(tags)
+            .filename(filename)
+            .parentKey(filenameUtil.generateParentKey(filename))
+            .status(ImageProcessingStatus.of(INITIALISED))
+            .build();
+
+        persist(imageMetadata);
+        return imageMetadata;
+    }
+
     private ImageMetadata checkForTimeout(ImageMetadata imageMetadata) {
         var status = imageMetadata.getStatus();
         Instant timeoutInstant = status.statusChangedAt().plus(imageProcessingProperties.timeout());
 
-        if (ImageProcessingStage.isInProgress(status.stage()) && timeoutInstant.isBefore(Instant.now())) {
+        if (status.stage().isInProgress() && timeoutInstant.isBefore(Instant.now())) {
             var updatedMetaData = setImageProcessingStage(imageMetadata, ImageProcessingStage.PROCESSING_TIMEOUT);
             objectStorageService.deleteImagesByParentKey(imageMetadata.getParentKey());
             return updatedMetaData;

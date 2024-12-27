@@ -7,6 +7,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.URL;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -28,6 +29,9 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.S3Exception;
 import software.amazon.awssdk.services.s3.model.Tag;
 import software.amazon.awssdk.services.s3.model.Tagging;
+import software.amazon.awssdk.services.s3.presigner.S3Presigner;
+import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequest;
+import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignRequest;
 
 @RequiredArgsConstructor
 @ApplicationScoped
@@ -36,8 +40,10 @@ public class S3StorageService implements ObjectStorageService {
     private static final String ORIGINAL_FILES_PREFIX = "originalFileData/";
     public static final String FILENAME_TAG = "filename";
     public static final String MIME_TYPE_TAG = "mimeType";
+    public static final Duration PRE_SIGNED_UPLOAD_DURATION = Duration.ofMinutes(2);
 
     private final S3Client s3Client;
+    private final S3Presigner s3Presigner;
     private final Logger logger;
 
     @ConfigProperty(name = "bucket.name")
@@ -175,6 +181,34 @@ public class S3StorageService implements ObjectStorageService {
                     .build())
                 .build());
         }
+    }
+
+    public String getPreSignedUrl(ImageUploadDto imageUploadDto, String fileDataKey) {
+        var tagging = Tagging.builder()
+            .tagSet(
+                Tag.builder()
+                    .key(FILENAME_TAG)
+                    .value(imageUploadDto.filename())
+                    .build(),
+                Tag.builder()
+                    .key(MIME_TYPE_TAG)
+                    .value(imageUploadDto.mimetype())
+                    .build())
+            .build();
+
+        PutObjectRequest objectRequest = PutObjectRequest.builder()
+            .bucket(bucketName)
+            .key(ORIGINAL_FILES_PREFIX + fileDataKey)
+            .tagging(tagging)
+            .build();
+
+        PutObjectPresignRequest preSignRequest = PutObjectPresignRequest.builder()
+            .signatureDuration(PRE_SIGNED_UPLOAD_DURATION)
+            .putObjectRequest(objectRequest)
+            .build();
+
+        PresignedPutObjectRequest preSignedRequest = s3Presigner.presignPutObject(preSignRequest);
+        return preSignedRequest.url().toExternalForm();
     }
 
     private void uploadImage(PutObjectRequest putObjectRequest, ImageUploadDto imageDto)
