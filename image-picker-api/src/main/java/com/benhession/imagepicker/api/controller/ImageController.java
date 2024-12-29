@@ -20,6 +20,7 @@ import com.benhession.imagepicker.common.exception.NotFoundException;
 import com.benhession.imagepicker.common.model.FileData;
 import com.benhession.imagepicker.common.model.PageInfo;
 import com.benhession.imagepicker.data.dto.ImageUploadDto;
+import com.benhession.imagepicker.data.dto.PreSignedUploadDto;
 import com.benhession.imagepicker.data.model.ImageMetadata;
 import com.benhession.imagepicker.data.service.ImageMetaDataService;
 import com.benhession.imagepicker.data.service.ObjectStorageService;
@@ -51,6 +52,7 @@ import org.jboss.resteasy.reactive.RestResponse;
 @Path("/image")
 @RequiredArgsConstructor
 public class ImageController {
+
     private final ImageResponseMapper imageResponseMapper;
     private final ImageMetaDataService imageMetaDataService;
     private final PaginationLinksService paginationLinksService;
@@ -74,11 +76,13 @@ public class ImageController {
             .mimetype(getUploadUrlDto.getMimetype())
             .build();
 
-        String uploadUrl = objectStorageService.getPreSignedUrl(imageUploadDto, imageMetadata.getParentKey());
+        PreSignedUploadDto uploadUrlDto =
+            objectStorageService.getPreSignedUrl(imageUploadDto, imageMetadata.getParentKey());
 
         return RestResponse.ok(UploadUrlResponseDto.builder()
-                .imageId(imageMetadata.getId().toString())
-                .uploadUrl(uploadUrl)
+            .imageId(imageMetadata.getId().toString())
+            .uploadUrl(uploadUrlDto.getUrl())
+            .headers(uploadUrlDto.getHeaders())
             .build());
     }
 
@@ -112,14 +116,12 @@ public class ImageController {
                     .build())));
 
         return switch (metadata.getStatus().stage()) {
-            case PROCESSING_FAILED ->
-                throw new DownStreamServerException(
-                    String.format(
-                        "The image could not be processed successfully. id: %s status: %s", id, metadata.getStatus()));
-            case PROCESSING_TIMEOUT ->
-                throw new DownStreamServerTimeoutException(
-                    String.format(
-                        "The image processing timed out. id: %s status: %s", id, metadata.getStatus()));
+            case PROCESSING_FAILED -> throw new DownStreamServerException(
+                String.format(
+                    "The image could not be processed successfully. id: %s status: %s", id, metadata.getStatus()));
+            case PROCESSING_TIMEOUT -> throw new DownStreamServerTimeoutException(
+                String.format(
+                    "The image processing timed out. id: %s status: %s", id, metadata.getStatus()));
             case INITIALISED, ORIGINAL_UPLOADED, PROCESSING ->
                 RestResponse.ok(imageResponseMapper.toDtoWithoutImages(metadata));
             case PROCESSING_COMPLETE -> RestResponse.ok(imageResponseMapper.toDto(metadata));
@@ -132,8 +134,8 @@ public class ImageController {
     @RolesAllowed({"blog-admin"})
     @RestLink(rel = "list")
     public RestResponse<List<ImageResponseDto>> getImages(@QueryParam("page") String pageString,
-                                                          @QueryParam("size") String sizeString,
-                                                          @Context UriInfo uriInfo) {
+        @QueryParam("size") String sizeString,
+        @Context UriInfo uriInfo) {
 
         List<AbstractMultipleErrorApplicationException.ErrorMessage> errorMessages = new ArrayList<>();
         int page = parseIntegerQueryParameter(pageString, "page", errorMessages);
@@ -141,15 +143,15 @@ public class ImageController {
 
         if (size <= 0) {
             errorMessages.add(AbstractMultipleErrorApplicationException.ErrorMessage.builder()
-              .path("/image")
-              .message("'size' must be greater than 0")
-              .build());
+                .path("/image")
+                .message("'size' must be greater than 0")
+                .build());
         }
         if (page < 0) {
             errorMessages.add(AbstractMultipleErrorApplicationException.ErrorMessage.builder()
-              .path("/image")
-              .message("'page' must be non-negative")
-              .build());
+                .path("/image")
+                .message("'page' must be non-negative")
+                .build());
         }
         if (!errorMessages.isEmpty()) {
             throw new BadRequestException(errorMessages);
@@ -161,33 +163,33 @@ public class ImageController {
         }
 
         List<ImageMetadata> imageMetadataList =
-          imageMetaDataService.findProcessedImages(pageInfo.page(), pageInfo.size());
+            imageMetaDataService.findProcessedImages(pageInfo.page(), pageInfo.size());
 
         return RestResponse.ResponseBuilder
-          .create(OK, imageMetadataList.stream()
-            .map(imageResponseMapper::toDto)
-            .toList())
-          .links(paginationLinksService.getPaginationLinks(pageInfo, uriInfo))
-          .build();
+            .create(OK, imageMetadataList.stream()
+                .map(imageResponseMapper::toDto)
+                .toList())
+            .links(paginationLinksService.getPaginationLinks(pageInfo, uriInfo))
+            .build();
     }
 
     private int parseIntegerQueryParameter(String paramString, String paramName,
-                                           List<AbstractMultipleErrorApplicationException.ErrorMessage> errorMessages) {
+        List<AbstractMultipleErrorApplicationException.ErrorMessage> errorMessages) {
 
         if (paramString != null) {
             try {
                 return Integer.parseInt(paramString);
             } catch (NumberFormatException e) {
                 errorMessages.add(AbstractMultipleErrorApplicationException.ErrorMessage.builder()
-                  .path("/image")
-                  .message("query parameter '" + paramName + "' must be an integer")
-                  .build());
+                    .path("/image")
+                    .message("query parameter '" + paramName + "' must be an integer")
+                    .build());
             }
         } else {
             errorMessages.add(AbstractMultipleErrorApplicationException.ErrorMessage.builder()
-              .path("/image")
-              .message("query parameter '" + paramName + "' is required")
-              .build());
+                .path("/image")
+                .message("query parameter '" + paramName + "' is required")
+                .build());
         }
 
         return 0;

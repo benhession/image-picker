@@ -1,6 +1,7 @@
 package com.benhession.imagepicker.data.service;
 
 import com.benhession.imagepicker.data.dto.ImageUploadDto;
+import com.benhession.imagepicker.data.dto.PreSignedUploadDto;
 import java.util.List;
 
 public interface ObjectStorageService {
@@ -14,5 +15,5 @@ public interface ObjectStorageService {
 
     void deleteImagesByParentKey(String parentKey);
 
-    String getPreSignedUrl(ImageUploadDto imageUploadDto, String fileDataKey);
+    PreSignedUploadDto getPreSignedUrl(ImageUploadDto imageUploadDto, String fileDataKey);
 }

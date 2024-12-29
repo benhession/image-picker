@@ -2,6 +2,7 @@ package com.benhession.imagepicker.data.service;
 
 import com.benhession.imagepicker.common.exception.ImageProcessingException;
 import com.benhession.imagepicker.data.dto.ImageUploadDto;
+import com.benhession.imagepicker.data.dto.PreSignedUploadDto;
 import jakarta.enterprise.context.ApplicationScoped;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -10,6 +11,7 @@ import java.net.URL;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.logging.Logger;
@@ -183,7 +185,7 @@ public class S3StorageService implements ObjectStorageService {
         }
     }
 
-    public String getPreSignedUrl(ImageUploadDto imageUploadDto, String fileDataKey) {
+    public PreSignedUploadDto getPreSignedUrl(ImageUploadDto imageUploadDto, String fileDataKey) {
         var tagging = Tagging.builder()
             .tagSet(
                 Tag.builder()
@@ -208,7 +210,15 @@ public class S3StorageService implements ObjectStorageService {
             .build();
 
         PresignedPutObjectRequest preSignedRequest = s3Presigner.presignPutObject(preSignRequest);
-        return preSignedRequest.url().toExternalForm();
+
+        var uploadDtoBuilder = PreSignedUploadDto.builder()
+            .url(preSignedRequest.url().toExternalForm());
+
+        List<String> taggingHeader = preSignedRequest.signedHeaders().get("x-amz-tagging");
+        if (taggingHeader != null && !taggingHeader.isEmpty()) {
+            uploadDtoBuilder.headers(Map.of("x-amz-tagging", taggingHeader.getFirst()));
+        }
+        return uploadDtoBuilder.build();
     }
 
     private void uploadImage(PutObjectRequest putObjectRequest, ImageUploadDto imageDto)
