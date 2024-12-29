@@ -30,6 +30,7 @@ import com.benhession.imagepicker.common.exception.AbstractMultipleErrorApplicat
 import com.benhession.imagepicker.common.exception.AbstractMultipleErrorApplicationException.ErrorMessage;
 import com.benhession.imagepicker.common.exception.BadRequestException;
 import com.benhession.imagepicker.common.model.PageInfo;
+import com.benhession.imagepicker.data.dto.PreSignedUploadDto;
 import com.benhession.imagepicker.data.model.ImageMetadata;
 import com.benhession.imagepicker.data.model.ImageProcessingStage;
 import com.benhession.imagepicker.data.model.ImageProcessingStatus;
@@ -45,6 +46,7 @@ import jakarta.inject.Inject;
 import java.io.File;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import org.bson.types.ObjectId;
@@ -560,7 +562,10 @@ public class ImageControllerTest {
         when(imageMetaDataService.getImageMetaData(any()))
             .thenCallRealMethod();
         when(objectStorageService.getPreSignedUrl(any(), any()))
-            .thenReturn("http://test-url");
+            .thenReturn(PreSignedUploadDto.builder()
+                .url("http://test-url")
+                .headers(Map.of("x-amz-tagging", "test-tag"))
+                .build());
 
         var response = given()
             .multiPart("filename", RECTANGULAR_TEST_IMAGE_NAME)
@@ -577,6 +582,10 @@ public class ImageControllerTest {
         assertThat(response.getUploadUrl())
             .isNotBlank()
             .isEqualTo("http://test-url");
+        assertThat(response.getHeaders())
+            .isNotEmpty()
+            .hasSize(1);
+        assertThat(response.getHeaders().get("x-amz-tagging")).isEqualTo("test-tag");
         assertThat(response.getImageId())
             .isNotBlank()
             .isEqualTo(stubMetadata.getId().toString());
