@@ -6,6 +6,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doCallRealMethod;
 
 import com.benhession.imagepicker.common.exception.ImageProcessingException;
+import com.benhession.imagepicker.common.model.FileData;
 import com.benhession.imagepicker.common.util.MimeTypeUtil;
 import com.benhession.imagepicker.data.dto.ImageUploadDto;
 import com.benhession.imagepicker.testutil.TestFileLoader;
@@ -133,12 +134,12 @@ public class S3StorageServiceTest {
 
         // act
         s3StorageService.uploadOriginalFileData(imageUploadDto, testFileDataKey);
-        ImageUploadDto actualImageDto = s3StorageService.getOriginalFileData(testFileDataKey);
+        FileData actualImageDto = s3StorageService.getOriginalFileData(testFileDataKey);
 
         // assert
-        assertThat(actualImageDto.filename()).isEqualTo(imageUploadDto.filename());
-        assertThat(actualImageDto.mimetype()).isEqualTo(imageUploadDto.mimetype());
-        assertThat(actualImageDto.image()).containsExactly(imageUploadDto.image());
+        assertThat(actualImageDto.getFilename()).isEqualTo(imageUploadDto.filename());
+        assertThat(actualImageDto.getMimeType()).isEqualTo(imageUploadDto.mimetype());
+        assertThat(actualImageDto.getData()).containsExactly(imageUploadDto.image());
     }
 
     @Test

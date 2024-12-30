@@ -1,23 +1,22 @@
 package com.benhession.imagepicker.api.service;
 
 import static com.benhession.imagepicker.common.model.ImageType.RECTANGULAR;
+import static com.benhession.imagepicker.data.model.ImageProcessingStage.INITIALISED;
 import static com.benhession.imagepicker.data.model.ImageProcessingStage.ORIGINAL_UPLOADED;
 import static com.benhession.imagepicker.data.model.ImageProcessingStage.PROCESSING_FAILED;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.benhession.imagepicker.api.sqs.ImageProcessingQueueService;
+import com.benhession.imagepicker.common.exception.BadRequestException;
 import com.benhession.imagepicker.common.exception.ImageProcessingException;
 import com.benhession.imagepicker.common.model.FileData;
 import com.benhession.imagepicker.common.sqs.ImageCreationMessage;
-import com.benhession.imagepicker.common.util.FilenameUtil;
-import com.benhession.imagepicker.data.dto.ImageUploadDto;
 import com.benhession.imagepicker.data.model.ImageMetadata;
 import com.benhession.imagepicker.data.model.ImageProcessingStatus;
 import com.benhession.imagepicker.data.service.ImageMetaDataService;
@@ -26,7 +25,6 @@ import com.benhession.imagepicker.testutil.TestFileLoader;
 import io.quarkus.panache.common.exception.PanacheQueryException;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
@@ -53,89 +51,80 @@ public class ImageProcessingServiceTest {
     @InjectMock
     ObjectStorageService objectStorageService;
     @InjectMock
-    FilenameUtil filenameUtil;
+    ImageValidationService imageValidationService;
+
     private ArgumentCaptor<ImageCreationMessage> creationMessageCaptor;
     private ArgumentCaptor<ImageMetadata> imageMetadataCaptor;
-    private ArgumentCaptor<ImageUploadDto> imageUploadDtoCaptor;
 
+    private ImageMetadata inputImageMetadata;
     private FileData testFileData;
     private String testParentKey;
+    private ObjectId testMetadataId;
 
     @BeforeEach
     public void init() throws IOException {
         testFileData = FileData.builder()
             .data(testFileLoader.loadTestFileBytes(TEST_FILENAME))
-            .imageType(RECTANGULAR.toString())
             .mimeType("image/jpeg")
             .filename(TEST_FILENAME)
             .build();
 
+        testMetadataId = ObjectId.get();
         testParentKey = UUID.randomUUID() + "_" + TEST_FILENAME;
         imageMetadataCaptor = ArgumentCaptor.forClass(ImageMetadata.class);
         creationMessageCaptor = ArgumentCaptor.forClass(ImageCreationMessage.class);
-        imageUploadDtoCaptor = ArgumentCaptor.forClass(ImageUploadDto.class);
+
+        inputImageMetadata = ImageMetadata.builder()
+            .id(testMetadataId)
+            .filename(TEST_FILENAME)
+            .status(ImageProcessingStatus.of(INITIALISED))
+            .parentKey(testParentKey)
+            .tags(List.of("test-tag"))
+            .build();
     }
 
     @Test
-    public void When_ProcessImage_Expect_ProcessingPrepDone() throws IOException {
+    public void When_ValidateAndProcessUploadedImage_With_NoErrors_Expect_ProcessingStarted() {
         // arrange
-        when(filenameUtil.generateParentKey(eq(TEST_FILENAME)))
-            .thenReturn(testParentKey);
-        var mockMetaData = ImageMetadata.builder()
-            .parentKey(testParentKey)
-            .id(new ObjectId())
+        var expectedMetadata = inputImageMetadata.toBuilder()
+            .type(RECTANGULAR)
+            .status(ImageProcessingStatus.of(ORIGINAL_UPLOADED))
             .build();
 
+        when(objectStorageService.getOriginalFileData(testParentKey)).thenReturn(testFileData);
         when(imageMetaDataService.findByParentKey(testParentKey))
-            .thenReturn(Optional.of(mockMetaData));
+            .thenReturn(Optional.of(expectedMetadata));
 
         // act
-        var returnedMetaData = imageProcessingService.processImage(testFileData);
+        var outputMetadata = imageProcessingService.validateAndProcessUploadedImage(RECTANGULAR, inputImageMetadata);
 
         // assert
-        assertThat(returnedMetaData).isEqualTo(mockMetaData);
+        assertThat(outputMetadata).isNotNull();
+        assertThat(outputMetadata).isEqualTo(expectedMetadata);
 
-        verify(objectStorageService, times(1))
-            .uploadOriginalFileData(imageUploadDtoCaptor.capture(), eq(testParentKey));
-
-        var imageUploadDto = imageUploadDtoCaptor.getValue();
-        assertThat(imageUploadDto.filename()).isEqualTo(testFileData.filename());
-        assertThat(imageUploadDto.mimetype()).isEqualTo(testFileData.mimeType());
-
-        try (var byteArrayInputStream = new ByteArrayInputStream(testFileData.data())) {
-            byte[] expectedBytes = byteArrayInputStream.readAllBytes();
-            assertThat(imageUploadDto.image()).containsExactly(expectedBytes);
-        }
-
-        verify(imageMetaDataService, times(1))
-            .persist(imageMetadataCaptor.capture());
+        verify(imageMetaDataService, times(1)).persist(imageMetadataCaptor.capture());
 
         var capturedMetadata = imageMetadataCaptor.getValue();
-        assertThat(capturedMetadata.getParentKey())
-            .isEqualTo(testParentKey);
-        assertThat(capturedMetadata.getStatus().stage())
-            .isEqualTo(ORIGINAL_UPLOADED);
-        assertThat(capturedMetadata.getFilename())
-            .isEqualTo(TEST_FILENAME);
-        assertThat(capturedMetadata.getType())
-            .isEqualTo(RECTANGULAR);
+        assertThat(capturedMetadata).isNotNull();
+        assertThat(capturedMetadata.getId()).isEqualTo(testMetadataId);
+        assertThat(capturedMetadata.getStatus().stage()).isEqualTo(ORIGINAL_UPLOADED);
+        assertThat(capturedMetadata.getParentKey()).isEqualTo(testParentKey);
+        assertThat(capturedMetadata.getTags()).isEqualTo(expectedMetadata.getTags());
+        assertThat(capturedMetadata.getFilename()).isEqualTo(TEST_FILENAME);
 
         verify(imageProcessingQueueService, times(1))
             .sendMessage(creationMessageCaptor.capture());
 
-        var actualMessage = creationMessageCaptor.getValue();
-        assertThat(actualMessage.getFileDataKey()).isEqualTo(testParentKey);
-
+        var imageCreationMessage = creationMessageCaptor.getValue();
+        assertThat(imageCreationMessage.getFileDataKey()).isEqualTo(testParentKey);
+        assertThat(imageCreationMessage.getMetaDataId()).isEqualTo(testMetadataId.toString());
     }
 
     @Test
-    public void When_ProcessImage_With_S3ImageProcessingException_Expect_StatusPersisted() {
+    public void When_ValidateAndProcessUploadedImage_With_S3ImageProcessingException_Expect_StatusPersisted() {
         // arrange
         doThrow(ImageProcessingException.class)
-            .when(objectStorageService).uploadOriginalFileData(any(), eq(testParentKey));
-
-        when(filenameUtil.generateParentKey(eq(TEST_FILENAME)))
-            .thenReturn(testParentKey);
+            .when(objectStorageService).getOriginalFileData(testParentKey);
 
         var mockMetaData = ImageMetadata.builder()
             .parentKey(testParentKey)
@@ -147,7 +136,7 @@ public class ImageProcessingServiceTest {
             .thenReturn(Optional.of(mockMetaData));
 
         // act
-        var returnedMetaData = imageProcessingService.processImage(testFileData);
+        var returnedMetaData = imageProcessingService.validateAndProcessUploadedImage(RECTANGULAR, inputImageMetadata);
         assertThat(returnedMetaData).isEqualTo(mockMetaData);
 
         // assert
@@ -162,10 +151,8 @@ public class ImageProcessingServiceTest {
     }
 
     @Test
-    public void When_ProcessImage_With_SendMessageImageProcessingException_Expect_StatusPersisted() {
+    public void When_ValidateAndProcessUploadedImage_With_SendMessageImageProcessingException_Expect_StatusPersisted() {
         // arrange
-        when(filenameUtil.generateParentKey(eq(TEST_FILENAME)))
-            .thenReturn(testParentKey);
         doThrow(ImageProcessingException.class)
             .when(imageProcessingQueueService).sendMessage(any());
 
@@ -173,12 +160,13 @@ public class ImageProcessingServiceTest {
             .parentKey(testParentKey)
             .status(ImageProcessingStatus.of(PROCESSING_FAILED))
             .id(new ObjectId())
+            .type(RECTANGULAR)
             .build();
-        when(imageMetaDataService.findByParentKey(testParentKey))
-            .thenReturn(Optional.of(mockMetaData));
+        when(imageMetaDataService.findByParentKey(testParentKey)).thenReturn(Optional.of(mockMetaData));
+        when(objectStorageService.getOriginalFileData(testParentKey)).thenReturn(testFileData);
 
         // act
-        var returnedMetaData = imageProcessingService.processImage(testFileData);
+        var returnedMetaData = imageProcessingService.validateAndProcessUploadedImage(RECTANGULAR, inputImageMetadata);
 
         // assert
         assertThat(returnedMetaData).isEqualTo(mockMetaData);
@@ -197,29 +185,43 @@ public class ImageProcessingServiceTest {
     }
 
     @Test
-    public void When_ProcessImage_With_PersistThrows_Expect_ExceptionThrown() {
+    public void When_ValidateAndProcessUploadedImage_With_PersistThrows_Expect_ExceptionThrown() {
         // arrange
+        when(objectStorageService.getOriginalFileData(testParentKey)).thenReturn(testFileData);
         doThrow(PanacheQueryException.class)
             .when(imageMetaDataService).persist(any(ImageMetadata.class));
 
         // act + assert
-        assertThatThrownBy(() -> imageProcessingService.processImage(testFileData))
+        assertThatThrownBy(
+            () -> imageProcessingService.validateAndProcessUploadedImage(RECTANGULAR, inputImageMetadata))
             .isInstanceOf(PanacheQueryException.class);
 
     }
 
     @Test
-    public void When_ProcessImage_With_MetaDataNotSaved_Expect_ImageProcessingException() {
+    public void When_ValidateAndProcessUploadedImage_With_MetaDataNotSaved_Expect_ImageProcessingException() {
         // arrange
-        when(filenameUtil.generateParentKey(eq(TEST_FILENAME)))
-            .thenReturn(testParentKey);
+        when(objectStorageService.getOriginalFileData(testParentKey)).thenReturn(testFileData);
         when(imageMetaDataService.getImageMetaData(any())).thenReturn(Optional.empty());
 
         // act + assert
-        assertThatThrownBy(() -> imageProcessingService.processImage(testFileData))
+        assertThatThrownBy(
+            () -> imageProcessingService.validateAndProcessUploadedImage(RECTANGULAR, inputImageMetadata))
             .isInstanceOf(ImageProcessingException.class)
             .hasMessageContaining("Unable to save image metadata: parentKey = " + testParentKey);
 
     }
 
+    @Test
+    public void When_ValidateAndProcessUploadedImage_With_ValidationError_Expect_BadRequestException() {
+        // arrange
+        when(objectStorageService.getOriginalFileData(testParentKey)).thenReturn(testFileData);
+        doThrow(BadRequestException.class).when(imageValidationService).validateInputImage(any(), any());
+
+        // act
+        assertThatThrownBy(() ->
+            imageProcessingService.validateAndProcessUploadedImage(RECTANGULAR, inputImageMetadata))
+            .isInstanceOf(BadRequestException.class);
+
+    }
 }

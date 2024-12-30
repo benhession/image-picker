@@ -21,6 +21,7 @@ import software.amazon.awssdk.services.s3.model.Tagging;
 
 @UtilityClass
 public class S3Helper {
+
     private static final String ORIGINAL_FILES_PREFIX = "originalFileData/";
     private static final String BUCKET_NAME = "test-bucket";
     private static final URI LOCALSTACK_ENDPOINT = URI.create("http://localhost:56100");
@@ -37,16 +38,16 @@ public class S3Helper {
 
     public static void uploadOriginalFile(FileData fileData, String fileDataKey) {
         try (var byteArrayOutputStream = new ByteArrayOutputStream()) {
-            byteArrayOutputStream.write(fileData.data());
+            byteArrayOutputStream.write(fileData.getData());
             var tagging = Tagging.builder()
                 .tagSet(
                     Tag.builder()
                         .key(FILENAME_TAG)
-                        .value(fileData.filename())
+                        .value(fileData.getFilename())
                         .build(),
                     Tag.builder()
                         .key(MIME_TYPE_TAG)
-                        .value(fileData.mimeType())
+                        .value(fileData.getMimeType())
                         .build())
                 .build();
 
@@ -64,8 +65,8 @@ public class S3Helper {
 
     public static ListObjectsV2Response listS3Objects(String parentKey) {
         return S3_CLIENT.listObjectsV2(ListObjectsV2Request.builder()
-                .bucket(BUCKET_NAME)
-                .prefix(parentKey)
+            .bucket(BUCKET_NAME)
+            .prefix(parentKey)
             .build());
     }
 }

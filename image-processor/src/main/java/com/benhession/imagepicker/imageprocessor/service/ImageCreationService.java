@@ -53,13 +53,13 @@ public class ImageCreationService {
 
         imageMetadata = imageMetaDataService.setImageProcessingStage(imageMetadata, PROCESSING);
 
-        final ImageType imageType = ImageType.valueOf(fileData.imageType());
+        final ImageType imageType = ImageType.valueOf(fileData.getImageType());
 
         List<ImageUploadDto> images = Arrays.stream(values())
             .map(imageSize -> ImageUploadDto.builder()
-                .filename(filenameUtil.getFilename(fileData.filename(), imageType, imageSize))
-                .mimetype(fileData.mimeType())
-                .image(resizeAsNewImage(fileData, imageSize, fileData.mimeType()))
+                .filename(filenameUtil.getFilename(fileData.getFilename(), imageType, imageSize))
+                .mimetype(fileData.getMimeType())
+                .image(resizeAsNewImage(fileData, imageSize, fileData.getMimeType()))
                 .build())
             .toList();
 
@@ -75,15 +75,15 @@ public class ImageCreationService {
 
     private byte[] resizeAsNewImage(FileData fileData, ImageSize imageSize,
         String mimeType) {
-        ImageType imageType = ImageType.valueOf(fileData.imageType());
+        ImageType imageType = ImageType.valueOf(fileData.getImageType());
         var heightWidth = imageSizeService.findImageHeightWidth(imageType, imageSize);
 
         try {
             if (mimeType.equals("image/gif")) {
-                return resizeGif(fileData.data(), heightWidth);
+                return resizeGif(fileData.getData(), heightWidth);
             }
 
-            try (ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(fileData.data());
+            try (ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(fileData.getData());
                 ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
                 var bufferedImage = Thumbnails.of(byteArrayInputStream)
                     .width(heightWidth.getWidth())
@@ -96,7 +96,7 @@ public class ImageCreationService {
 
         } catch (IOException e) {
             throw new ImageProcessingException(String.format("Error resizing file: %s to %s %s",
-                fileData.filename(), imageSize, imageType));
+                fileData.getFilename(), imageSize, imageType));
         }
     }
 
