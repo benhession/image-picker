@@ -22,7 +22,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import javax.imageio.ImageIO;
-
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -143,7 +142,7 @@ public class S3StorageServiceTest {
     }
 
     @Test
-    public void When_DeleteByParentKey_WithNoImages_Expect_NoError() throws IOException {
+    public void When_DeleteByParentKey_WithNoImages_Expect_NoError() {
         // arrange
         String parentKey = UUID.randomUUID().toString();
 
@@ -182,15 +181,15 @@ public class S3StorageServiceTest {
 
         // assert
         var originalFilesListResponse = s3Client.listObjectsV2(ListObjectsV2Request.builder()
-                .bucket(bucketName)
-                .prefix(ORIGINAL_FILE_PREFIX + parentKey)
+            .bucket(bucketName)
+            .prefix(ORIGINAL_FILE_PREFIX + parentKey)
             .build());
 
         assertThat(originalFilesListResponse.contents()).isEmpty();
 
         var processedFilesListResponse = s3Client.listObjectsV2(ListObjectsV2Request.builder()
-                .bucket(bucketName)
-                .prefix(parentKey)
+            .bucket(bucketName)
+            .prefix(parentKey)
             .build());
 
         assertThat(processedFilesListResponse.contents()).isEmpty();

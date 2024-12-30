@@ -33,13 +33,11 @@ import com.benhession.imagepicker.data.model.ImageProcessingStage;
 import com.benhession.imagepicker.data.model.ImageProcessingStatus;
 import com.benhession.imagepicker.data.service.ImageMetaDataService;
 import com.benhession.imagepicker.data.service.ObjectStorageService;
-import com.benhession.imagepicker.testutil.TestFileLoader;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.common.http.TestHTTPEndpoint;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.security.TestSecurity;
 import io.restassured.http.Header;
-import jakarta.inject.Inject;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -75,8 +73,6 @@ public class ImageControllerTest {
             .build()
     );
 
-    @Inject
-    TestFileLoader testFileLoader;
     @InjectMock
     ImageProcessingService imageProcessingService;
     @InjectMock
