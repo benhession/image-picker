@@ -1,8 +1,8 @@
 package com.benhession.imagepicker.api.service;
 
-import com.benhession.imagepicker.api.dto.ObjectUploadForm;
 import com.benhession.imagepicker.common.config.ImageConfigProperties;
 import com.benhession.imagepicker.common.exception.BadRequestException;
+import com.benhession.imagepicker.common.exception.ImageProcessingException;
 import com.benhession.imagepicker.common.model.ImageType;
 import com.benhession.imagepicker.common.service.ImageSizeService;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -23,31 +23,27 @@ public class ImageValidationService {
     private final ImageSizeService imageSizeService;
     private final ImageConfigProperties imageConfigProperties;
 
-    public void validateInputImage(ObjectUploadForm objectUploadForm) throws BadRequestException {
-        validateMimeType(objectUploadForm.getMimetype(), "/image");
+    public void validateInputImage(byte[] imageBytes, ImageType imageType) throws ImageProcessingException {
 
-        final ImageType imageType = ImageType.valueOf(objectUploadForm.getImageType());
-
-        try (var byteArrayInputStream = new ByteArrayInputStream(objectUploadForm.getData())) {
+        try (var byteArrayInputStream = new ByteArrayInputStream(imageBytes)) {
             BufferedImage bufferedImage = ImageIO.read(byteArrayInputStream);
             List<BadRequestException.ErrorMessage> errorMessages = new ArrayList<>();
             BigDecimal expectedAspectRatio = imageSizeService.findAspectRatio(imageType);
-            BigDecimal actualAspectRatio = calculateAspectRatio(bufferedImage.getWidth(),
-              bufferedImage.getHeight());
+            BigDecimal actualAspectRatio = calculateAspectRatio(bufferedImage.getWidth(), bufferedImage.getHeight());
             int minWidth = imageSizeService.findMinWidth(imageType);
 
             if (!actualAspectRatio.equals(expectedAspectRatio)) {
                 errorMessages.add(BadRequestException.ErrorMessage.builder()
-                  .message(String.format("Expected aspect ratio for image type: %s to be %s, but was %s",
-                    imageType, expectedAspectRatio.floatValue(), actualAspectRatio.floatValue()))
-                  .build());
+                    .message(String.format("Expected aspect ratio for image type: %s to be %s, but was %s",
+                        imageType, expectedAspectRatio.floatValue(), actualAspectRatio.floatValue()))
+                    .build());
             }
 
             if (bufferedImage.getWidth() < minWidth) {
                 errorMessages.add(BadRequestException.ErrorMessage.builder()
-                  .message(String.format("Expected width of %s image to be more that %s, but was %s",
-                    imageType, minWidth, bufferedImage.getWidth()))
-                  .build());
+                    .message(String.format("Expected width of %s image to be more that %s, but was %s",
+                        imageType, minWidth, bufferedImage.getWidth()))
+                    .build());
             }
 
             if (!errorMessages.isEmpty()) {
@@ -56,8 +52,8 @@ public class ImageValidationService {
 
         } catch (IOException e) {
             throw new BadRequestException(List.of(BadRequestException.ErrorMessage.builder()
-              .message("Unable to read file data")
-              .build()));
+                .message("Unable to read file data")
+                .build()));
         }
     }
 
@@ -71,9 +67,9 @@ public class ImageValidationService {
     public void validateMimeType(String mimeType, String path) throws BadRequestException {
         if (!imageConfigProperties.acceptedMimeTypes().contains(mimeType)) {
             var errorMessage = BadRequestException.ErrorMessage.builder()
-              .path(path)
-              .message("Mime type must be one of the following " + imageConfigProperties.acceptedMimeTypes())
-              .build();
+                .path(path)
+                .message("Mime type must be one of the following " + imageConfigProperties.acceptedMimeTypes())
+                .build();
             throw new BadRequestException(List.of(errorMessage));
         }
     }

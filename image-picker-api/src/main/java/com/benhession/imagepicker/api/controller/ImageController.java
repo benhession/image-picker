@@ -1,27 +1,29 @@
 package com.benhession.imagepicker.api.controller;
 
+import static com.benhession.imagepicker.data.model.ImageProcessingStage.INITIALISED;
 import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
 import static org.jboss.resteasy.reactive.RestResponse.Status.OK;
 
 import com.benhession.imagepicker.api.dto.GetUploadUrlDto;
 import com.benhession.imagepicker.api.dto.ImageResponseDto;
-import com.benhession.imagepicker.api.dto.ObjectUploadForm;
+import com.benhession.imagepicker.api.dto.ProcessImageDto;
 import com.benhession.imagepicker.api.dto.UploadUrlResponseDto;
 import com.benhession.imagepicker.api.mapper.ImageResponseMapper;
-import com.benhession.imagepicker.api.service.FileDataFactory;
 import com.benhession.imagepicker.api.service.ImageProcessingService;
 import com.benhession.imagepicker.api.service.ImageValidationService;
 import com.benhession.imagepicker.api.service.PaginationLinksService;
 import com.benhession.imagepicker.common.exception.AbstractMultipleErrorApplicationException;
+import com.benhession.imagepicker.common.exception.AbstractMultipleErrorApplicationException.ErrorMessage;
 import com.benhession.imagepicker.common.exception.BadRequestException;
 import com.benhession.imagepicker.common.exception.DownStreamServerException;
 import com.benhession.imagepicker.common.exception.DownStreamServerTimeoutException;
 import com.benhession.imagepicker.common.exception.NotFoundException;
-import com.benhession.imagepicker.common.model.FileData;
+import com.benhession.imagepicker.common.model.ImageType;
 import com.benhession.imagepicker.common.model.PageInfo;
 import com.benhession.imagepicker.data.dto.ImageUploadDto;
 import com.benhession.imagepicker.data.dto.PreSignedUploadDto;
 import com.benhession.imagepicker.data.model.ImageMetadata;
+import com.benhession.imagepicker.data.model.ImageProcessingStage;
 import com.benhession.imagepicker.data.service.ImageMetaDataService;
 import com.benhession.imagepicker.data.service.ObjectStorageService;
 import io.quarkus.resteasy.reactive.links.InjectRestLinks;
@@ -57,12 +59,12 @@ public class ImageController {
     private final ImageMetaDataService imageMetaDataService;
     private final PaginationLinksService paginationLinksService;
     private final ImageValidationService imageValidationService;
-    private final FileDataFactory fileDataFactory;
     private final ImageProcessingService imageProcessingService;
     private final ObjectStorageService objectStorageService;
 
     @POST
     @Path("/pre-signed")
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
     @RolesAllowed({"blog-admin"})
     @InjectRestLinks(RestLinkType.INSTANCE)
     public RestResponse<UploadUrlResponseDto> getUploadUrl(@Valid @BeanParam GetUploadUrlDto getUploadUrlDto) {
@@ -86,19 +88,34 @@ public class ImageController {
             .build());
     }
 
-
     @POST
     @Consumes(MediaType.MULTIPART_FORM_DATA)
-    @Produces({APPLICATION_JSON})
+    @Path(("/{id}/process"))
     @RolesAllowed({"blog-admin"})
     @InjectRestLinks(RestLinkType.INSTANCE)
-    public RestResponse<ImageResponseDto> addImage(@Valid @BeanParam ObjectUploadForm objectUploadForm) {
+    public RestResponse<ImageResponseDto> processImage(@PathParam("id") ObjectId imageId,
+        @Valid @BeanParam ProcessImageDto processImageDto, @Context UriInfo uriInfo) {
 
-        imageValidationService.validateInputImage(objectUploadForm);
-        FileData fileData = fileDataFactory.fromObjectUploadForm(objectUploadForm);
+        var imageMetadata = imageMetaDataService.getImageMetaData(imageId)
+            .orElseThrow(() -> new NotFoundException(List.of(ErrorMessage.builder()
+                .message("Unable to find metadata for image id " + imageId)
+                .path(uriInfo.getPath())
+                .build())));
 
-        ImageMetadata metadata = imageProcessingService.processImage(fileData);
-        return RestResponse.accepted(imageResponseMapper.toDtoWithoutImages(metadata));
+        List<ImageProcessingStage> validStages = List.of(INITIALISED);
+
+        if (!validStages.contains(imageMetadata.getStatus().stage())) {
+            throw new BadRequestException(List.of(ErrorMessage.builder()
+                .message(String.format("Expected image processing stage to be one of %s but was %s",
+                    validStages, imageMetadata.getStatus().stage()))
+                .path(uriInfo.getPath())
+                .build()));
+        }
+
+        imageMetadata = imageProcessingService
+            .validateAndProcessUploadedImage(ImageType.valueOf(processImageDto.getImageType()), imageMetadata);
+
+        return RestResponse.accepted(imageResponseMapper.toDtoWithoutImages(imageMetadata));
     }
 
     @GET

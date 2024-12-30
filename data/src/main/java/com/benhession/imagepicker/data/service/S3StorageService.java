@@ -1,6 +1,7 @@
 package com.benhession.imagepicker.data.service;
 
 import com.benhession.imagepicker.common.exception.ImageProcessingException;
+import com.benhession.imagepicker.common.model.FileData;
 import com.benhession.imagepicker.data.dto.ImageUploadDto;
 import com.benhession.imagepicker.data.dto.PreSignedUploadDto;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -91,7 +92,7 @@ public class S3StorageService implements ObjectStorageService {
     }
 
     @Override
-    public ImageUploadDto getOriginalFileData(String fileDataKey) {
+    public FileData getOriginalFileData(String fileDataKey) {
         try (var objectByteStream = s3Client.getObject(GetObjectRequest.builder()
             .bucket(bucketName)
             .key(ORIGINAL_FILES_PREFIX + fileDataKey)
@@ -116,10 +117,15 @@ public class S3StorageService implements ObjectStorageService {
                 .map(Tag::value)
                 .orElseThrow(() -> new ImageProcessingException("MimeType tag not found for filename: " + fileDataKey));
 
-            return ImageUploadDto.builder()
-                .image(objectByteStream.readAllBytes())
+            var objectBytes = objectByteStream.readAllBytes();
+            if (objectBytes.length == 0) {
+                throw new ImageProcessingException("File is empty for key: " + fileDataKey);
+            }
+
+            return FileData.builder()
+                .data(objectBytes)
                 .filename(filename)
-                .mimetype(mimeType)
+                .mimeType(mimeType)
                 .build();
 
         } catch (S3Exception | IOException e) {

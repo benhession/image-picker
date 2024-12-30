@@ -6,6 +6,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doCallRealMethod;
 
 import com.benhession.imagepicker.common.exception.ImageProcessingException;
+import com.benhession.imagepicker.common.model.FileData;
 import com.benhession.imagepicker.common.util.MimeTypeUtil;
 import com.benhession.imagepicker.data.dto.ImageUploadDto;
 import com.benhession.imagepicker.testutil.TestFileLoader;
@@ -21,7 +22,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import javax.imageio.ImageIO;
-
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -133,16 +133,16 @@ public class S3StorageServiceTest {
 
         // act
         s3StorageService.uploadOriginalFileData(imageUploadDto, testFileDataKey);
-        ImageUploadDto actualImageDto = s3StorageService.getOriginalFileData(testFileDataKey);
+        FileData actualImageDto = s3StorageService.getOriginalFileData(testFileDataKey);
 
         // assert
-        assertThat(actualImageDto.filename()).isEqualTo(imageUploadDto.filename());
-        assertThat(actualImageDto.mimetype()).isEqualTo(imageUploadDto.mimetype());
-        assertThat(actualImageDto.image()).containsExactly(imageUploadDto.image());
+        assertThat(actualImageDto.getFilename()).isEqualTo(imageUploadDto.filename());
+        assertThat(actualImageDto.getMimeType()).isEqualTo(imageUploadDto.mimetype());
+        assertThat(actualImageDto.getData()).containsExactly(imageUploadDto.image());
     }
 
     @Test
-    public void When_DeleteByParentKey_WithNoImages_Expect_NoError() throws IOException {
+    public void When_DeleteByParentKey_WithNoImages_Expect_NoError() {
         // arrange
         String parentKey = UUID.randomUUID().toString();
 
@@ -181,15 +181,15 @@ public class S3StorageServiceTest {
 
         // assert
         var originalFilesListResponse = s3Client.listObjectsV2(ListObjectsV2Request.builder()
-                .bucket(bucketName)
-                .prefix(ORIGINAL_FILE_PREFIX + parentKey)
+            .bucket(bucketName)
+            .prefix(ORIGINAL_FILE_PREFIX + parentKey)
             .build());
 
         assertThat(originalFilesListResponse.contents()).isEmpty();
 
         var processedFilesListResponse = s3Client.listObjectsV2(ListObjectsV2Request.builder()
-                .bucket(bucketName)
-                .prefix(parentKey)
+            .bucket(bucketName)
+            .prefix(parentKey)
             .build());
 
         assertThat(processedFilesListResponse.contents()).isEmpty();

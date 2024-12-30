@@ -5,7 +5,6 @@ import static com.benhession.imagepicker.common.model.ImageSize.MEDIUM;
 import static com.benhession.imagepicker.common.model.ImageSize.SMALL;
 import static com.benhession.imagepicker.common.model.ImageSize.THUMBNAIL;
 import static com.benhession.imagepicker.common.model.ImageType.RECTANGULAR;
-import static com.benhession.imagepicker.common.model.ImageType.SQUARE;
 import static com.benhession.imagepicker.data.model.ImageProcessingStage.INITIALISED;
 import static com.benhession.imagepicker.data.model.ImageProcessingStage.ORIGINAL_UPLOADED;
 import static com.benhession.imagepicker.data.model.ImageProcessingStage.PROCESSING;
@@ -16,7 +15,6 @@ import static io.restassured.RestAssured.given;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -26,7 +24,6 @@ import com.benhession.imagepicker.api.dto.UploadUrlResponseDto;
 import com.benhession.imagepicker.api.exception.ErrorResponse;
 import com.benhession.imagepicker.api.service.ImageProcessingService;
 import com.benhession.imagepicker.api.service.ImageValidationService;
-import com.benhession.imagepicker.common.exception.AbstractMultipleErrorApplicationException;
 import com.benhession.imagepicker.common.exception.AbstractMultipleErrorApplicationException.ErrorMessage;
 import com.benhession.imagepicker.common.exception.BadRequestException;
 import com.benhession.imagepicker.common.model.PageInfo;
@@ -36,14 +33,11 @@ import com.benhession.imagepicker.data.model.ImageProcessingStage;
 import com.benhession.imagepicker.data.model.ImageProcessingStatus;
 import com.benhession.imagepicker.data.service.ImageMetaDataService;
 import com.benhession.imagepicker.data.service.ObjectStorageService;
-import com.benhession.imagepicker.testutil.TestFileLoader;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.common.http.TestHTTPEndpoint;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.security.TestSecurity;
 import io.restassured.http.Header;
-import jakarta.inject.Inject;
-import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -51,36 +45,34 @@ import java.util.Optional;
 import java.util.UUID;
 import org.bson.types.ObjectId;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
 @QuarkusTest
 @TestHTTPEndpoint(ImageController.class)
 public class ImageControllerTest {
 
-    private static final String SYSTEM_ERROR_MESSAGE = "An unexpected error has occurred.";
     private static final String RECTANGULAR_TEST_IMAGE_NAME = "test-image.jpg";
     private static final String JPEG_MIME_TYPE = "image/jpeg";
     private static final List<String> TEST_TAGS = List.of("test", "another tag");
 
     private static final List<ImageMetadata> FIVE_METADATA_RESULTS = List.of(
-      ImageMetadata.builder()
-        .id(ObjectId.get())
-        .build(),
-      ImageMetadata.builder()
-        .id(ObjectId.get())
-        .build(),
-      ImageMetadata.builder()
-        .id(ObjectId.get())
-        .build(),
-      ImageMetadata.builder()
-        .id(ObjectId.get())
-        .build(),
-      ImageMetadata.builder()
-        .id(ObjectId.get())
-        .build()
+        ImageMetadata.builder()
+            .id(ObjectId.get())
+            .build(),
+        ImageMetadata.builder()
+            .id(ObjectId.get())
+            .build(),
+        ImageMetadata.builder()
+            .id(ObjectId.get())
+            .build(),
+        ImageMetadata.builder()
+            .id(ObjectId.get())
+            .build(),
+        ImageMetadata.builder()
+            .id(ObjectId.get())
+            .build()
     );
 
-    @Inject
-    TestFileLoader testFileLoader;
     @InjectMock
     ImageProcessingService imageProcessingService;
     @InjectMock
@@ -91,228 +83,142 @@ public class ImageControllerTest {
     ImageValidationService imageValidationService;
 
     @Test
-    @TestSecurity(user = "testUser", roles = {"Everyone", "blog-admin"})
-    public void When_AddImage_Expect_ProcessingStarted() {
-        File file = testFileLoader.loadTestFile(RECTANGULAR_TEST_IMAGE_NAME);
+    @TestSecurity(user = "testUser", roles = {"blog-admin"})
+    public void When_ProcessImage_With_MetaDataNotFound_Expect_NotFoundException() {
+        // arrange
+        ObjectId testImageId = ObjectId.get();
+        when(imageMetaDataService.getImageMetaData(testImageId)).thenReturn(Optional.empty());
 
-        var stubMetadata = ImageMetadata.builder()
-            .id(ObjectId.get())
-            .type(RECTANGULAR)
-            .parentKey(UUID.randomUUID().toString())
-            .filename(RECTANGULAR_TEST_IMAGE_NAME)
-            .status(ImageProcessingStatus.of(PROCESSING))
-            .build();
-
-        when(imageProcessingService.processImage(any()))
-            .thenReturn(stubMetadata);
-
-        var dtoResponse = given()
-            .multiPart("data", file)
-            .multiPart("filename", RECTANGULAR_TEST_IMAGE_NAME)
-            .multiPart("mime-type", JPEG_MIME_TYPE)
+        // act
+        ErrorResponse errorResponse = given()
             .multiPart("image-type", RECTANGULAR)
             .when()
-            .post()
+            .post(String.format("/%s/process", testImageId))
+            .then()
+            .statusCode(404)
+            .extract()
+            .body()
+            .as(ErrorResponse.class);
+
+        // assert
+        assertThat(errorResponse.getErrors()).hasSize(1);
+        assertThat(errorResponse.getErrors().getFirst().getMessage())
+            .isEqualTo("Unable to find metadata for image id " + testImageId);
+    }
+
+    @Test
+    @TestSecurity(user = "testUser", roles = {"blog-admin"})
+    public void When_ProcessImage_With_ValidStage_Expect_SentToBeProcessed() {
+        // arrange
+        ObjectId testImageId = ObjectId.get();
+        var inputMetadata = ImageMetadata.builder()
+            .parentKey("test")
+            .id(testImageId)
+            .status(ImageProcessingStatus.of(INITIALISED))
+            .filename(RECTANGULAR_TEST_IMAGE_NAME)
+            .build();
+
+        var outputMetadata = ImageMetadata.builder()
+            .parentKey("test")
+            .id(testImageId)
+            .status(ImageProcessingStatus.of(PROCESSING))
+            .filename(RECTANGULAR_TEST_IMAGE_NAME)
+            .build();
+
+        when(imageMetaDataService.getImageMetaData(testImageId)).thenReturn(Optional.of(inputMetadata));
+        when(imageProcessingService.validateAndProcessUploadedImage(any(), any()))
+            .thenReturn(outputMetadata);
+
+        // act
+        ImageResponseDto responseDto = given()
+            .multiPart("image-type", RECTANGULAR)
+            .when()
+            .post(String.format("/%s/process", testImageId))
             .then()
             .statusCode(202)
             .extract()
+            .body()
             .as(ImageResponseDto.class);
 
-        assertThat(dtoResponse).isNotNull();
-        assertThat(dtoResponse.getImages()).isEmpty();
-        assertThat(dtoResponse.getId()).isNotNull();
-        assertThat(dtoResponse.getFilename()).isEqualTo(RECTANGULAR_TEST_IMAGE_NAME);
-        assertThat(dtoResponse.getType()).isEqualTo(RECTANGULAR);
-        assertThat(dtoResponse.getStatus()).isEqualTo(stubMetadata.getStatus());
+        // assert
+        verify(imageProcessingService, times(1))
+            .validateAndProcessUploadedImage(eq(RECTANGULAR), eq(inputMetadata));
+
+        assertThat(responseDto.getId()).isEqualTo(testImageId.toString());
+        assertThat(responseDto.getStatus().stage()).isEqualTo(PROCESSING);
     }
 
     @Test
-    @TestSecurity(user = "testUser", roles = {"Everyone", "blog-admin"})
-    public void When_AddImage_With_ProcessingServiceThrows_Expect_500AndError() {
+    @TestSecurity(user = "testUser", roles = {"blog-admin"})
+    public void When_ProcessImage_With_InvalidStage_Expect_BadRequestResponseAndMessage() {
+        // arrange
+        ObjectId testImageId = ObjectId.get();
+        var inputMetadata = ImageMetadata.builder()
+            .parentKey("test")
+            .id(testImageId)
+            .status(ImageProcessingStatus.of(PROCESSING))
+            .filename(RECTANGULAR_TEST_IMAGE_NAME)
+            .build();
 
-        doThrow(new RuntimeException("test exception")).when(imageProcessingService).processImage(any());
+        when(imageMetaDataService.getImageMetaData(testImageId)).thenReturn(Optional.of(inputMetadata));
 
-        File file = testFileLoader.loadTestFile("test-image.jpg");
-
+        // act
         var errorResponse = given()
-          .multiPart("data", file)
-          .multiPart("filename", RECTANGULAR_TEST_IMAGE_NAME)
-          .multiPart("mime-type", JPEG_MIME_TYPE)
-          .multiPart("image-type", SQUARE)
-          .when()
-          .post()
-          .then()
-          .statusCode(500)
-          .extract()
-          .as(ErrorResponse.class);
+            .multiPart("image-type", RECTANGULAR)
+            .when()
+            .post(String.format("/%s/process", testImageId))
+            .then()
+            .statusCode(400)
+            .extract()
+            .body()
+            .as(ErrorResponse.class);
 
-        assertThat(errorResponse.getErrors().size()).isEqualTo(1);
-
-        var error = errorResponse.getErrors().getFirst();
-        assertThat(error.getMessage()).isEqualTo(SYSTEM_ERROR_MESSAGE);
-        assertThat(error.getPath()).isNull();
+        // assert
+        assertThat(errorResponse.getErrors()).hasSize(1);
+        assertThat(errorResponse.getErrors().getFirst().getMessage())
+            .isEqualTo("Expected image processing stage to be one of [INITIALISED] but was PROCESSING");
     }
 
     @Test
-    @TestSecurity(user = "testUser", roles = {"Everyone", "blog-admin"})
-    public void When_AddImage_with_ImageValidationServiceThrowsBadRequest_Expect_400AndError() {
-        var errorMessage = AbstractMultipleErrorApplicationException
-          .ErrorMessage.builder().message("test exception").build();
-
-        doThrow(new BadRequestException(List.of(errorMessage)))
-          .when(imageValidationService).validateInputImage(any());
-
-        File file = testFileLoader.loadTestFile(RECTANGULAR_TEST_IMAGE_NAME);
-
+    @TestSecurity(user = "testUser", roles = {"Everyone"})
+    public void When_ProcessImage_With_UnauthorisedUser_Expect_ForbiddenResponse() {
+        // act
         given()
-          .multiPart("data", file)
-          .multiPart("filename", RECTANGULAR_TEST_IMAGE_NAME)
-          .multiPart("mime-type", JPEG_MIME_TYPE)
-          .multiPart("image-type", SQUARE)
-          .when()
-          .post()
-          .then()
-          .statusCode(400)
-          .extract()
-          .as(ErrorResponse.class);
-    }
-
-    @Test
-    @TestSecurity(user = "testUser", roles = {"Everyone", "blog-admin"})
-    public void When_AddImage_With_InvalidMimeType_Expect_BadRequestAndErrorMessage() {
-
-        ErrorMessage thrownErrorMessage = ErrorMessage.builder()
-          .message("test message")
-          .path("test path")
-          .build();
-
-        doThrow(new BadRequestException(List.of(thrownErrorMessage)))
-          .when(imageValidationService).validateInputImage(any());
-
-        File file = testFileLoader.loadTestFile("test-text-file.txt");
-        var errorResponse = given()
-          .multiPart("data", file)
-          .multiPart("filename", "test-text-file.txt")
-          .multiPart("mime-type", "text.plain")
-          .multiPart("image-type", SQUARE)
-          .when()
-          .post()
-          .then()
-          .statusCode(400)
-          .extract()
-          .as(ErrorResponse.class);
-
-        assertThat(errorResponse.getErrors().size()).isEqualTo(1);
-
-        var error = errorResponse.getErrors().getFirst();
-        assertThat(error.getMessage()).isEqualTo("test message");
-        assertThat(error.getPath()).isEqualTo("test path");
-    }
-
-    @Test
-    @TestSecurity(user = "testUser", roles = {"Everyone", "blog-admin"})
-    public void When_AddImage_With_MissingFilename_Expect_BadRequest() {
-        File file = testFileLoader.loadTestFile(RECTANGULAR_TEST_IMAGE_NAME);
-
-        given()
-          .multiPart("data", file)
-          .multiPart("mime-type", JPEG_MIME_TYPE)
-          .multiPart("image-type", SQUARE)
-          .when()
-          .post()
-          .then()
-          .statusCode(400);
-    }
-
-    @Test
-    @TestSecurity(user = "testUser", roles = {"Everyone", "blog-admin"})
-    public void When_AddImage_With_BlankFilename_Expect_BadRequest() {
-        File file = testFileLoader.loadTestFile(RECTANGULAR_TEST_IMAGE_NAME);
-
-        given()
-          .multiPart("filename", " ")
-          .multiPart("data", file)
-          .multiPart("mime-type", JPEG_MIME_TYPE)
-          .multiPart("image-type", SQUARE)
-          .when()
-          .post()
-          .then()
-          .statusCode(400);
-    }
-
-    @Test
-    @TestSecurity(user = "testUser", roles = {"Everyone", "blog-admin"})
-    public void When_AddImage_With_MissingData_Expect_BadRequest() {
-
-        given()
-          .multiPart("mime-type", JPEG_MIME_TYPE)
-          .multiPart("image-type", SQUARE)
-          .when()
-          .post()
-          .then()
-          .statusCode(400);
-    }
-
-    @Test
-    @TestSecurity(user = "testUser", roles = {"Everyone", "blog-admin"})
-    public void When_AddImage_With_InvalidImageType_Expect_BadRequest() {
-        File file = testFileLoader.loadTestFile(RECTANGULAR_TEST_IMAGE_NAME);
-
-        given()
-          .multiPart("data", file)
-          .multiPart("filename", RECTANGULAR_TEST_IMAGE_NAME)
-          .multiPart("mime-type", JPEG_MIME_TYPE)
-          .multiPart("image-type", "CIRCLE")
-          .when()
-          .post()
-          .then()
-          .statusCode(400);
-    }
-
-    @Test
-    @TestSecurity(user = "unauthorisedTestUser", roles = {"Everyone"})
-    public void When_AddImage_With_UnauthorisedUser_Expect_Forbidden() {
-        File file = testFileLoader.loadTestFile(RECTANGULAR_TEST_IMAGE_NAME);
-
-        given()
-          .multiPart("data", file)
-          .multiPart("filename", RECTANGULAR_TEST_IMAGE_NAME)
-          .multiPart("mime-type", JPEG_MIME_TYPE)
-          .multiPart("image-type", RECTANGULAR)
-          .when()
-          .post()
-          .then()
-          .statusCode(403);
+            .multiPart("image-type", RECTANGULAR)
+            .when()
+            .post(String.format("/%s/process", ObjectId.get()))
+            .then()
+            .statusCode(403);
     }
 
     @Test
     @TestSecurity(user = "testUser", roles = {"blog-admin"})
     public void When_GetImages_With_ResultsOnOnePage_Expect_ResultsAndCorrectHeaders() {
         when(imageMetaDataService.findProcessedImagesPageInfo(eq(0), eq(5)))
-          .thenReturn(PageInfo.builder()
-            .page(0)
-            .size(5)
-            .numberItems(5)
-            .lastPage(0)
-            .build());
+            .thenReturn(PageInfo.builder()
+                .page(0)
+                .size(5)
+                .numberItems(5)
+                .lastPage(0)
+                .build());
         when(imageMetaDataService.findProcessedImages(0, 5))
-          .thenReturn(FIVE_METADATA_RESULTS);
+            .thenReturn(FIVE_METADATA_RESULTS);
         when(imageMetaDataService.findProcessedImagesPageInfo(eq(0), eq(5)))
-          .thenReturn(new PageInfo(5, 0, 0, 5));
+            .thenReturn(new PageInfo(5, 0, 0, 5));
         when(objectStorageService.getBaseResourcePath(any())).thenReturn("test-path");
 
         var response = given()
-          .queryParam("page", 0)
-          .queryParam("size", 5)
-          .when()
-          .get()
-          .then()
-          .statusCode(200)
-          .extract()
-          .response();
+            .queryParam("page", 0)
+            .queryParam("size", 5)
+            .when()
+            .get()
+            .then()
+            .statusCode(200)
+            .extract()
+            .response();
 
         var resultsList = Arrays.asList(response.body()
-          .as(ImageResponseDto[].class));
+            .as(ImageResponseDto[].class));
         assertThat(resultsList.size()).isEqualTo(5);
 
         var linkHeaders = response.headers().getList("link");
@@ -332,30 +238,30 @@ public class ImageControllerTest {
     @TestSecurity(user = "testUser", roles = {"blog-admin"})
     public void When_GetImages_With_MultiplePages_Expect_ResultsAndCorrectHeaders() {
         when(imageMetaDataService.findProcessedImagesPageInfo(eq(0), eq(3)))
-          .thenReturn(PageInfo.builder()
-            .page(1)
-            .size(3)
-            .numberItems(5)
-            .lastPage(1)
-            .build());
+            .thenReturn(PageInfo.builder()
+                .page(1)
+                .size(3)
+                .numberItems(5)
+                .lastPage(1)
+                .build());
         when(imageMetaDataService.findProcessedImages(0, 3))
-          .thenReturn(FIVE_METADATA_RESULTS.subList(0, 3));
+            .thenReturn(FIVE_METADATA_RESULTS.subList(0, 3));
         when(imageMetaDataService.findProcessedImagesPageInfo(eq(0), eq(3)))
-          .thenReturn(new PageInfo(5, 0, 1, 3));
+            .thenReturn(new PageInfo(5, 0, 1, 3));
         when(objectStorageService.getBaseResourcePath(any())).thenReturn("test-path");
 
         var response = given()
-          .queryParam("page", 0)
-          .queryParam("size", 3)
-          .when()
-          .get()
-          .then()
-          .statusCode(200)
-          .extract()
-          .response();
+            .queryParam("page", 0)
+            .queryParam("size", 3)
+            .when()
+            .get()
+            .then()
+            .statusCode(200)
+            .extract()
+            .response();
 
         var resultsList = Arrays.asList(response.body()
-          .as(ImageResponseDto[].class));
+            .as(ImageResponseDto[].class));
         assertThat(resultsList.size()).isEqualTo(3);
 
         var linkHeaders = response.headers().getList("link");
@@ -378,30 +284,30 @@ public class ImageControllerTest {
     @TestSecurity(user = "testUser", roles = {"blog-admin"})
     public void When_GetImages_With_PageIsLastPage_Expect_ResultsAndCorrectHeaders() {
         when(imageMetaDataService.findProcessedImagesPageInfo(eq(1), eq(3)))
-          .thenReturn(PageInfo.builder()
-            .page(1)
-            .size(3)
-            .numberItems(5)
-            .lastPage(1)
-            .build());
+            .thenReturn(PageInfo.builder()
+                .page(1)
+                .size(3)
+                .numberItems(5)
+                .lastPage(1)
+                .build());
         when(imageMetaDataService.findProcessedImages(1, 3))
-          .thenReturn(FIVE_METADATA_RESULTS.subList(3, 5));
+            .thenReturn(FIVE_METADATA_RESULTS.subList(3, 5));
         when(imageMetaDataService.findProcessedImagesPageInfo(eq(1), eq(3)))
-          .thenReturn(new PageInfo(5, 1, 1, 3));
+            .thenReturn(new PageInfo(5, 1, 1, 3));
         when(objectStorageService.getBaseResourcePath(any())).thenReturn("test-path");
 
         var response = given()
-          .queryParam("page", 1)
-          .queryParam("size", 3)
-          .when()
-          .get()
-          .then()
-          .statusCode(200)
-          .extract()
-          .response();
+            .queryParam("page", 1)
+            .queryParam("size", 3)
+            .when()
+            .get()
+            .then()
+            .statusCode(200)
+            .extract()
+            .response();
 
         var resultsList = Arrays.asList(response.body()
-          .as(ImageResponseDto[].class));
+            .as(ImageResponseDto[].class));
         assertThat(resultsList.size()).isEqualTo(2);
 
         var linkHeaders = response.headers().getList("link");
@@ -424,12 +330,12 @@ public class ImageControllerTest {
     @TestSecurity(user = "unauthorisedTestUser", roles = {"Everyone"})
     public void When_GetImages_With_UnknownUser_Expect_Forbidden() {
         given()
-          .queryParam("page", 1)
-          .queryParam("size", 3)
-          .when()
-          .get()
-          .then()
-          .statusCode(403);
+            .queryParam("page", 1)
+            .queryParam("size", 3)
+            .when()
+            .get()
+            .then()
+            .statusCode(403);
     }
 
     @Test
@@ -606,18 +512,30 @@ public class ImageControllerTest {
     }
 
     @Test
-    @TestSecurity(user = "testUser", roles = {"blog-admin", "Everyone"})
-    public void When_GetUploadUrl_With_invalidMimeType_Expect_BadRequest() {
-        doThrow(new BadRequestException(List.of(ErrorMessage.builder().message("test").build())))
-            .doCallRealMethod()
-            .when(imageValidationService).validateMimeType(any(), any());
+    @TestSecurity(user = "testUser", roles = {"blog-admin"})
+    public void When_GetUploadUrl_With_InvalidMimeType_Expect_BadRequestException() {
+        // arrange
+        String invalidMimeType = "application/json";
+        String testErrorMessage = "test error message";
+        Mockito.doThrow(new BadRequestException(List.of(ErrorMessage.builder()
+                .message(testErrorMessage)
+                .build())))
+            .when(imageValidationService).validateMimeType(eq(invalidMimeType), any());
 
-        given()
+        //act
+        ErrorResponse errorResponse = given()
             .multiPart("filename", RECTANGULAR_TEST_IMAGE_NAME)
-            .multiPart("mime-type", JPEG_MIME_TYPE)
+            .multiPart("mime-type", invalidMimeType)
+            .when()
             .post("/pre-signed")
             .then()
-            .statusCode(400);
+            .statusCode(400)
+            .extract()
+            .body()
+            .as(ErrorResponse.class);
+
+        assertThat(errorResponse.getErrors().size()).isEqualTo(1);
+        assertThat(errorResponse.getErrors().getFirst().getMessage()).isEqualTo(testErrorMessage);
     }
 
     @Test
@@ -663,8 +581,8 @@ public class ImageControllerTest {
 
     private Optional<String> getHeaderWithRel(String rel, List<Header> headers) {
         return headers.stream()
-          .map(Header::getValue)
-          .filter(value -> value.contains(String.format("rel=\"%s\"", rel)))
-          .findFirst();
+            .map(Header::getValue)
+            .filter(value -> value.contains(String.format("rel=\"%s\"", rel)))
+            .findFirst();
     }
 }

@@ -1,7 +1,19 @@
 package com.benhession.imagepicker.common.model;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Builder
-public record FileData(byte[] data, String filename, String mimeType, String imageType) {
+@Setter
+@Getter
+@NoArgsConstructor
+@AllArgsConstructor
+public class FileData {
+    private byte[] data;
+    private String filename;
+    private String mimeType;
+    private String imageType;
 }

@@ -1,12 +1,13 @@
 resource "aws_api_gateway_rest_api" "image_picker_api" {
-  name               = "image_picker_api"
+  name = "image_picker_api"
   binary_media_types = ["multipart/form-data"]
 }
 
 resource "aws_api_gateway_deployment" "image_picker" {
   rest_api_id = aws_api_gateway_rest_api.image_picker_api.id
   depends_on = [
-    module.post_image,
+    module.process_image,
+    module.get_upload_url,
     module.get_all_images,
     module.get_image,
   ]
@@ -42,7 +43,7 @@ resource "aws_api_gateway_method_settings" "canopy_rest_api" {
   method_path = "*/*"
   rest_api_id = aws_api_gateway_rest_api.image_picker_api.id
   stage_name  = aws_api_gateway_stage.image_picker_api.stage_name
-  depends_on  = [aws_api_gateway_account.gateway_account]
+  depends_on = [aws_api_gateway_account.gateway_account]
 
   settings {
     metrics_enabled = true
@@ -52,7 +53,7 @@ resource "aws_api_gateway_method_settings" "canopy_rest_api" {
 
 resource "aws_api_gateway_account" "gateway_account" {
   cloudwatch_role_arn = aws_iam_role.gateway_role.arn
-  depends_on          = [aws_iam_role.gateway_role, aws_iam_role_policy.gateway_policy]
+  depends_on = [aws_iam_role.gateway_role, aws_iam_role_policy.gateway_policy]
 }
 
 resource "aws_iam_role" "gateway_role" {
@@ -78,8 +79,8 @@ resource "aws_iam_role" "gateway_role" {
 }
 
 resource "aws_iam_role_policy" "gateway_policy" {
-  name       = "cloudwatch_logs_allow_policy"
-  role       = aws_iam_role.gateway_role.id
+  name = "cloudwatch_logs_allow_policy"
+  role = aws_iam_role.gateway_role.id
   depends_on = [aws_iam_role.gateway_role]
 
   policy = jsonencode({
@@ -119,24 +120,29 @@ resource "aws_api_gateway_resource" "image_by_id_resource" {
   rest_api_id = aws_api_gateway_rest_api.image_picker_api.id
 }
 
+resource "aws_api_gateway_resource" "process_image_resource" {
+  parent_id   = aws_api_gateway_resource.image_by_id_resource.id
+  path_part   = "process"
+  rest_api_id = aws_api_gateway_rest_api.image_picker_api.id
+}
+
 resource "aws_api_gateway_resource" "get_upload_url_resource" {
   parent_id   = aws_api_gateway_resource.image_resource.id
   path_part   = "pre-signed"
   rest_api_id = aws_api_gateway_rest_api.image_picker_api.id
 }
 
-module "get_all_images" {
+module "process_image" {
   source      = "./api-gateway-lambda-method"
-  http_method = "GET"
-  resource_id = aws_api_gateway_resource.image_resource.id
+  http_method = "POST"
+  resource_id = aws_api_gateway_resource.process_image_resource.id
   rest_api_id = aws_api_gateway_rest_api.image_picker_api.id
   uri         = aws_lambda_function.image_picker_api.invoke_arn
 }
 
-
-module "post_image" {
+module "get_all_images" {
   source      = "./api-gateway-lambda-method"
-  http_method = "POST"
+  http_method = "GET"
   resource_id = aws_api_gateway_resource.image_resource.id
   rest_api_id = aws_api_gateway_rest_api.image_picker_api.id
   uri         = aws_lambda_function.image_picker_api.invoke_arn
