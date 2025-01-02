@@ -1,6 +1,6 @@
 test-variables:
   bucket-name: "test-bucket"
-  queue-name: "test-queue"
+  processing-queue-name: "processing-test-queue"
   aws-region: "us-east-1"
   aws-access-key-id: "test-key"
   aws-secret-access-key: "test-secret"
@@ -11,7 +11,7 @@ queue:
   image-processing-queue:
     url: ${IMAGE_PROCESSING_QUEUE_URL}
 
-quarkus :
+quarkus:
   oidc:
     auth-server-url: ${AUTH_SERVER_URL}
     client-id: ${OIDC_CLIENT_ID}
@@ -93,17 +93,24 @@ image:
       connection-string: ${MONGODB_CONNECTION_STRING}
 
 "%dev":
+
   queue:
     image-processing-queue:
-      url: ${test-variables.queue-name}
+      url: ${test-variables.processing-queue-name}
 
   bucket:
     name: ${test-variables.bucket-name}
 
   quarkus:
+    lambda:
+      mock-event-server:
+        dev-port: "8080"
+    mongodb:
+      connection-string: "mongodb://localhost:8180"
     sqs:
       devservices:
-        queues: ${test-variables.queue-name}
+        queues: ${test-variables.processing-queue-name}
+        shared: true
       aws:
         region: ${test-variables.aws-region}
         credentials:
@@ -111,10 +118,11 @@ image:
           static-provider:
             access-key-id: ${test-variables.aws-access-key-id}
             secret-access-key: ${test-variables.aws-secret-access-key}
-
     s3:
+      path-style-access: true
       devservices:
         buckets: ${test-variables.bucket-name}
+        shared: true
       aws:
         region: ${test-variables.aws-region}
         credentials:
@@ -127,7 +135,7 @@ image:
 
   queue:
     image-processing-queue:
-      url: ${test-variables.queue-name}
+      url: ${test-variables.processing-queue-name}
 
   bucket:
     name: ${test-variables.bucket-name}
@@ -135,7 +143,7 @@ image:
   quarkus:
     sqs:
       devservices:
-        queues: ${test-variables.queue-name}
+        queues: ${test-variables.processing-queue-name}
       aws:
         region: ${test-variables.aws-region}
         credentials:

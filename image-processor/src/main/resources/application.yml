@@ -1,13 +1,13 @@
 test-variables:
   bucket-name: "test-bucket"
-  queue-name: "test-queue"
+  processing-queue-name: "processing-test-queue"
   aws-region: "us-east-1"
   aws-access-key-id: "test-key"
   aws-secret-access-key: "test-secret"
 
 bucket.name: ${BUCKET_NAME}
 
-quarkus :
+quarkus:
   native:
     additional-build-args: --initialize-at-run-time=net.coobird.thumbnailator.resizers.AbstractResizer\,net.coobird.thumbnailator.resizers.BilinearResizer\,net.coobird.thumbnailator.resizers.configurations.AlphaInterpolation\,net.coobird.thumbnailator.resizers.configurations.Antialiasing\,net.coobird.thumbnailator.resizers.configurations.Dithering\,net.coobird.thumbnailator.resizers.configurations.Rendering\,net.coobird.thumbnailator.resizers.NullResizer\,net.coobird.thumbnailator.resizers.ProgressiveBilinearResizer\,net.coobird.thumbnailator.resizers.Resizers
 
@@ -97,7 +97,15 @@ image:
     name: ${test-variables.bucket-name}
 
   quarkus:
+    lambda:
+      mock-event-server:
+        dev-port: "8082"
+    mongodb:
+      connection-string: "mongodb://localhost:8180"
     sqs:
+      devservices:
+        queues: ${test-variables.processing-queue-name}
+        shared: true
       aws:
         region: ${test-variables.aws-region}
         credentials:
@@ -105,11 +113,11 @@ image:
           static-provider:
             access-key-id: ${test-variables.aws-access-key-id}
             secret-access-key: ${test-variables.aws-secret-access-key}
-      devservices:
-        queues: ${test-variables.queue-name}
     s3:
+      path-style-access: true
       devservices:
         buckets: ${test-variables.bucket-name}
+        shared: true
       aws:
         region: ${test-variables.aws-region}
         credentials:
@@ -119,6 +127,7 @@ image:
             secret-access-key: ${test-variables.aws-secret-access-key}
 
 "%test":
+
   bucket:
     name: ${test-variables.bucket-name}
 
@@ -128,7 +137,7 @@ image:
         port: "56000"
     lambda:
       mock-event-server:
-        test-port: "8082"
+        test-port: "8083"
     sqs:
       aws:
         region: ${test-variables.aws-region}
@@ -138,7 +147,7 @@ image:
             access-key-id: ${test-variables.aws-access-key-id}
             secret-access-key: ${test-variables.aws-secret-access-key}
       devservices:
-        queues: ${test-variables.queue-name}
+        queues: ${test-variables.processing-queue-name}
         enabled: true
         shared: true
     s3:

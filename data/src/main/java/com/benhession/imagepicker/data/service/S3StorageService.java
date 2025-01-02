@@ -128,7 +128,7 @@ public class S3StorageService implements ObjectStorageService {
                 .mimeType(mimeType)
                 .build();
 
-        } catch (S3Exception | IOException e) {
+        } catch (S3Exception | IOException | SdkClientException e) {
             logger.error(e.getMessage(), e);
             throw new ImageProcessingException("Error reading original file data from s3", e);
         }

@@ -1,0 +1,27 @@
+test-variables:
+  processing-queue-name: "processing-test-queue"
+  aws-region: "us-east-1"
+  aws-access-key-id: "test-key"
+  aws-secret-access-key: "test-secret"
+
+"%dev":
+  queue:
+    image-processing-queue:
+      url: ${test-variables.processing-queue-name}
+
+  quarkus:
+    sqs:
+      devservices:
+        queues: ${test-variables.processing-queue-name}
+        shared: true
+      aws:
+        region: ${test-variables.aws-region}
+        credentials:
+          type: static
+          static-provider:
+            access-key-id: ${test-variables.aws-access-key-id}
+            secret-access-key: ${test-variables.aws-secret-access-key}
+
+    rest-client:
+      "com.benhession.imagepicker.localenvqueuehelper.http.ImageProcessorClient":
+        uri: "http://localhost:8082"
