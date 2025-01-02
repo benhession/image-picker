@@ -47,7 +47,7 @@ public class ImageProcessingController {
             }
 
             var fileData = fileDataRetrievalService.retrieve(message.getFileDataKey())
-                .orElseThrow(() -> new ImageProcessingException("ImageUploadDto not found for key: "
+                .orElseThrow(() -> new ImageProcessingException("File not found for key: "
                     + message.getFileDataKey()));
 
             fileData.setImageType(imageMetadata.getType().name());
