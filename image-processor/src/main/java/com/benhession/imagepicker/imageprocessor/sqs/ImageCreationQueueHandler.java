@@ -16,23 +16,23 @@ import org.jboss.logging.Logger;
 public class ImageCreationQueueHandler implements RequestHandler<SQSEvent, SQSBatchResponse> {
 
     private final Logger log;
-    private final Instance<ImageProcessingMessageHandler> messsageHandlerInstance;
+    private final Instance<ImageProcessingMessageHandler> messageHandlerInstance;
 
     @Override
     public SQSBatchResponse handleRequest(SQSEvent event, Context context) {
         log.info("Received event: " + event);
         List<SQSBatchResponse.BatchItemFailure> failures = new ArrayList<>();
         for (SQSEvent.SQSMessage msg : event.getRecords()) {
-            var messageHandler = messsageHandlerInstance.get();
+            var messageHandler = messageHandlerInstance.get();
             try {
                 messageHandler.handleMessage(msg);
             } catch (Exception e) {
                 log.error("Failed to process message: " + msg.getMessageId(), e);
                 failures.add(SQSBatchResponse.BatchItemFailure.builder()
-                  .withItemIdentifier(msg.getMessageId())
-                  .build());
+                    .withItemIdentifier(msg.getMessageId())
+                    .build());
             } finally {
-                messsageHandlerInstance.destroy(messageHandler);
+                messageHandlerInstance.destroy(messageHandler);
             }
         }
         return SQSBatchResponse.builder().withBatchItemFailures(failures).build();

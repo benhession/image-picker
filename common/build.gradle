@@ -12,4 +12,6 @@ java {
 dependencies {
     implementation 'io.quarkus:quarkus-jackson'
     implementation 'org.jodd:jodd-util:6.2.2'
+    implementation 'com.madgag:animated-gif-lib:1.4'
+    implementation 'io.quarkus:quarkus-oidc'
 }

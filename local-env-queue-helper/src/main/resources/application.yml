@@ -1,18 +1,30 @@
 test-variables:
   processing-queue-name: "processing-test-queue"
+  cropping-queue-name: "cropping-test-queue"
   aws-region: "us-east-1"
   aws-access-key-id: "test-key"
   aws-secret-access-key: "test-secret"
 
 "%dev":
+
   queue:
     image-processing-queue:
       url: ${test-variables.processing-queue-name}
+    image-cropping-queue:
+      url: ${test-variables.cropping-queue-name}
 
   quarkus:
+    oidc:
+      auth-server-url: ${AUTH_SERVER_URL}
+      client-id: ${OIDC_CLIENT_ID}
+      credentials:
+        secret: ${OIDC_CLIENT_SECRET}
+
     sqs:
       devservices:
-        queues: ${test-variables.processing-queue-name}
+        queues:
+          - ${test-variables.processing-queue-name}
+          - ${test-variables.cropping-queue-name}
         shared: true
       aws:
         region: ${test-variables.aws-region}
@@ -25,3 +37,7 @@ test-variables:
     rest-client:
       "com.benhession.imagepicker.localenvqueuehelper.http.ImageProcessorClient":
         uri: "http://localhost:8082"
+      "com.benhession.imagepicker.localenvqueuehelper.http.ImageCropperClient":
+        uri: "http://localhost:8085"
+    http:
+      port: 8188

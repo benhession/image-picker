@@ -19,8 +19,6 @@ dependencies {
     implementation 'software.amazon.awssdk:url-connection-client'
     implementation enforcedPlatform("${quarkusPlatformGroupId}:quarkus-amazon-services-bom:${quarkusPlatformVersion}")
     implementation 'net.coobird:thumbnailator:0.4.20'
-    implementation 'com.madgag:animated-gif-lib:1.4'
-    implementation 'io.quarkus:quarkus-oidc'
 
     testImplementation project(":test-util")
     testImplementation project(":common")

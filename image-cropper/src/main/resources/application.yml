@@ -1,0 +1,163 @@
+test-variables:
+  bucket-name: "test-bucket"
+  processing-queue-name: "processing-test-queue"
+  cropping-queue-name: "cropping-test-queue"
+  aws-region: "us-east-1"
+  aws-access-key-id: "test-key"
+  aws-secret-access-key: "test-secret"
+
+bucket.name: ${BUCKET_NAME}
+
+quarkus:
+  oidc:
+    auth-server-url: ${AUTH_SERVER_URL}
+    client-id: ${OIDC_CLIENT_ID}
+    credentials:
+      secret: ${OIDC_CLIENT_SECRET}
+
+  mongodb:
+    database: ${MONGODB_DATABASE_NAME}
+
+  log:
+    console:
+      format: "%d{yyyy.MM.dd HH:mm:ss:SSSZ} %-5p [%c{2.}] (%t) message id= %X{message.id}, requester= %X{requester}, message= %m %n"
+
+validation-messages:
+  system:
+    error: "An unexpected error has occurred."
+
+image-processing-properties:
+  timeout: ${IMAGE_PROCESSING_TIMEOUT:PT10M}
+
+image:
+  accepted-mime-types:
+    - "image/jpeg"
+    - "image/png"
+    - "image/gif"
+
+  size:
+    square:
+      aspect-ratio: "1:1"
+      min-width: "400"
+      thumbnail:
+        scaling-factor: "0.1"
+      small:
+        scaling-factor: "0.4"
+      medium:
+        scaling-factor: "0.7"
+      large:
+        scaling-factor: "1"
+
+    panoramic:
+      aspect-ratio: "2:1"
+      min-width: "900"
+      thumbnail:
+        scaling-factor: "0.1"
+      small:
+        scaling-factor: "0.4"
+      medium:
+        scaling-factor: "0.7"
+      large:
+        scaling-factor: "1"
+
+    rectangular:
+      aspect-ratio: "4:3"
+      min-width: "800"
+      thumbnail:
+        scaling-factor: "0.1"
+      small:
+        scaling-factor: "0.4"
+      medium:
+        scaling-factor: "0.7"
+      large:
+        scaling-factor: "1"
+
+    landscape:
+      aspect-ratio: "16:9"
+      min-width: "400"
+      thumbnail:
+        scaling-factor: "0.1"
+      small:
+        scaling-factor: "0.4"
+      medium:
+        scaling-factor: "0.7"
+      large:
+        scaling-factor: "1"
+
+"%prod":
+  quarkus:
+    mongodb:
+      connection-string: ${MONGODB_CONNECTION_STRING}
+
+"%dev":
+
+  bucket:
+    name: ${test-variables.bucket-name}
+
+  quarkus:
+    lambda:
+      mock-event-server:
+        dev-port: "8085"
+    mongodb:
+      connection-string: "mongodb://localhost:8180"
+    sqs:
+      devservices:
+        queues:
+          - ${test-variables.cropping-queue-name}
+          - ${test-variables.processing-queue-name}
+        shared: true
+      aws:
+        region: ${test-variables.aws-region}
+        credentials:
+          type: "static"
+          static-provider:
+            access-key-id: ${test-variables.aws-access-key-id}
+            secret-access-key: ${test-variables.aws-secret-access-key}
+
+    s3:
+      path-style-access: true
+      devservices:
+        buckets: ${test-variables.bucket-name}
+        shared: true
+      aws:
+        region: ${test-variables.aws-region}
+        credentials:
+          type: "static"
+          static-provider:
+            access-key-id: ${test-variables.aws-access-key-id}
+            secret-access-key: ${test-variables.aws-secret-access-key}
+    http:
+      port: 8185
+
+"%test":
+
+  bucket:
+    name: ${test-variables.bucket-name}
+
+  quarkus:
+    lambda:
+      mock-event-server:
+        test-port: "8086"
+    sqs:
+      aws:
+        region: ${test-variables.aws-region}
+        credentials:
+          type: static
+          static-provider:
+            access-key-id: ${test-variables.aws-access-key-id}
+            secret-access-key: ${test-variables.aws-secret-access-key}
+      devservices:
+        queues: ${test-variables.cropping-queue-name}
+        enabled: true
+        shared: true
+    s3:
+      region: ${test-variables.aws-region}
+      devservices:
+        buckets: ${test-variables.bucket-name}
+      aws:
+        region: ${test-variables.aws-region}
+        credentials:
+          type: "static"
+          static-provider:
+            access-key-id: ${test-variables.aws-access-key-id}
+            secret-access-key: ${test-variables.aws-secret-access-key}

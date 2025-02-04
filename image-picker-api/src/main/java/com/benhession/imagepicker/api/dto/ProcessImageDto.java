@@ -7,7 +7,6 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.jboss.resteasy.reactive.RestForm;
 
 @Getter
 @Setter
@@ -15,7 +14,7 @@ import org.jboss.resteasy.reactive.RestForm;
 @AllArgsConstructor
 @NoArgsConstructor
 public class ProcessImageDto {
-    @RestForm("image-type")
+
     @EnumValidator(enumClass = ImageType.class)
     private String imageType;
 }

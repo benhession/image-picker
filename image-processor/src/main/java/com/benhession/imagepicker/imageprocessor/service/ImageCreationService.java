@@ -1,6 +1,7 @@
 package com.benhession.imagepicker.imageprocessor.service;
 
 import static com.benhession.imagepicker.common.model.ImageSize.values;
+import static com.benhession.imagepicker.data.model.ImageProcessingStage.CROPPED;
 import static com.benhession.imagepicker.data.model.ImageProcessingStage.ORIGINAL_UPLOADED;
 import static com.benhession.imagepicker.data.model.ImageProcessingStage.PROCESSING;
 import static com.benhession.imagepicker.data.model.ImageProcessingStage.PROCESSING_COMPLETE;
@@ -12,22 +13,18 @@ import com.benhession.imagepicker.common.model.ImageSize;
 import com.benhession.imagepicker.common.model.ImageType;
 import com.benhession.imagepicker.common.service.ImageSizeService;
 import com.benhession.imagepicker.common.util.FilenameUtil;
+import com.benhession.imagepicker.common.util.GifUtil;
 import com.benhession.imagepicker.common.util.MimeTypeUtil;
 import com.benhession.imagepicker.data.dto.ImageUploadDto;
 import com.benhession.imagepicker.data.model.ImageMetadata;
+import com.benhession.imagepicker.data.model.ImageProcessingStage;
 import com.benhession.imagepicker.data.service.ImageMetaDataService;
 import com.benhession.imagepicker.data.service.ObjectStorageService;
-import com.madgag.gif.fmsware.AnimatedGifEncoder;
-import com.madgag.gif.fmsware.GifDecoder;
 import jakarta.enterprise.context.ApplicationScoped;
-import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.LinkedList;
 import java.util.List;
 import javax.imageio.ImageIO;
 import lombok.RequiredArgsConstructor;
@@ -37,17 +34,20 @@ import net.coobird.thumbnailator.Thumbnails;
 @RequiredArgsConstructor
 public class ImageCreationService {
 
+    private static final List<ImageProcessingStage> VALID_PROCESSING_STAGES = List.of(ORIGINAL_UPLOADED, CROPPED);
+
     private final ImageSizeService imageSizeService;
     private final FilenameUtil filenameUtil;
     private final ObjectStorageService objectStorageService;
     private final ImageMetaDataService imageMetaDataService;
     private final MimeTypeUtil mimeTypeUtil;
+    private final GifUtil gifUtil;
 
     public void createNewImages(final FileData fileData, ImageMetadata imageMetadata)
         throws ImageProcessingException {
 
-        if (!imageMetadata.getStatus().stage().equals(ORIGINAL_UPLOADED)) {
-            throw new ImageProcessingException("Image metadata is not in the processing stage for imageId: "
+        if (!VALID_PROCESSING_STAGES.contains(imageMetadata.getStatus().stage())) {
+            throw new ImageProcessingException("Image metadata is not in the correct stage for processing for imageId: "
                 + imageMetadata.getId().toString());
         }
 
@@ -101,41 +101,15 @@ public class ImageCreationService {
     }
 
     private byte[] resizeGif(byte[] data, ImageHeightWidth imageHeightWidth) throws IOException {
-
-        try (InputStream inputStream = new ByteArrayInputStream(data);
-            var outputStream = new ByteArrayOutputStream()) {
-
-            List<Integer> delays = new ArrayList<>();
-            List<BufferedImage> frames = new LinkedList<>();
-            var gifDecoder = new GifDecoder();
-            var gifEncoder = new AnimatedGifEncoder();
-            gifDecoder.read(inputStream);
-
-            int frameCount = gifDecoder.getFrameCount();
-            for (int i = 0; i < frameCount; i++) {
-                var newFrame = Thumbnails.of(gifDecoder.getFrame(i))
+        return gifUtil.alterGifFrames(data, frame -> {
+            try {
+                return Thumbnails.of(frame)
                     .width(imageHeightWidth.getWidth())
                     .height(imageHeightWidth.getHeight())
                     .asBufferedImage();
-                frames.add(newFrame);
-                delays.add(gifDecoder.getDelay(i));
+            } catch (IOException e) {
+                throw new ImageProcessingException("Error resizing gif file", e);
             }
-
-            var averageDelay = delays.stream()
-                .mapToInt(a -> a)
-                .summaryStatistics()
-                .getAverage();
-            var roundedDelay = Math.toIntExact(Math.round(averageDelay));
-
-            gifEncoder.start(outputStream);
-            gifEncoder.setRepeat(gifDecoder.getLoopCount());
-            gifEncoder.setDelay(roundedDelay);
-            for (var frame : frames) {
-                gifEncoder.addFrame(frame);
-            }
-            gifEncoder.finish();
-
-            return outputStream.toByteArray();
-        }
+        });
     }
 }
