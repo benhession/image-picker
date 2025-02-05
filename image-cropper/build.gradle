@@ -18,4 +18,5 @@ dependencies {
     implementation enforcedPlatform("${quarkusPlatformGroupId}:quarkus-amazon-services-bom:${quarkusPlatformVersion}")
     implementation 'io.quarkiverse.amazonservices:quarkus-amazon-sqs'
     implementation 'software.amazon.awssdk:url-connection-client'
+    implementation 'io.quarkus:quarkus-awt'
 }

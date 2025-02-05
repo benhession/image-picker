@@ -13,6 +13,11 @@ variable "image_processor_lambda_name" {
   default = "image-processor"
 }
 
+variable "image_cropper_lambda_name" {
+  type    = string
+  default = "image-cropper"
+}
+
 variable "auth_server_url" {
   type = string
 }
@@ -55,16 +60,21 @@ variable "mongodb_atlas_project_id" {
 }
 
 variable "mongodb_atlas_role_name" {
-  type = string
+  type    = string
   default = "sandbox-lambda-access"
 }
 
 variable "mongodb_atlas_cluster_name" {
-  type = string
+  type    = string
   default = "blog-cluster"
 }
 
 variable "image_processor_max_concurrency" {
-  type = number
+  type    = number
+  default = 10
+}
+
+variable "image_cropper_max_concurrency" {
+  type    = number
   default = 10
 }

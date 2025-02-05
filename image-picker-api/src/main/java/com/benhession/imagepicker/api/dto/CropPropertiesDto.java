@@ -2,6 +2,7 @@ package com.benhession.imagepicker.api.dto;
 
 import com.benhession.imagepicker.api.validation.EnumValidator;
 import com.benhession.imagepicker.common.model.ImageType;
+import io.quarkus.runtime.annotations.RegisterForReflection;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -15,6 +16,7 @@ import lombok.Setter;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
+@RegisterForReflection
 public class CropPropertiesDto {
 
     @EnumValidator(enumClass = ImageType.class)
@@ -28,11 +30,14 @@ public class CropPropertiesDto {
     @Setter
     @NoArgsConstructor
     @AllArgsConstructor
+    @RegisterForReflection
     public static class CoordinateDto {
 
         @NotNull
+        @SuppressWarnings("checkstyle:MemberNameCheck")
         private Integer x;
         @NotNull
+        @SuppressWarnings("checkstyle:MemberNameCheck")
         private Integer y;
     }
 }

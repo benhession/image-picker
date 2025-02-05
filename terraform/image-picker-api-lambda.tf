@@ -19,15 +19,16 @@ resource "aws_lambda_function" "image_picker_api" {
 
   environment {
     variables = tomap({
-      AUTH_SERVER_URL           = var.auth_server_url
-      OIDC_CLIENT_ID            = var.oidc_client_id
-      OIDC_CLIENT_SECRET        = var.oidc_client_secret
-      BUCKET_NAME               = var.image_picker_bucket_name
-      MONGODB_CONNECTION_STRING = var.mongodb_connection_string
-      MONGODB_DATABASE_NAME     = var.mongodb_database_name
-      DISABLE_SIGNAL_HANDLERS   = "true"
-      QUARKUS_HTTP_ROOT_PATH    = "/"
+      AUTH_SERVER_URL            = var.auth_server_url
+      OIDC_CLIENT_ID             = var.oidc_client_id
+      OIDC_CLIENT_SECRET         = var.oidc_client_secret
+      BUCKET_NAME                = var.image_picker_bucket_name
+      MONGODB_CONNECTION_STRING  = var.mongodb_connection_string
+      MONGODB_DATABASE_NAME      = var.mongodb_database_name
+      DISABLE_SIGNAL_HANDLERS    = "true"
+      QUARKUS_HTTP_ROOT_PATH     = "/"
       IMAGE_PROCESSING_QUEUE_URL = aws_sqs_queue.image_processing_queue.id
+      IMAGE_CROPPING_QUEUE_URL   = aws_sqs_queue.image_cropping_queue.id
     })
   }
 }
@@ -68,7 +69,8 @@ data "aws_iam_policy_document" "image_picker_api_s3_policy_document" {
       "s3:DeleteObject",
       "s3:ListObjects",
       "s3:PutObjectTagging",
-      "s3:GetObjectTagging"
+      "s3:GetObjectTagging",
+      "s3:ListBucket"
     ]
 
     resources = [
@@ -101,7 +103,7 @@ resource "aws_iam_role_policy_attachment" "image_picker_api_s3_policy_attachment
 data "aws_iam_policy_document" "image_picker_sqs_policy_document" {
   statement {
     actions = ["sqs:GetQueueUrl", "sqs:SendMessage"]
-    resources = [aws_sqs_queue.image_processing_queue.arn]
+    resources = [aws_sqs_queue.image_processing_queue.arn, aws_sqs_queue.image_cropping_queue.arn]
   }
 }
 
@@ -112,7 +114,7 @@ resource "aws_iam_policy" "image_picker_sqs_policy" {
 
 resource "aws_iam_role_policy_attachment" "image_picker_sqs_policy_attachment" {
   policy_arn = aws_iam_policy.image_picker_sqs_policy.arn
-  role = aws_iam_role.image_picker_lambda_api.name
+  role       = aws_iam_role.image_picker_lambda_api.name
 }
 
 resource "aws_lambda_permission" "image_picker_api_invoke_permission" {
