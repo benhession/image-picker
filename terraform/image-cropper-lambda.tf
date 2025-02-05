@@ -106,7 +106,7 @@ resource "aws_iam_policy" "image_cropper_sqs_policy" {
 data "aws_iam_policy_document" "image_cropper_sqs_policy_document" {
   statement {
     actions = ["sqs:ReceiveMessage", "sqs:DeleteMessage", "sqs:GetQueueAttributes"]
-    resources = [aws_sqs_queue.image_cropping_queue.arn] # TODO: add queue
+    resources = [aws_sqs_queue.image_cropping_queue.arn]
     effect = "Allow"
   }
 }

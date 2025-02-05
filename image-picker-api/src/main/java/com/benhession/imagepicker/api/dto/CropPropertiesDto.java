@@ -24,6 +24,7 @@ public class CropPropertiesDto {
     @Valid
     private CoordinateDto baseCoordinate;
     @NotNull
+    @SuppressWarnings("unused")
     Integer width;
 
     @Getter
