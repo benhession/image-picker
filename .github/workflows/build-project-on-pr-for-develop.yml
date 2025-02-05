@@ -40,3 +40,9 @@ jobs:
         with:
           name: image-picker-api build reports
           path: image-picker-api/build/reports
+      - name: Upload image-cropper build artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: image-cropper build reports
+          path: image-cropper/build/reports
