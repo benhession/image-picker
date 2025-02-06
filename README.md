@@ -6,17 +6,21 @@ If you want to learn more about Quarkus, please visit its website: https://quark
 
 ## Infrastructure overview
 
-![image](./docs/Image-picker-overview.dark.svg "Infrastructure overview")
+![image](./docs/image-picker-overview-light.jpg "Infrastructure overview")
 
 ## Modules
 
 ### Microservice modules
+
 - [image-picker-api](./image-picker-api/README.md) - the applications REST API
 - [image-processor](./image-processor/README.md) - the image resizing service
+- [image-cropper](./image-cropper/README.md) - the cropping service
 
 ### Shared modules
+
 - [common](./common/README.md) - common classes
 - [data](./data/README.md) - the persistence layer
 
 ### Deployment
+
 - [Terraform](./terraform) - to deploy the services as AWS Lambda functions
