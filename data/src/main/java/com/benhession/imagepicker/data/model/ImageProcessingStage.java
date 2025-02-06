@@ -5,6 +5,9 @@ import lombok.Getter;
 @Getter
 public enum ImageProcessingStage {
     INITIALISED(true),
+    SENT_TO_CROP(true),
+    CROPPING(true),
+    CROPPED(true),
     ORIGINAL_UPLOADED(true),
     PROCESSING(true),
     PROCESSING_COMPLETE(false),

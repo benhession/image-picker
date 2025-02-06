@@ -10,6 +10,8 @@ import com.fasterxml.jackson.databind.ObjectReader;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.security.TestSecurity;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -29,13 +31,16 @@ public class ImageProcessingQueueServiceTest {
 
     private static final String MOCK_TOKEN = "mock-token";
 
-    private final ObjectReader imageCreationMessageReader;
     private final ImageProcessingQueueService imageProcessingQueueService;
     private final SqsClient sqsClient;
     private final SqsConfigProperties sqsConfigProperties;
 
     private String testFileDataKey;
     private String testMetaDataId;
+
+    @Inject
+    @Named("imageCreationMessageReader")
+    ObjectReader imageCreationMessageReader;
 
     @InjectMock
     JsonWebToken jsonWebToken;
@@ -49,7 +54,7 @@ public class ImageProcessingQueueServiceTest {
     @AfterEach
     public void tearDown() {
         sqsClient.purgeQueue(PurgeQueueRequest.builder()
-            .queueUrl(sqsConfigProperties.getQueueUrl())
+            .queueUrl(sqsConfigProperties.getProcessingQueueUrl())
             .build());
     }
 
@@ -69,7 +74,7 @@ public class ImageProcessingQueueServiceTest {
 
         // assert
         var receiveMessageResponse = sqsClient.receiveMessage(ReceiveMessageRequest.builder()
-            .queueUrl(sqsConfigProperties.getQueueUrl())
+            .queueUrl(sqsConfigProperties.getProcessingQueueUrl())
             .maxNumberOfMessages(1)
             .build());
 

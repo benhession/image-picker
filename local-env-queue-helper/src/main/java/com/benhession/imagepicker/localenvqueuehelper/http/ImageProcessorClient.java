@@ -7,7 +7,7 @@ import org.eclipse.microprofile.rest.client.inject.RegisterRestClient;
 
 @Path("/")
 @RegisterRestClient
-public interface ImageProcessorClient {
+public interface ImageProcessorClient extends SqsLambdaHttpClient {
 
     @POST
     String sendMessage(SQSEvent event);

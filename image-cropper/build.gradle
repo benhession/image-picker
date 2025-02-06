@@ -1,0 +1,22 @@
+plugins {
+    id 'java'
+    id 'io.quarkus'
+    id 'image-picker.common-build-config'
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
+}
+
+dependencies {
+    implementation project(":common")
+    implementation project(":data")
+    implementation 'io.quarkus:quarkus-oidc'
+    implementation 'io.quarkus:quarkus-amazon-lambda'
+    implementation 'io.quarkus:quarkus-rest-jackson'
+    implementation enforcedPlatform("${quarkusPlatformGroupId}:quarkus-amazon-services-bom:${quarkusPlatformVersion}")
+    implementation 'io.quarkiverse.amazonservices:quarkus-amazon-sqs'
+    implementation 'software.amazon.awssdk:url-connection-client'
+    implementation 'io.quarkus:quarkus-awt'
+}

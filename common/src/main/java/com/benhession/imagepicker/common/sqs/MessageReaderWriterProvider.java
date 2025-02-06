@@ -21,4 +21,16 @@ public class MessageReaderWriterProvider {
     ObjectWriter imageCreationMessageWriter() {
         return new ObjectMapper().writerFor(ImageCreationMessage.class);
     }
+
+    @Produces
+    @Named("imageCropMessageReader")
+    ObjectReader imageCropMessageReader() {
+        return new ObjectMapper().readerFor(ImageCropMessage.class);
+    }
+
+    @Produces
+    @Named("imageCropMessageWriter")
+    ObjectWriter imageCropMessageWriter() {
+        return new ObjectMapper().writerFor(ImageCropMessage.class);
+    }
 }

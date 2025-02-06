@@ -4,7 +4,7 @@ resource "aws_lambda_function" "image_processor" {
   handler       = "not.used.in.provided.runtime"
   runtime       = "provided.al2"
   architectures = ["arm64"]
-  timeout       = 120
+  timeout       = 300
   memory_size   = 2048
 
   ephemeral_storage {
@@ -72,7 +72,8 @@ data "aws_iam_policy_document" "image_processor_s3_policy_document" {
       "s3:DeleteObject",
       "s3:ListObjects",
       "s3:PutObjectTagging",
-      "s3:GetObjectTagging"
+      "s3:GetObjectTagging",
+      "s3:ListBucket"
     ]
 
     resources = [
@@ -88,7 +89,7 @@ resource "aws_iam_policy" "image_processor_s3_policy" {
 }
 
 resource "aws_iam_role_policy_attachment" "image_processor_s3_attachment" {
-  role = aws_iam_role.image_processor.name
+  role       = aws_iam_role.image_processor.name
   policy_arn = aws_iam_policy.image_processor_s3_policy.arn
 }
 
@@ -99,7 +100,7 @@ resource "aws_iam_role_policy_attachment" "image_processor_basic_execution" {
 
 data "aws_iam_policy_document" "image_processor_sqs_policy_document" {
   statement {
-    actions   = ["sqs:ReceiveMessage", "sqs:DeleteMessage", "sqs:GetQueueAttributes"]
+    actions = ["sqs:ReceiveMessage", "sqs:DeleteMessage", "sqs:GetQueueAttributes"]
     resources = [aws_sqs_queue.image_processing_queue.arn]
     effect = "Allow"
   }
@@ -116,9 +117,9 @@ resource "aws_iam_role_policy_attachment" "image_processor_sqs_policy_attachment
 }
 
 resource "aws_lambda_event_source_mapping" "image_processor_trigger" {
-  function_name = aws_lambda_function.image_processor.arn
+  function_name    = aws_lambda_function.image_processor.arn
   event_source_arn = aws_sqs_queue.image_processing_queue.arn
-  batch_size = 1
+  batch_size       = 1
   scaling_config {
     maximum_concurrency = var.image_processor_max_concurrency
   }

@@ -52,7 +52,7 @@ image:
 
     panoramic:
       aspect-ratio: "2:1"
-      min-width: "400"
+      min-width: "900"
       thumbnail:
         scaling-factor: "0.1"
       small:

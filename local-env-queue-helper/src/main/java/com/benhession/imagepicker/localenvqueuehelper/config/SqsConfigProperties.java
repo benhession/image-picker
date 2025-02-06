@@ -11,4 +11,8 @@ public class SqsConfigProperties {
     @ConfigProperty(name = "queue.image-processing-queue.url")
     @SuppressWarnings("unused")
     String processingQueueUrl;
+
+    @ConfigProperty(name = "queue.image-cropping-queue.url")
+    @SuppressWarnings("unused")
+    String croppingQueueUrl;
 }

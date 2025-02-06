@@ -32,6 +32,7 @@ import org.mockito.ArgumentCaptor;
 
 @QuarkusTest
 public class ImageCreationServiceTest {
+
     private static final String PARENT_TEST_KEY = "parent-test-key";
     private static final String TEST_FILENAME = "test-filename.jpg";
     private static final String TEST_MIME_TYPE = "image/jpeg";
@@ -117,6 +118,7 @@ public class ImageCreationServiceTest {
         // act + assert
         assertThatThrownBy(() -> imageCreationService.createNewImages(fileData, imageMetadata))
             .isInstanceOf(ImageProcessingException.class)
-            .hasMessage("Image metadata is not in the processing stage for imageId: " + imageMetadata.getId());
+            .hasMessage(
+                "Image metadata is not in the correct stage for processing for imageId: " + imageMetadata.getId());
     }
 }

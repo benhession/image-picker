@@ -1,5 +1,7 @@
 package com.benhession.imagepicker.common.service;
 
+import static java.math.RoundingMode.HALF_UP;
+
 import com.benhession.imagepicker.common.config.ImageConfigProperties;
 import com.benhession.imagepicker.common.exception.InvalidConfigurationException;
 import com.benhession.imagepicker.common.model.ImageHeightWidth;
@@ -48,6 +50,11 @@ public class ImageSizeService {
             case RECTANGULAR -> heightWidthFromImageSize(imageSize, rectangularConfig);
             case LANDSCAPE -> heightWidthFromImageSize(imageSize, landscapeConfig);
         };
+    }
+
+    public int calculateImageHeight(int width, ImageType imageType) {
+        BigDecimal height = new BigDecimal(width).divide(findAspectRatio(imageType), 2, HALF_UP);
+        return height.intValue();
     }
 
     private ImageHeightWidth heightWidthFromImageSize(ImageSize imageSize,

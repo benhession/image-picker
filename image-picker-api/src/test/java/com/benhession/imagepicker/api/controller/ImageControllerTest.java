@@ -12,6 +12,7 @@ import static com.benhession.imagepicker.data.model.ImageProcessingStage.PROCESS
 import static com.benhession.imagepicker.data.model.ImageProcessingStage.PROCESSING_FAILED;
 import static com.benhession.imagepicker.data.model.ImageProcessingStage.PROCESSING_TIMEOUT;
 import static io.restassured.RestAssured.given;
+import static io.restassured.http.ContentType.JSON;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -19,7 +20,9 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.benhession.imagepicker.api.dto.GetUploadUrlDto;
 import com.benhession.imagepicker.api.dto.ImageResponseDto;
+import com.benhession.imagepicker.api.dto.ProcessImageDto;
 import com.benhession.imagepicker.api.dto.UploadUrlResponseDto;
 import com.benhession.imagepicker.api.exception.ErrorResponse;
 import com.benhession.imagepicker.api.service.ImageProcessingService;
@@ -91,7 +94,10 @@ public class ImageControllerTest {
 
         // act
         ErrorResponse errorResponse = given()
-            .multiPart("image-type", RECTANGULAR)
+            .contentType(JSON)
+            .body(ProcessImageDto.builder()
+                .imageType(RECTANGULAR.toString())
+                .build())
             .when()
             .post(String.format("/%s/process", testImageId))
             .then()
@@ -131,7 +137,10 @@ public class ImageControllerTest {
 
         // act
         ImageResponseDto responseDto = given()
-            .multiPart("image-type", RECTANGULAR)
+            .contentType(JSON)
+            .body(ProcessImageDto.builder()
+                .imageType(RECTANGULAR.toString())
+                .build())
             .when()
             .post(String.format("/%s/process", testImageId))
             .then()
@@ -164,7 +173,10 @@ public class ImageControllerTest {
 
         // act
         var errorResponse = given()
-            .multiPart("image-type", RECTANGULAR)
+            .contentType(JSON)
+            .body(ProcessImageDto.builder()
+                .imageType(RECTANGULAR.toString())
+                .build())
             .when()
             .post(String.format("/%s/process", testImageId))
             .then()
@@ -176,7 +188,7 @@ public class ImageControllerTest {
         // assert
         assertThat(errorResponse.getErrors()).hasSize(1);
         assertThat(errorResponse.getErrors().getFirst().getMessage())
-            .isEqualTo("Expected image processing stage to be one of [INITIALISED] but was PROCESSING");
+            .isEqualTo("Expected image processing stage to be one of [INITIALISED, CROPPED] but was PROCESSING");
     }
 
     @Test
@@ -184,7 +196,10 @@ public class ImageControllerTest {
     public void When_ProcessImage_With_UnauthorisedUser_Expect_ForbiddenResponse() {
         // act
         given()
-            .multiPart("image-type", RECTANGULAR)
+            .contentType(JSON)
+            .body(ProcessImageDto.builder()
+                .imageType(RECTANGULAR.toString())
+                .build())
             .when()
             .post(String.format("/%s/process", ObjectId.get()))
             .then()
@@ -474,10 +489,12 @@ public class ImageControllerTest {
                 .build());
 
         var response = given()
-            .multiPart("filename", RECTANGULAR_TEST_IMAGE_NAME)
-            .multiPart("mime-type", JPEG_MIME_TYPE)
-            .multiPart("tag", TEST_TAGS.getFirst())
-            .multiPart("tag", TEST_TAGS.getLast())
+            .contentType(JSON)
+            .body(GetUploadUrlDto.builder()
+                .filename(RECTANGULAR_TEST_IMAGE_NAME)
+                .mimetype(JPEG_MIME_TYPE)
+                .tags(List.of(TEST_TAGS.getFirst(), TEST_TAGS.getLast()))
+                .build())
             .post("/pre-signed")
             .then()
             .statusCode(200)
@@ -504,8 +521,11 @@ public class ImageControllerTest {
     @TestSecurity(user = "unauthorisedUser", roles = {"Everyone"})
     public void When_GetUploadUrl_With_UnauthorisedUser_Expect_Forbidden() {
         given()
-            .multiPart("filename", RECTANGULAR_TEST_IMAGE_NAME)
-            .multiPart("mime-type", JPEG_MIME_TYPE)
+            .contentType(JSON)
+            .body(GetUploadUrlDto.builder()
+                .filename(RECTANGULAR_TEST_IMAGE_NAME)
+                .mimetype(JPEG_MIME_TYPE)
+                .build())
             .post("/pre-signed")
             .then()
             .statusCode(403);
@@ -524,8 +544,11 @@ public class ImageControllerTest {
 
         //act
         ErrorResponse errorResponse = given()
-            .multiPart("filename", RECTANGULAR_TEST_IMAGE_NAME)
-            .multiPart("mime-type", invalidMimeType)
+            .contentType(JSON)
+            .body(GetUploadUrlDto.builder()
+                .filename(RECTANGULAR_TEST_IMAGE_NAME)
+                .mimetype(invalidMimeType)
+                .build())
             .when()
             .post("/pre-signed")
             .then()
@@ -542,7 +565,10 @@ public class ImageControllerTest {
     @TestSecurity(user = "testuser", roles = {"blog-admin", "Everyone"})
     public void When_GetUploadUrl_With_MissingFilename_Expect_BadRequest() {
         given()
-            .multiPart("mime-type", JPEG_MIME_TYPE)
+            .contentType(JSON)
+            .body(GetUploadUrlDto.builder()
+                .mimetype(JPEG_MIME_TYPE)
+                .build())
             .post("/pre-signed")
             .then()
             .statusCode(400);

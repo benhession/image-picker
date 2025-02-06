@@ -1,15 +1,15 @@
 package com.benhession.imagepicker.imageprocessor.controller;
 
+import static com.benhession.imagepicker.common.security.UserInfo.EDITOR_ROLE;
 import static com.benhession.imagepicker.data.model.ImageProcessingStage.PROCESSING_FAILED;
-import static com.benhession.imagepicker.imageprocessor.security.UserInfo.EDITOR_ROLE;
 
 import com.benhession.imagepicker.common.exception.ImageProcessingException;
+import com.benhession.imagepicker.common.exception.MetaDataRetrievalException;
 import com.benhession.imagepicker.common.exception.SecurityException;
+import com.benhession.imagepicker.common.security.UserInfo;
 import com.benhession.imagepicker.common.sqs.ImageCreationMessage;
 import com.benhession.imagepicker.data.model.ImageMetadata;
 import com.benhession.imagepicker.data.service.ImageMetaDataService;
-import com.benhession.imagepicker.imageprocessor.exception.MetaDataRetrievalException;
-import com.benhession.imagepicker.imageprocessor.security.UserInfo;
 import com.benhession.imagepicker.imageprocessor.service.FileDataRetrievalService;
 import com.benhession.imagepicker.imageprocessor.service.ImageCreationService;
 import jakarta.enterprise.context.ApplicationScoped;

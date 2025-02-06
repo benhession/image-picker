@@ -1,13 +1,16 @@
 package com.benhession.imagepicker.api.controller;
 
+import static com.benhession.imagepicker.data.model.ImageProcessingStage.CROPPED;
 import static com.benhession.imagepicker.data.model.ImageProcessingStage.INITIALISED;
 import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
 import static org.jboss.resteasy.reactive.RestResponse.Status.OK;
 
+import com.benhession.imagepicker.api.dto.CropPropertiesDto;
 import com.benhession.imagepicker.api.dto.GetUploadUrlDto;
 import com.benhession.imagepicker.api.dto.ImageResponseDto;
 import com.benhession.imagepicker.api.dto.ProcessImageDto;
 import com.benhession.imagepicker.api.dto.UploadUrlResponseDto;
+import com.benhession.imagepicker.api.mapper.CropPropertiesMapper;
 import com.benhession.imagepicker.api.mapper.ImageResponseMapper;
 import com.benhession.imagepicker.api.service.ImageProcessingService;
 import com.benhession.imagepicker.api.service.ImageValidationService;
@@ -18,6 +21,7 @@ import com.benhession.imagepicker.common.exception.BadRequestException;
 import com.benhession.imagepicker.common.exception.DownStreamServerException;
 import com.benhession.imagepicker.common.exception.DownStreamServerTimeoutException;
 import com.benhession.imagepicker.common.exception.NotFoundException;
+import com.benhession.imagepicker.common.model.ImageCropProperties;
 import com.benhession.imagepicker.common.model.ImageType;
 import com.benhession.imagepicker.common.model.PageInfo;
 import com.benhession.imagepicker.data.dto.ImageUploadDto;
@@ -33,7 +37,6 @@ import jakarta.annotation.security.PermitAll;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.validation.Valid;
-import jakarta.ws.rs.BeanParam;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
@@ -42,7 +45,6 @@ import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.Context;
-import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.UriInfo;
 import java.util.ArrayList;
 import java.util.List;
@@ -61,13 +63,14 @@ public class ImageController {
     private final ImageValidationService imageValidationService;
     private final ImageProcessingService imageProcessingService;
     private final ObjectStorageService objectStorageService;
+    private final CropPropertiesMapper cropPropertiesMapper;
 
     @POST
     @Path("/pre-signed")
-    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    @Consumes(APPLICATION_JSON)
     @RolesAllowed({"blog-admin"})
     @InjectRestLinks(RestLinkType.INSTANCE)
-    public RestResponse<UploadUrlResponseDto> getUploadUrl(@Valid @BeanParam GetUploadUrlDto getUploadUrlDto) {
+    public RestResponse<UploadUrlResponseDto> getUploadUrl(@Valid GetUploadUrlDto getUploadUrlDto) {
         imageValidationService.validateMimeType(getUploadUrlDto.getMimetype(), "/image/pre-signed");
 
         var imageMetadata =
@@ -89,12 +92,12 @@ public class ImageController {
     }
 
     @POST
-    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    @Consumes(APPLICATION_JSON)
     @Path(("/{id}/process"))
     @RolesAllowed({"blog-admin"})
     @InjectRestLinks(RestLinkType.INSTANCE)
     public RestResponse<ImageResponseDto> processImage(@PathParam("id") ObjectId imageId,
-        @Valid @BeanParam ProcessImageDto processImageDto, @Context UriInfo uriInfo) {
+        @Valid ProcessImageDto processImageDto, @Context UriInfo uriInfo) {
 
         var imageMetadata = imageMetaDataService.getImageMetaData(imageId)
             .orElseThrow(() -> new NotFoundException(List.of(ErrorMessage.builder()
@@ -102,7 +105,7 @@ public class ImageController {
                 .path(uriInfo.getPath())
                 .build())));
 
-        List<ImageProcessingStage> validStages = List.of(INITIALISED);
+        List<ImageProcessingStage> validStages = List.of(INITIALISED, CROPPED);
 
         if (!validStages.contains(imageMetadata.getStatus().stage())) {
             throw new BadRequestException(List.of(ErrorMessage.builder()
@@ -139,7 +142,7 @@ public class ImageController {
             case PROCESSING_TIMEOUT -> throw new DownStreamServerTimeoutException(
                 String.format(
                     "The image processing timed out. id: %s status: %s", id, metadata.getStatus()));
-            case INITIALISED, ORIGINAL_UPLOADED, PROCESSING ->
+            case INITIALISED, ORIGINAL_UPLOADED, PROCESSING, SENT_TO_CROP, CROPPING, CROPPED ->
                 RestResponse.ok(imageResponseMapper.toDtoWithoutImages(metadata));
             case PROCESSING_COMPLETE -> RestResponse.ok(imageResponseMapper.toDto(metadata));
             case null -> throw new IllegalStateException("Processing status not found for image id: " + id);
@@ -160,13 +163,13 @@ public class ImageController {
 
         if (size <= 0) {
             errorMessages.add(AbstractMultipleErrorApplicationException.ErrorMessage.builder()
-                .path("/image")
+                .path(uriInfo.getPath())
                 .message("'size' must be greater than 0")
                 .build());
         }
         if (page < 0) {
             errorMessages.add(AbstractMultipleErrorApplicationException.ErrorMessage.builder()
-                .path("/image")
+                .path(uriInfo.getPath())
                 .message("'page' must be non-negative")
                 .build());
         }
@@ -188,6 +191,31 @@ public class ImageController {
                 .toList())
             .links(paginationLinksService.getPaginationLinks(pageInfo, uriInfo))
             .build();
+    }
+
+    @POST
+    @Path("/{id}/crop")
+    @Consumes(APPLICATION_JSON)
+    @RolesAllowed({"blog-admin"})
+    public RestResponse<ImageResponseDto> cropImage(@PathParam("id") ObjectId id,
+        @Valid CropPropertiesDto cropPropertiesDto, @Context UriInfo uriInfo) {
+
+        ImageCropProperties cropProperties = cropPropertiesMapper.toModel(cropPropertiesDto);
+        ImageMetadata imageMetadata = imageMetaDataService.getImageMetaData(id)
+            .orElseThrow(() -> new NotFoundException(List.of(ErrorMessage.builder()
+                .message("Unable to find image metadata with id: " + id)
+                .path(uriInfo.getPath())
+                .build())));
+
+        ImageProcessingStage stage = imageMetadata.getStatus().stage();
+        if (!stage.equals(INITIALISED)) {
+            throw new BadRequestException(List.of(ErrorMessage.builder()
+                .message(String.format("Expected image processing stage to be %s but was %s", INITIALISED, stage))
+                .build()));
+        }
+
+        imageMetadata = imageProcessingService.validateAndCropOriginalImage(imageMetadata, cropProperties);
+        return RestResponse.accepted(imageResponseMapper.toDtoWithoutImages(imageMetadata));
     }
 
     private int parseIntegerQueryParameter(String paramString, String paramName,

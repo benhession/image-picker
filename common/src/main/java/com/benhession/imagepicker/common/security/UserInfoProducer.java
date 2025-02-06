@@ -1,4 +1,4 @@
-package com.benhession.imagepicker.imageprocessor.security;
+package com.benhession.imagepicker.common.security;
 
 import com.benhession.imagepicker.common.exception.SecurityException;
 import io.quarkus.oidc.AccessTokenCredential;
@@ -14,6 +14,7 @@ import org.jboss.logging.Logger;
 @RequestScoped
 @RequiredArgsConstructor
 public class UserInfoProducer {
+
     private final TenantIdentityProvider defaultIdentityProvider;
     private final Logger logger;
 
