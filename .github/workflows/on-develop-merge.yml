@@ -17,10 +17,12 @@ env:
 jobs:
   call-build-gradle-project:
     uses: ./.github/workflows/gradle-build.yml
+    secrets: inherit
 
   call-build-native:
     needs: call-build-gradle-project
     uses: ./.github/workflows/build-native.yml
+    secrets: inherit
 
   apply-terraform:
     runs-on: ubuntu-latest

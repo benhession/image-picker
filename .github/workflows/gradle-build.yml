@@ -27,7 +27,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: image-picker-api test reports
+          name: image-picker-api build reports
           path: image-picker-api/build/reports
       - name: Upload image-cropper test reports
         if: always()
