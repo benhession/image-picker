@@ -1,6 +1,5 @@
-variable "lambda_source_bucket" {
-  type    = string
-  default = "image-picker-lambda-zips"
+variable "lambda_source_bucket_name" {
+  type = string
 }
 
 variable "image_picker_api_lambda_name" {
@@ -35,8 +34,7 @@ variable "aws_region" {
 }
 
 variable "image_picker_bucket_name" {
-  type    = string
-  default = "image-picker-images"
+  type = string
 }
 
 variable "mongodb_connection_string" {
@@ -59,9 +57,9 @@ variable "mongodb_atlas_project_id" {
   type = string
 }
 
-variable "mongodb_atlas_role_name" {
+variable "mongodb_atlas_base_role_name" {
   type    = string
-  default = "sandbox-lambda-access"
+  default = "lambda-access"
 }
 
 variable "mongodb_atlas_cluster_name" {

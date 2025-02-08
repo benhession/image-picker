@@ -3,7 +3,7 @@ resource "aws_lambda_function" "image_processor" {
   role          = aws_iam_role.image_processor.arn
   handler       = "not.used.in.provided.runtime"
   runtime       = "provided.al2"
-  architectures = ["arm64"]
+  architectures = [local.lambda_architecture]
   timeout       = 300
   memory_size   = 2048
 

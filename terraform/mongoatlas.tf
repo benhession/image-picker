@@ -1,7 +1,7 @@
 resource "mongodbatlas_custom_db_role" "mongo_db_lambda_access" {
 
   project_id = var.mongodb_atlas_project_id
-  role_name  = var.mongodb_atlas_role_name
+  role_name  = local.mongodb_atlas_role_name
 
   dynamic "actions" {
     for_each = ["FIND", "INSERT", "REMOVE", "UPDATE", "CREATE_COLLECTION"]
@@ -37,6 +37,23 @@ resource "mongodbatlas_database_user" "image_processor" {
   auth_database_name = "$external"
   project_id         = var.mongodb_atlas_project_id
   username           = aws_iam_role.image_processor.arn
+  aws_iam_type       = "ROLE"
+
+  roles {
+    database_name = "admin"
+    role_name     = mongodbatlas_custom_db_role.mongo_db_lambda_access.role_name
+  }
+
+  scopes {
+    name = var.mongodb_atlas_cluster_name
+    type = "CLUSTER"
+  }
+}
+
+resource "mongodbatlas_database_user" "image_cropper" {
+  auth_database_name = "$external"
+  project_id         = var.mongodb_atlas_project_id
+  username           = aws_iam_role.image_cropper.arn
   aws_iam_type       = "ROLE"
 
   roles {

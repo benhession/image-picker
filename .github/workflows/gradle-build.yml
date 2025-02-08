@@ -1,9 +1,6 @@
-name: Build Gradle project
+name: Gradle Build
 
-on:
-  pull_request:
-    branches:
-      - 'develop'
+on: workflow_call
 
 env:
   AUTH_SERVER_URL: ${{vars.AUTH_SERVER_URL}}
@@ -34,13 +31,13 @@ jobs:
         with:
           name: image-processor build reports
           path: image-processor/build/reports
-      - name: Upload image-picker-api build artifacts
+      - name: Upload image-picker-api test reports
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: image-picker-api build reports
           path: image-picker-api/build/reports
-      - name: Upload image-cropper build artifacts
+      - name: Upload image-cropper test reports
         if: always()
         uses: actions/upload-artifact@v4
         with:
