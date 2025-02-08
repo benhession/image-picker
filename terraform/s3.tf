@@ -1,5 +1,5 @@
 resource "aws_s3_bucket" "lambda_source_bucket" {
-  bucket = var.lambda_source_bucket
+  bucket = var.lambda_source_bucket_name
 }
 
 resource "aws_s3_bucket_ownership_controls" "lambda-deployment" {
@@ -32,13 +32,14 @@ resource "aws_s3_bucket_policy" "image-picker-images" {
   bucket = aws_s3_bucket.image-picker-images.bucket
 
   policy = jsonencode({
-    Version   = "2012-10-17",
+    Version = "2012-10-17",
     Statement = [
       {
         Effect    = "Allow",
         Principal = "*",
         Action    = "s3:GetObject",
-        Resource  = "${aws_s3_bucket.image-picker-images.arn}/*", # Allow access to all objects within the bucket
+        Resource  = "${aws_s3_bucket.image-picker-images.arn}/*",
+        # Allow access to all objects within the bucket
       },
     ],
   })
@@ -49,13 +50,13 @@ resource "aws_s3_bucket_policy" "image-picker-images" {
 resource "aws_s3_bucket_lifecycle_configuration" "image-picker-images" {
   bucket = aws_s3_bucket.image-picker-images.id
   rule {
-    id = "delete-original-files-after-timeout"
+    id     = "delete-original-files-after-timeout"
     status = "Enabled"
     filter {
       prefix = "originalFileData/"
     }
     expiration {
-      days        = "1"
+      days = "1"
     }
   }
   depends_on = [aws_s3_bucket.image-picker-images]

@@ -3,7 +3,7 @@ resource "aws_lambda_function" "image_picker_api" {
   role          = aws_iam_role.image_picker_lambda_api.arn
   handler       = "not.used.in.provided.runtime"
   runtime       = "provided.al2"
-  architectures = ["arm64"]
+  architectures = [local.lambda_architecture]
   timeout       = 120
   memory_size   = 2048
 

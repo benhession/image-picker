@@ -1,20 +1,20 @@
 terraform {
   cloud {
-    hostname = "app.terraform.io"
+    hostname     = "app.terraform.io"
     organization = "benhession-org"
 
     workspaces {
-      name = "sandbox"
+      tags = ["image-picker"]
     }
   }
 
   required_providers {
     aws = {
-      source = "hashicorp/aws"
+      source  = "hashicorp/aws"
       version = "~> 5.82.2"
     }
     mongodbatlas = {
-      source = "mongodb/mongodbatlas"
+      source  = "mongodb/mongodbatlas"
       version = "~> 1.24.0"
     }
   }
@@ -27,6 +27,6 @@ provider "aws" {
 }
 
 provider "mongodbatlas" {
-  public_key = var.mongodb_atlas_public_key
+  public_key  = var.mongodb_atlas_public_key
   private_key = var.mongodb_atlas_private_key
 }
