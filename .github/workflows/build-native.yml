@@ -1,0 +1,38 @@
+name: Build Native functions
+
+on: workflow_call
+
+jobs:
+  build-native:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout project sources
+        uses: actions/checkout@v3
+      - name: Set up JDK 21
+        uses: actions/setup-java@v3
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+      - name: Setup Gradle
+        uses: gradle/gradle-build-action@v2
+      - name: Build native API function
+        run: ./gradlew image-picker-api:clean :image-picker-api:build -Dquarkus.package.type=native -x test -Dquarkus.native.resources.includes=application.properties -Dquarkus.native.container-build=true --info
+      - name: Build native Image Processor
+        run: ./gradlew :image-processor:clean :image-processor:build -Dquarkus.package.type=native -x test -Dquarkus.native.resources.includes=application.properties -Dquarkus.native.container-build=true --info
+      - name: Build native Image Cropper
+        run: ./gradlew image-cropper:clean :image-cropper:build -Dquarkus.package.type=native -x test -Dquarkus.native.resources.includes=application.properties -Dquarkus.native.container-build=true --info
+      - name: Upload API function zip
+        uses: actions/upload-artifact@v4
+        with:
+          name: api-function
+          path: image-picker-api/build/function.zip
+      - name: Upload Image Processor function zip
+        uses: actions/upload-artifact@v4
+        with:
+          name: image-processor-function
+          path: image-processor/build/function.zip
+      - name: Upload Image Cropper function zip
+        uses: actions/upload-artifact@v4
+        with:
+          name: image-cropper-function
+          path: image-cropper/build/function.zip
