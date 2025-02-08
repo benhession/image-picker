@@ -26,13 +26,16 @@ jobs:
         with:
           name: api-function
           path: image-picker-api/build/function.zip
+          retention-days: 1
       - name: Upload Image Processor function zip
         uses: actions/upload-artifact@v4
         with:
           name: image-processor-function
           path: image-processor/build/function.zip
+          retention-days: 1
       - name: Upload Image Cropper function zip
         uses: actions/upload-artifact@v4
         with:
           name: image-cropper-function
           path: image-cropper/build/function.zip
+          retention-days: 1
