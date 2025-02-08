@@ -104,4 +104,4 @@ jobs:
         with:
           cli_config_credentials_token: ${{secrets.TF_API_TOKEN}}
       - run: terraform init
-      - run: terraform plan --no-color
+      - run: terraform plan
