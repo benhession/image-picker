@@ -12,7 +12,6 @@ env:
   OIDC_TEST_USER_USERNAME: ${{vars.OIDC_TEST_USER_USERNAME}}
   OIDC_TEST_USER_PASSWORD: ${{secrets.OIDC_TEST_USER_PASSWORD}}
   MONGODB_DATABASE_NAME: ${{vars.MONGODB_DATABASE_NAME}}
-  TF_WORKSPACE: ${{vars.DEV_TF_WORKSPACE}}
 
 jobs:
   build-gradle-project:
@@ -88,30 +87,21 @@ jobs:
     needs: build-native
     steps:
       - name: Download API zip
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: api-function
       - name: Download Image Processor zip
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: image-processor-function
       - name: Download Cropper Processor zip
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: image-cropper-function
       - name: Checkout
         uses: actions/checkout@v3
-      - name: Upload Configuration
-        uses: hashicorp/tfc-workflows-github/actions/upload-configuration@v1.0.0
-        id: plan-upload
+      - uses: hashicorp/setup-terraform@v3
         with:
-          workspace: ${{ env.TF_WORKSPACE }}
-          directory: 'terraform'
-          speculative: true
-      - name: Create Plan Run
-        uses: hashicorp/tfc-workflows-github/actions/create-run@v1.0.0
-        id: plan-run
-        with:
-          workspace: ${{ env.TF_WORKSPACE }}
-          configuration_version: ${{ steps.plan-upload.outputs.configuration_version_id }}
-          plan_only: true
+          cli_config_credentials_token: ${{secrets.TF_API_TOKEN}}
+      - run: terraform init
+      - run: terraform plan --no-color
