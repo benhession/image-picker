@@ -12,6 +12,7 @@ env:
   OIDC_TEST_USER_USERNAME: ${{vars.OIDC_TEST_USER_USERNAME}}
   OIDC_TEST_USER_PASSWORD: ${{secrets.OIDC_TEST_USER_PASSWORD}}
   MONGODB_DATABASE_NAME: ${{vars.MONGODB_DATABASE_NAME}}
+  TF_WORKSPACE: ${{var.DEV_TF_WORKSPACE}}
 
 jobs:
   build-gradle-project:
@@ -34,15 +35,83 @@ jobs:
         with:
           name: image-processor build reports
           path: image-processor/build/reports
-      - name: Upload image-picker-api build artifacts
+      - name: Upload image-picker-api test reports
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: image-picker-api build reports
+          name: image-picker-api test reports
           path: image-picker-api/build/reports
-      - name: Upload image-cropper build artifacts
+      - name: Upload image-cropper test reports
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: image-cropper build reports
           path: image-cropper/build/reports
+
+  build-native:
+    needs: build-gradle-project
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout project sources
+        uses: actions/checkout@v3
+      - name: Set up JDK 21
+        uses: actions/setup-java@v3
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+      - name: Setup Gradle
+        uses: gradle/gradle-build-action@v2
+      - name: Build native API function
+        run: ./gradlew image-picker-api:clean :image-picker-api:build -Dquarkus.package.type=native -x test -Dquarkus.native.resources.includes=application.properties -Dquarkus.native.container-build=true --info
+      - name: Build native Image Processor
+        run: ./gradlew :image-processor:clean :image-processor:build -Dquarkus.package.type=native -x test -Dquarkus.native.resources.includes=application.properties -Dquarkus.native.container-build=true --info
+      - name: Build native Image Cropper
+        run: ./gradlew image-cropper:clean :image-cropper:build -Dquarkus.package.type=native -x test -Dquarkus.native.resources.includes=application.properties -Dquarkus.native.container-build=true --info
+      - name: Upload API function zip
+        uses: actions/upload-artifact@v4
+        with:
+          name: api-function
+          path: image-picker-api/build/function.zip
+      - name: Upload Image Processor function zip
+        uses: actions/upload-artifact@v4
+        with:
+          name: image-processor-function
+          path: image-processor/build/function.zip
+      - name: Upload Image Cropper function zip
+        uses: actions/upload-artifact@v4
+        with:
+          name: image-cropper-function
+          path: image-cropper/build/function.zip
+
+  plan-terraform:
+    runs-on: ubuntu-latest
+    needs: build-native
+    steps:
+      - name: Download API zip
+        uses: actions/download-artifact@v3
+        with:
+          name: api-function
+      - name: Download Image Processor zip
+        uses: actions/download-artifact@v3
+        with:
+          name: image-processor-function
+      - name: Download Cropper Processor zip
+        uses: actions/download-artifact@v3
+        with:
+          name: image-cropper-function
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Upload Configuration
+        uses: hashicorp/tfc-workflows-github/actions/upload-configuration@v1.0.0
+        id: plan-upload
+        with:
+          workspace: ${{ env.TF_WORKSPACE }}
+          directory: 'terraform'
+          speculative: true
+      - name: Create Plan Run
+        uses: hashicorp/tfc-workflows-github/actions/create-run@v1.0.0
+        id: plan-run
+        with:
+          workspace: ${{ env.TF_WORKSPACE }}
+          configuration_version: ${{ steps.plan-upload.outputs.configuration_version_id }}
+          plan_only: true
