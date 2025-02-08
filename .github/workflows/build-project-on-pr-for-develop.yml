@@ -104,4 +104,6 @@ jobs:
         with:
           cli_config_credentials_token: ${{secrets.TF_API_TOKEN}}
       - run: terraform init
+        working-directory: terraform
       - run: terraform plan
+        working-directory: terraform
