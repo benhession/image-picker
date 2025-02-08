@@ -2,6 +2,14 @@ name: Gradle Build
 
 on: workflow_call
 
+env:
+  AUTH_SERVER_URL: ${{vars.AUTH_SERVER_URL}}
+  OIDC_CLIENT_ID: ${{vars.OIDC_CLIENT_ID}}
+  OIDC_CLIENT_SECRET: ${{secrets.OIDC_CLIENT_SECRET}}
+  OIDC_TEST_USER_USERNAME: ${{vars.OIDC_TEST_USER_USERNAME}}
+  OIDC_TEST_USER_PASSWORD: ${{secrets.OIDC_TEST_USER_PASSWORD}}
+  MONGODB_DATABASE_NAME: ${{vars.MONGODB_DATABASE_NAME}}
+
 jobs:
   build-gradle-project:
     runs-on: ubuntu-latest
