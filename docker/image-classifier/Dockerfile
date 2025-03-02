@@ -1,11 +1,16 @@
 FROM public.ecr.aws/lambda/python:3.12
 
 ARG SYSTEM_NLTK_DATA_PATH=${SYSTEM_NLTK_DATA_PATH}
-ENV MODEL_CHECKPOINT="google/vit-base-patch16-224"
-ENV NLTK_DATA_PATH=/opt/nltk_data
+ARG SYSTEM_MODEL_PATH=${SYSTEM_MODEL_PATH}
+ARG MODEL_PATH=/opt/image-classifier/model
+ENV MODEL_CHECKPOINT=${MODEL_PATH}
+ENV NLTK_DATA_PATH=/opt/image-classifier/nltk_data
 
 # Copy wordnet data
 COPY ${SYSTEM_NLTK_DATA_PATH} ${NLTK_DATA_PATH}
+
+# Copy model
+COPY ${SYSTEM_MODEL_PATH} ${MODEL_PATH}
 
 # Copy requirements.txt
 COPY image-classifier/requirements.txt ${LAMBDA_TASK_ROOT}

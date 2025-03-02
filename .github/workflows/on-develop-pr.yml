@@ -9,6 +9,26 @@ env:
   TF_WORKSPACE: ${{vars.DEV_TF_WORKSPACE}}
 
 jobs:
+
+  #  TODO: move to on-develop-merge when tested
+  call-build-push-image-classifier:
+    uses: ./.github/workflows/build-push-image-classifier.yml
+    with:
+      AWS_REGION: ${{vars.DEV_AWS_REGION}}
+      IMAGES_BUCKET_NAME: ${{vars.DEV_IMAGES_BUCKET_NAME}}
+    secrets:
+      AWS_ACCESS_KEY_ID: ${{secrets.DEV_AWS_ACCESS_KEY_ID}}
+      AWS_ACCESS_SECRET_KEY: ${{secrets.DEV_AWS_ACCESS_SECRET_KEY}}
+
+  print-outputs:
+    needs: call-build-push-image-classifier
+    runs-on: ubuntu-latest
+    steps:
+      - name: print the outputs
+        run: |
+          echo "The image tag is ${{needs.call-build-push-image-classifier.outputs.image_tag}}"
+          echo "The image path is ${{needs.call-build-push-image-classifier.outputs.full_image_path}}"
+
   call-build-gradle-project:
     uses: ./.github/workflows/gradle-build.yml
     secrets: inherit
