@@ -20,20 +20,20 @@ on:
         value: ${{jobs.build-docker-image.outputs.image_tag}}
       full_image_path:
         description: "The full path of the uploaded image with tag"
-        value: ${{steps.upload-image.outputs.image_path}}
-
-env:
-  NLTK_DATA: ./nltk_data
-  IMAGES_BUCKET_NAME: ${{inputs.IMAGES_BUCKET_NAME}}
-  IMAGE_TAG: ${{github.run_number}}-${{steps.date.outputs.date}}
-  SYSTEM_MODEL_PATH: image-classifier/local_pretrained_model
-  ECR_REPOSITORY: image-picker/image-classifier
+        value: ${{jobs.build-docker-image.outputs.image_path}}
 
 jobs:
   build-docker-image:
+    env:
+      NLTK_DATA: ./nltk_data
+      IMAGES_BUCKET_NAME: ${{inputs.IMAGES_BUCKET_NAME}}
+      IMAGE_TAG: ${{github.run_number}}-${{steps.date.outputs.date}}
+      SYSTEM_MODEL_PATH: image-classifier/local_pretrained_model
+      ECR_REPOSITORY: image-picker/image-classifier
     runs-on: ubuntu-latest
     outputs:
       image_tag: ${{env.IMAGE_TAG}}
+      image_path: ${{steps.upload-image.outputs.image_path}}
     steps:
       - name: Get current date
         id: date
@@ -71,4 +71,4 @@ jobs:
           docker push $ECR_REGISTRY/ECR_REPOSITORY:$IMAGE_TAG
           docker tag $ECR_REGISTRY/ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/ECR_REPOSITORY:latest
           docker push $ECR_REGISTRY/ECR_REPOSITORY:latest
-          echo "image_path=$($ECR_REGISTRY/ECR_REPOSITORY:$IMAGE_TAG)" >> $GITHUB_OUTPUT
+          echo "image_path=${{ECR_REGISTRY}}/${{ECR_REPOSITORY}}:${{IMAGE_TAG}})" >> $GITHUB_OUTPUT
