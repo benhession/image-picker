@@ -25,7 +25,6 @@ on:
 env:
   NLTK_DATA: ./nltk_data
   IMAGES_BUCKET_NAME: ${{inputs.IMAGES_BUCKET_NAME}}
-  IMAGE_TAG: ${{github.run_number}}-${{steps.date.outputs.date}}
   SYSTEM_MODEL_PATH: image-classifier/local_pretrained_model
   ECR_REPOSITORY: image-picker/image-classifier
 
@@ -33,43 +32,56 @@ jobs:
   build-docker-image:
     runs-on: ubuntu-latest
     outputs:
-      image_tag: ${{env.IMAGE_TAG}}
+      image_tag: ${{steps.upload-image.outputs.image_tag}}
       image_path: ${{steps.upload-image.outputs.image_path}}
     steps:
       - name: Get current date
         id: date
         run: echo "date=$(date +'%Y%m%d-%H%M%S')" >> $GITHUB_OUTPUT
+
       - name: Checkout project sources
         uses: actions/checkout@v3
         with:
           lfs: true
       - name: Install NLTK
         run: pip install nltk
+
       - name: Download WordNet
         run: |
           mkdir -p $NLTK_DATA
           python -c "import nltk; nltk.download('wordnet')"
+
       - name: build docker container
-        run: docker build --provenance=false --build-arg SYSTEM_NLTK_DATA_PATH=$NLTK_DATA \
-          --build-arg IMAGES_BUCKET_NAME=$IMAGES_BUCKET_NAME \
-          --build-arg SYSTEM_MODEL_PATH=$SYSTEM_MODEL_PATH \
-          -t image-classifier:$IMAGE_TAG -f docker/image-classifier/Dockerfile --no-cache .
+        id: build-docker-container
+        env:
+          IMAGE_TAG: ${{github.run_number}}-${{steps.date.outputs.date}}
+        run: |
+          docker build --provenance=false --build-arg SYSTEM_NLTK_DATA_PATH=$NLTK_DATA \
+            --build-arg IMAGES_BUCKET_NAME=$IMAGES_BUCKET_NAME \
+            --build-arg SYSTEM_MODEL_PATH=$SYSTEM_MODEL_PATH \
+            -t image-classifier:$IMAGE_TAG -f docker/image-classifier/Dockerfile --no-cache .
+          echo "image_tag=$IMAGE_TAG" >> $GITHUB_OUTPUT
+
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{secrets.AWS_ACCESS_KEY_ID}}
           aws-secret-access-key: ${{secrets.AWS_ACCESS_SECRET_KEY}}
           aws-region: ${{inputs.AWS_REGION}}
+
       - name: Login to ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
+
       - name: Tag and push image to Amazon ECR
         id: upload-image
         env:
           ECR_REGISTRY: ${{steps.login-ecr.outputs.registry}}
+          IMAGE_TAG: ${{steps.build-docker-container.outputs.image_tag}}
         run: |
-          docker tag image-classifier:$IMAGE_TAG $ECR_REGISTRY/ECR_REPOSITORY:$IMAGE_TAG
-          docker push $ECR_REGISTRY/ECR_REPOSITORY:$IMAGE_TAG
-          docker tag $ECR_REGISTRY/ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/ECR_REPOSITORY:latest
-          docker push $ECR_REGISTRY/ECR_REPOSITORY:latest
-          echo "image_path=${{ECR_REGISTRY}}/${{ECR_REPOSITORY}}:${{IMAGE_TAG}})" >> $GITHUB_OUTPUT
+          docker tag image-classifier:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:latest
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+          echo "image_path=${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}" >> $GITHUB_OUTPUT
+          echo "image_tag=${IMAGE_TAG}" >> $GITHUB_OUTPUT
