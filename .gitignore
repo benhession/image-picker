@@ -41,3 +41,4 @@ nb-configuration.xml
 # terraform
 /terraform/.terraform.lock.hcl
 /terraform/.terraform/
+/nltk_data/
