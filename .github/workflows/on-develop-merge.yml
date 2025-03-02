@@ -7,6 +7,7 @@ on:
 
 env:
   TF_WORKSPACE: ${{vars.DEV_TF_WORKSPACE}}
+  TERRAFORM_VERSION: '1.10.3'
 
 jobs:
   call-build-gradle-project:
@@ -42,6 +43,7 @@ jobs:
       - uses: hashicorp/setup-terraform@v3
         with:
           cli_config_credentials_token: ${{secrets.TF_API_TOKEN}}
+          terraform_version: ${{env.TERRAFORM_VERSION}}
       - run: terraform init
         working-directory: terraform
       - run: terraform apply -auto-approve
