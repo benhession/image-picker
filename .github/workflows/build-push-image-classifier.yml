@@ -22,14 +22,15 @@ on:
         description: "The full path of the uploaded image with tag"
         value: ${{jobs.build-docker-image.outputs.image_path}}
 
+env:
+  NLTK_DATA: ./nltk_data
+  IMAGES_BUCKET_NAME: ${{inputs.IMAGES_BUCKET_NAME}}
+  IMAGE_TAG: ${{github.run_number}}-${{steps.date.outputs.date}}
+  SYSTEM_MODEL_PATH: image-classifier/local_pretrained_model
+  ECR_REPOSITORY: image-picker/image-classifier
+
 jobs:
   build-docker-image:
-    env:
-      NLTK_DATA: ./nltk_data
-      IMAGES_BUCKET_NAME: ${{inputs.IMAGES_BUCKET_NAME}}
-      IMAGE_TAG: ${{github.run_number}}-${{steps.date.outputs.date}}
-      SYSTEM_MODEL_PATH: image-classifier/local_pretrained_model
-      ECR_REPOSITORY: image-picker/image-classifier
     runs-on: ubuntu-latest
     outputs:
       image_tag: ${{env.IMAGE_TAG}}
