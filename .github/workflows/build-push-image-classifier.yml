@@ -20,7 +20,7 @@ on:
         value: ${{jobs.build-docker-image.outputs.image_tag}}
       full_image_path:
         description: "The full path of the uploaded image with tag"
-        value: ${{steps.upload-image.output.image_path}}
+        value: ${{steps.upload-image.outputs.image_path}}
 
 env:
   NLTK_DATA: ./nltk_data
