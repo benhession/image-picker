@@ -42,7 +42,7 @@ data "aws_iam_policy_document" "image_classifier_assume_lambda_policy" {
 }
 
 resource "aws_iam_role_policy_attachment" "image_classifier_s3_policy_attachment" {
-  policy_arn = aws_iam_policy.image_classifier_s3_policy
+  policy_arn = aws_iam_policy.image_classifier_s3_policy.arn
   role       = aws_iam_role.image_classifier_role.name
 }
 
