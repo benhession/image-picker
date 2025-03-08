@@ -26,6 +26,11 @@ variable "image_classifier_image_url" {
   type = string
 }
 
+variable "image_classifier_ecr_name" {
+  type    = string
+  default = "image-picker/image-classifier"
+}
+
 variable "auth_server_url" {
   type = string
 }
