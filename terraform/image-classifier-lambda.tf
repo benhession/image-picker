@@ -47,7 +47,7 @@ resource "aws_iam_role_policy_attachment" "image_classifier_s3_policy_attachment
 }
 
 resource "aws_iam_policy" "image_classifier_s3_policy" {
-  name   = "image classifier_s3_policy"
+  name   = "image_classifier_s3_policy"
   policy = data.aws_iam_policy_document.image_classifier_s3_policy.json
 }
 
