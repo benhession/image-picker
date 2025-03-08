@@ -24,7 +24,7 @@ resource "aws_cloudwatch_log_group" "image_classifier_log_group" {
 }
 
 resource "aws_iam_role" "image_classifier_role" {
-  name               = "${var.image_processor_lambda_name}-lambda"
+  name               = "${var.image_classifier_lambda_name}-lambda"
   assume_role_policy = data.aws_iam_policy_document.image_classifier_assume_lambda_policy.json
 }
 
