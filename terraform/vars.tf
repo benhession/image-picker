@@ -17,6 +17,15 @@ variable "image_cropper_lambda_name" {
   default = "image-cropper"
 }
 
+variable "image_classifier_lambda_name" {
+  type    = string
+  default = "image-processor"
+}
+
+variable "image_classifier_image_url" {
+  type = string
+}
+
 variable "auth_server_url" {
   type = string
 }
