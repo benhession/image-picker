@@ -10,6 +10,20 @@ resource "aws_ecr_lifecycle_policy" "image_classifier_repo_lifecycle_policy" {
 data "aws_ecr_lifecycle_policy_document" "image_classifier_repo_lifecycle_policy" {
   rule {
     priority    = 1
+    description = "protect latest tag"
+    selection {
+      count_number = 99999 // high number to protect deployed image
+      count_type = "imageCountMoreThan"
+      tag_status = "tagged"
+      tag_prefix_list = ["latest"]
+    }
+    action {
+      type = "expire"
+    }
+  }
+
+  rule {
+    priority    = 2
     description = "Keep 2 most recent images"
     selection {
       count_number = 2
