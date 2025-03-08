@@ -21,15 +21,6 @@ jobs:
       AWS_ACCESS_KEY_ID: ${{secrets.DEV_AWS_ACCESS_KEY_ID}}
       AWS_ACCESS_SECRET_KEY: ${{secrets.DEV_AWS_ACCESS_SECRET_KEY}}
 
-  print-outputs:
-    needs: call-build-push-image-classifier
-    runs-on: ubuntu-latest
-    steps:
-      - name: print the outputs
-        run: |
-          echo "The image tag is ${{needs.call-build-push-image-classifier.outputs.image_tag}}"
-          echo "The image path is ${{needs.call-build-push-image-classifier.outputs.full_image_path}}"
-
   call-build-gradle-project:
     uses: ./.github/workflows/gradle-build.yml
     secrets: inherit
@@ -41,7 +32,11 @@ jobs:
 
   plan-terraform:
     runs-on: ubuntu-latest
-    needs: call-build-native
+    needs:
+      - call-build-native
+      - call-build-push-image-classifier
+    env:
+      TF_VAR_image_classifier_image_url: ${{needs.call-build-push-image-classifier.outputs.full_image_path}}
     steps:
       - name: Checkout
         uses: actions/checkout@v3
