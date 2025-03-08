@@ -10,6 +10,16 @@ env:
   TERRAFORM_VERSION: '1.10.3'
 
 jobs:
+  call-build-push-image-classifier:
+    uses: ./.github/workflows/build-push-image-classifier.yml
+    with:
+      AWS_REGION: ${{vars.DEV_AWS_REGION}}
+      IMAGES_BUCKET_NAME: ${{vars.DEV_IMAGES_BUCKET_NAME}}
+      tag-as-latest: true
+    secrets:
+      AWS_ACCESS_KEY_ID: ${{secrets.DEV_AWS_ACCESS_KEY_ID}}
+      AWS_ACCESS_SECRET_KEY: ${{secrets.DEV_AWS_ACCESS_SECRET_KEY}}
+
   call-build-gradle-project:
     uses: ./.github/workflows/gradle-build.yml
     secrets: inherit
@@ -21,7 +31,11 @@ jobs:
 
   apply-terraform:
     runs-on: ubuntu-latest
-    needs: call-build-native
+    needs:
+      - call-build-native
+      - call-build-push-image-classifier
+    env:
+      TF_VAR_image_classifier_image_url: ${{needs.call-build-push-image-classifier.outputs.full_image_path}}
     steps:
       - name: Checkout
         uses: actions/checkout@v3

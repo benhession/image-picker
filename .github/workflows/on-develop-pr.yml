@@ -10,13 +10,12 @@ env:
   TERRAFORM_VERSION: '1.10.3'
 
 jobs:
-
-  #  TODO: move to on-develop-merge when tested
   call-build-push-image-classifier:
     uses: ./.github/workflows/build-push-image-classifier.yml
     with:
       AWS_REGION: ${{vars.DEV_AWS_REGION}}
       IMAGES_BUCKET_NAME: ${{vars.DEV_IMAGES_BUCKET_NAME}}
+      tag-as-latest: false
     secrets:
       AWS_ACCESS_KEY_ID: ${{secrets.DEV_AWS_ACCESS_KEY_ID}}
       AWS_ACCESS_SECRET_KEY: ${{secrets.DEV_AWS_ACCESS_SECRET_KEY}}
