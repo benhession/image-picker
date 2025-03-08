@@ -1,0 +1,4 @@
+import os
+
+MODEL_CHECKPOINT = os.getenv('MODEL_CHECKPOINT')
+NLTK_DATA_PATH = os.getenv('NLTK_DATA_PATH')

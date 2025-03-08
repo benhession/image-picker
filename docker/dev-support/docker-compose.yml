@@ -1,0 +1,7 @@
+name: "Image-picker-dev-support"
+
+services:
+  image-picker-mongodb:
+    image: "mongo:7.0"
+    ports:
+      - "8180:27017"
