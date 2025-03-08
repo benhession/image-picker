@@ -19,7 +19,7 @@ variable "image_cropper_lambda_name" {
 
 variable "image_classifier_lambda_name" {
   type    = string
-  default = "image-processor"
+  default = "image-classifier"
 }
 
 variable "image_classifier_image_url" {
