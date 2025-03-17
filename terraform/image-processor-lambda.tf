@@ -19,14 +19,16 @@ resource "aws_lambda_function" "image_processor" {
 
   environment {
     variables = tomap({
-      AUTH_SERVER_URL           = var.auth_server_url
-      OIDC_CLIENT_ID            = var.oidc_client_id
-      OIDC_CLIENT_SECRET        = var.oidc_client_secret
-      BUCKET_NAME               = var.image_picker_bucket_name
-      MONGODB_CONNECTION_STRING = var.mongodb_connection_string
-      MONGODB_DATABASE_NAME     = var.mongodb_database_name
-      DISABLE_SIGNAL_HANDLERS   = "true"
-      QUARKUS_HTTP_ROOT_PATH    = "/"
+      AUTH_SERVER_URL              = var.auth_server_url
+      OIDC_CLIENT_ID               = var.oidc_client_id
+      OIDC_CLIENT_SECRET           = var.oidc_client_secret
+      BUCKET_NAME                  = var.image_picker_bucket_name
+      MONGODB_CONNECTION_STRING    = var.mongodb_connection_string
+      MONGODB_DATABASE_NAME        = var.mongodb_database_name
+      DISABLE_SIGNAL_HANDLERS      = "true"
+      QUARKUS_HTTP_ROOT_PATH       = "/"
+      IMAGE_CLASSIFIER_LAMBDA_NAME = var.image_classifier_lambda_name
+      QUARKUS_LOG_LEVEL            = var.logging_level
     })
   }
 }
@@ -91,6 +93,22 @@ resource "aws_iam_policy" "image_processor_s3_policy" {
 resource "aws_iam_role_policy_attachment" "image_processor_s3_attachment" {
   role       = aws_iam_role.image_processor.name
   policy_arn = aws_iam_policy.image_processor_s3_policy.arn
+}
+
+data "aws_iam_policy_document" "image_processor_api_access" {
+  statement {
+    actions = ["lambda:InvokeFunction"]
+    effect = "Allow"
+    sid    = "Invoke"
+    resources = [aws_lambda_function.image_classifier.arn]
+  }
+  depends_on = [aws_lambda_function.image_classifier]
+}
+
+resource "aws_iam_role_policy" "image_processor_api_access" {
+  policy = data.aws_iam_policy_document.image_processor_api_access.json
+  name   = "image_processor_api_access"
+  role   = aws_iam_role.image_processor.name
 }
 
 resource "aws_iam_role_policy_attachment" "image_processor_basic_execution" {

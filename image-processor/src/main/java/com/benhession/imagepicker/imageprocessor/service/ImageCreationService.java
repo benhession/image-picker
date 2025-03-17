@@ -1,15 +1,10 @@
 package com.benhession.imagepicker.imageprocessor.service;
 
-import static com.benhession.imagepicker.common.model.ImageSize.values;
-import static com.benhession.imagepicker.data.model.ImageProcessingStage.CROPPED;
-import static com.benhession.imagepicker.data.model.ImageProcessingStage.ORIGINAL_UPLOADED;
-import static com.benhession.imagepicker.data.model.ImageProcessingStage.PROCESSING;
-import static com.benhession.imagepicker.data.model.ImageProcessingStage.PROCESSING_COMPLETE;
-
 import com.benhession.imagepicker.common.exception.ImageProcessingException;
 import com.benhession.imagepicker.common.model.FileData;
 import com.benhession.imagepicker.common.model.ImageHeightWidth;
 import com.benhession.imagepicker.common.model.ImageSize;
+import static com.benhession.imagepicker.common.model.ImageSize.values;
 import com.benhession.imagepicker.common.model.ImageType;
 import com.benhession.imagepicker.common.service.ImageSizeService;
 import com.benhession.imagepicker.common.util.FilenameUtil;
@@ -17,8 +12,6 @@ import com.benhession.imagepicker.common.util.GifUtil;
 import com.benhession.imagepicker.common.util.MimeTypeUtil;
 import com.benhession.imagepicker.data.dto.ImageUploadDto;
 import com.benhession.imagepicker.data.model.ImageMetadata;
-import com.benhession.imagepicker.data.model.ImageProcessingStage;
-import com.benhession.imagepicker.data.service.ImageMetaDataService;
 import com.benhession.imagepicker.data.service.ObjectStorageService;
 import jakarta.enterprise.context.ApplicationScoped;
 import java.io.ByteArrayInputStream;
@@ -34,24 +27,14 @@ import net.coobird.thumbnailator.Thumbnails;
 @RequiredArgsConstructor
 public class ImageCreationService {
 
-    private static final List<ImageProcessingStage> VALID_PROCESSING_STAGES = List.of(ORIGINAL_UPLOADED, CROPPED);
-
     private final ImageSizeService imageSizeService;
     private final FilenameUtil filenameUtil;
     private final ObjectStorageService objectStorageService;
-    private final ImageMetaDataService imageMetaDataService;
     private final MimeTypeUtil mimeTypeUtil;
     private final GifUtil gifUtil;
 
     public void createNewImages(final FileData fileData, ImageMetadata imageMetadata)
         throws ImageProcessingException {
-
-        if (!VALID_PROCESSING_STAGES.contains(imageMetadata.getStatus().stage())) {
-            throw new ImageProcessingException("Image metadata is not in the correct stage for processing for imageId: "
-                + imageMetadata.getId().toString());
-        }
-
-        imageMetadata = imageMetaDataService.setImageProcessingStage(imageMetadata, PROCESSING);
 
         final ImageType imageType = ImageType.valueOf(fileData.getImageType());
 
@@ -65,12 +48,6 @@ public class ImageCreationService {
 
         objectStorageService.uploadFiles(images, imageMetadata.getParentKey());
 
-        // this will cancel the process if the timeout is reached
-        imageMetadata = imageMetaDataService.getImageMetaData(imageMetadata.getId()).orElseThrow();
-
-        if (imageMetadata.getStatus().stage().equals(PROCESSING)) {
-            imageMetaDataService.setImageProcessingStage(imageMetadata, PROCESSING_COMPLETE);
-        }
     }
 
     private byte[] resizeAsNewImage(FileData fileData, ImageSize imageSize,

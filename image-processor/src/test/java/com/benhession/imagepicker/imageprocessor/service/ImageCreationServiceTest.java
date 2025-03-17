@@ -1,22 +1,13 @@
 package com.benhession.imagepicker.imageprocessor.service;
 
-import static com.benhession.imagepicker.common.model.ImageType.LANDSCAPE;
-import static com.benhession.imagepicker.data.model.ImageProcessingStage.ORIGINAL_UPLOADED;
-import static com.benhession.imagepicker.data.model.ImageProcessingStage.PROCESSING;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import com.benhession.imagepicker.common.exception.ImageProcessingException;
 import com.benhession.imagepicker.common.model.FileData;
 import com.benhession.imagepicker.common.model.ImageSize;
 import com.benhession.imagepicker.common.model.ImageType;
+import static com.benhession.imagepicker.common.model.ImageType.LANDSCAPE;
 import com.benhession.imagepicker.common.util.FilenameUtil;
 import com.benhession.imagepicker.data.dto.ImageUploadDto;
 import com.benhession.imagepicker.data.model.ImageMetadata;
+import static com.benhession.imagepicker.data.model.ImageProcessingStage.ORIGINAL_UPLOADED;
 import com.benhession.imagepicker.data.model.ImageProcessingStatus;
 import com.benhession.imagepicker.data.service.ObjectStorageService;
 import com.benhession.imagepicker.testutil.TestFileLoader;
@@ -26,9 +17,14 @@ import jakarta.inject.Inject;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
+import static org.assertj.core.api.Assertions.assertThat;
 import org.bson.types.ObjectId;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @QuarkusTest
 public class ImageCreationServiceTest {
@@ -52,7 +48,7 @@ public class ImageCreationServiceTest {
     ArgumentCaptor<List<ImageUploadDto>> imagesCaptor = ArgumentCaptor.forClass(List.class);
 
     @Test
-    public void When_CreateNewImages_With_ValidJpg_Expect_ImagesUploadedAndMetaDataPersisted() throws IOException {
+    public void When_CreateNewImages_With_ValidJpg_Expect_ImagesUploaded() throws IOException {
         // arrange
         ImageMetadata imageMetadata = ImageMetadata.builder()
             .id(ObjectId.get())
@@ -96,29 +92,5 @@ public class ImageCreationServiceTest {
             .map(ImageUploadDto::image)
             .allMatch(image -> image.length > 0);
         assertThat(allHaveData).isTrue();
-    }
-
-    @Test
-    public void When_CreateImages_With_InvalidProcessingStage_Expect_ImageProcessingExceptionThrown()
-        throws IOException {
-        // arrange
-        ImageMetadata imageMetadata = ImageMetadata.builder()
-            .id(ObjectId.get())
-            .type(TEST_IMAGE_TYPE)
-            .filename(TEST_FILENAME)
-            .parentKey(PARENT_TEST_KEY)
-            .status(ImageProcessingStatus.of(PROCESSING))
-            .build();
-
-        FileData fileData = new FileData(testFileLoader.loadTestFileBytes("test.jpeg"),
-            TEST_FILENAME,
-            TEST_MIME_TYPE,
-            TEST_IMAGE_TYPE.toString());
-
-        // act + assert
-        assertThatThrownBy(() -> imageCreationService.createNewImages(fileData, imageMetadata))
-            .isInstanceOf(ImageProcessingException.class)
-            .hasMessage(
-                "Image metadata is not in the correct stage for processing for imageId: " + imageMetadata.getId());
     }
 }

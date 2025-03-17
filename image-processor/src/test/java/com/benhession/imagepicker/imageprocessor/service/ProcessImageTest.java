@@ -1,14 +1,12 @@
 package com.benhession.imagepicker.imageprocessor.service;
 
-import static com.benhession.imagepicker.common.model.ImageType.RECTANGULAR;
-import static com.benhession.imagepicker.data.model.ImageProcessingStage.ORIGINAL_UPLOADED;
-import static com.benhession.imagepicker.data.model.ImageProcessingStage.PROCESSING_COMPLETE;
-import static org.assertj.core.api.Assertions.assertThat;
-
 import com.benhession.imagepicker.common.model.FileData;
 import com.benhession.imagepicker.common.model.ImageSize;
+import static com.benhession.imagepicker.common.model.ImageType.RECTANGULAR;
 import com.benhession.imagepicker.common.sqs.ImageCreationMessage;
 import com.benhession.imagepicker.data.model.ImageMetadata;
+import static com.benhession.imagepicker.data.model.ImageProcessingStage.ORIGINAL_UPLOADED;
+import static com.benhession.imagepicker.data.model.ImageProcessingStage.PROCESSING_COMPLETE;
 import com.benhession.imagepicker.data.model.ImageProcessingStatus;
 import com.benhession.imagepicker.imageprocessor.service.data.MongoDbHelper;
 import com.benhession.imagepicker.imageprocessor.service.data.S3Helper;
@@ -20,6 +18,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URL;
 import java.util.UUID;
+import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.jupiter.api.Test;
 
 @QuarkusTest
@@ -34,7 +33,7 @@ public class ProcessImageTest {
         // add original file to s3
         var parentKey = String.format("%s-%s", TEST_FILENAME, UUID.randomUUID());
         FileData fileData =
-            new FileData(loadFile(TEST_FILENAME), TEST_FILENAME, "image/jpeg", "RECTANGULAR");
+            new FileData(loadFile(), TEST_FILENAME, "image/jpeg", "RECTANGULAR");
         S3Helper.uploadOriginalFile(fileData, parentKey);
 
         // add metadata to db
@@ -66,8 +65,8 @@ public class ProcessImageTest {
         assertThat(s3Objects.keyCount()).isEqualTo(ImageSize.values().length);
     }
 
-    private byte[] loadFile(String filename) throws IOException {
-        URL url = getClass().getClassLoader().getResource(filename);
+    private byte[] loadFile() throws IOException {
+        URL url = getClass().getClassLoader().getResource(ProcessImageTest.TEST_FILENAME);
         assert url != null;
         File file = new File(url.getFile());
 
