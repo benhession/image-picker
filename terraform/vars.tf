@@ -90,3 +90,8 @@ variable "image_cropper_max_concurrency" {
   type    = number
   default = 10
 }
+
+variable "logging_level" {
+  type    = string
+  default = "INFO"
+}

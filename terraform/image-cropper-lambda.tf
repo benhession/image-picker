@@ -27,6 +27,7 @@ resource "aws_lambda_function" "image_cropper" {
       MONGODB_DATABASE_NAME     = var.mongodb_database_name
       DISABLE_SIGNAL_HANDLERS   = "true"
       QUARKUS_HTTP_ROOT_PATH    = "/"
+      QUARKUS_LOG_LEVEL         = var.logging_level
     })
   }
 }

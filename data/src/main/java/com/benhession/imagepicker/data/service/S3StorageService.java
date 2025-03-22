@@ -40,7 +40,6 @@ import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignReques
 @ApplicationScoped
 public class S3StorageService implements ObjectStorageService {
 
-    private static final String ORIGINAL_FILES_PREFIX = "originalFileData/";
     public static final String FILENAME_TAG = "filename";
     public static final String MIME_TYPE_TAG = "mimeType";
     public static final Duration PRE_SIGNED_UPLOAD_DURATION = Duration.ofMinutes(2);
