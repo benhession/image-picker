@@ -30,5 +30,5 @@ jobs:
         working-directory: ./mongo-db-migrations
         env:
           MONGO_URL: ${{secrets.MONGO_URL}}
-          DATABASE_NAME: ${{secrets.DATABASE_NAME}}
+          DATABASE_NAME: ${{inputs.DATABASE_NAME}}
         run: npx migrate-mongo up
