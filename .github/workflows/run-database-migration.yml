@@ -1,4 +1,4 @@
-Name: Run database migration
+name: Run database migration
 
 on:
   workflow_call:
