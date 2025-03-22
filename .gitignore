@@ -42,3 +42,4 @@ nb-configuration.xml
 /terraform/.terraform.lock.hcl
 /terraform/.terraform/
 /nltk_data/
+/mongo-db-migrations/.nvmrc
