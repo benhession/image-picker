@@ -5,6 +5,7 @@ on:
     inputs:
       DATABASE_NAME:
         required: true
+        type: string
     secrets:
       MONGO_URL:
         required: true
