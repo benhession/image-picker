@@ -31,5 +31,4 @@
     mongodb:
       database: "test-db"
       devservices:
-        port: "9091"
-        shared: true
+        port: "8091"
