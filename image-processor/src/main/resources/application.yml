@@ -6,6 +6,9 @@ test-variables:
   aws-secret-access-key: "test-secret"
 
 bucket.name: ${BUCKET_NAME}
+lambda:
+  classifier:
+    function-name: ${IMAGE_CLASSIFIER_LAMBDA_NAME:image-classifier}
 
 quarkus:
   native:

@@ -29,6 +29,7 @@ resource "aws_lambda_function" "image_picker_api" {
       QUARKUS_HTTP_ROOT_PATH     = "/"
       IMAGE_PROCESSING_QUEUE_URL = aws_sqs_queue.image_processing_queue.id
       IMAGE_CROPPING_QUEUE_URL   = aws_sqs_queue.image_cropping_queue.id
+      QUARKUS_LOG_LEVEL          = var.logging_level
     })
   }
 }

@@ -6,6 +6,9 @@ import com.benhession.imagepicker.data.dto.PreSignedUploadDto;
 import java.util.List;
 
 public interface ObjectStorageService {
+
+    String ORIGINAL_FILES_PREFIX = "originalFileData/";
+
     void uploadFiles(List<ImageUploadDto> images, String parentKey);
 
     String getBaseResourcePath(String parentKey);

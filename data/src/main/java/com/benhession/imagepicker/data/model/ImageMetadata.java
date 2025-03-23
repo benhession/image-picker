@@ -2,6 +2,7 @@ package com.benhession.imagepicker.data.model;
 
 import com.benhession.imagepicker.common.model.ImageType;
 import io.quarkus.mongodb.panache.common.MongoEntity;
+import java.util.ArrayList;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -28,6 +29,10 @@ public class ImageMetadata {
     private String filename;
     private ImageType type;
     @EqualsAndHashCode.Exclude
-    private List<String> tags;
+    @Builder.Default
+    private List<String> tags = new ArrayList<>();
+    @EqualsAndHashCode.Exclude
+    @Builder.Default
+    private List<String> aiTags = new ArrayList<>();
     private ImageProcessingStatus status;
 }
