@@ -32,3 +32,4 @@
       database: "test-db"
       devservices:
         port: "9091"
+        shared: true
