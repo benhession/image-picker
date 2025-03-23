@@ -32,3 +32,5 @@
       database: "test-db"
       devservices:
         port: "56020"
+        shared: true
+        service-name: mongodb
