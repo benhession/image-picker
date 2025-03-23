@@ -9,3 +9,7 @@ java {
     targetCompatibility = JavaVersion.VERSION_21
 }
 
+dependencies {
+    implementation 'io.quarkus:quarkus-junit5'
+}
+

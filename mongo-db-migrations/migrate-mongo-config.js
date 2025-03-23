@@ -3,6 +3,8 @@ require('dotenv').config()
 
 const mongoUrl = process.env.MONGO_URL;
 const databaseName = process.env.DATABASE_NAME;
+console.log("mongoUrl: " + mongoUrl);
+console.log("databaseName: " + databaseName);
 
 const config = {
   mongodb: {

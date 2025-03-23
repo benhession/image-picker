@@ -7,7 +7,6 @@
       devservices:
         buckets: "test-bucket"
       aws:
-        region: "us-east-1"
         credentials:
           type: "static"
           static-provider:
@@ -23,7 +22,6 @@
       devservices:
         buckets: "test-bucket"
       aws:
-        region: "us-east-1"
         credentials:
           type: "static"
           static-provider:
@@ -32,3 +30,5 @@
 
     mongodb:
       database: "test-db"
+      devservices:
+        port: "9091"
