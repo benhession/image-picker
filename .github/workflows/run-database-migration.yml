@@ -22,10 +22,12 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: 22
+          cache: 'npm'
+          cache-dependency-path: mongo-db-migrations/package-lock.json
 
       - name: Install dependencies
         working-directory: ./mongo-db-migrations
-        run: npm install
+        run: npm ci
 
       - name: Run migrations
         working-directory: ./mongo-db-migrations
