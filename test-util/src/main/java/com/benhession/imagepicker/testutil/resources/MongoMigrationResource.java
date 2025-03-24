@@ -6,25 +6,24 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Map;
-import org.testcontainers.containers.MongoDBContainer;
+import org.testcontainers.mongodb.MongoDBAtlasLocalContainer;
 import org.testcontainers.utility.DockerImageName;
 
 public class MongoMigrationResource implements QuarkusTestResourceLifecycleManager {
 
-    private MongoDBContainer mongoDbContainer;
+    private MongoDBAtlasLocalContainer mongoDbContainer;
 
     @Override
     public Map<String, String> start() {
         try {
-            mongoDbContainer = new MongoDBContainer(DockerImageName.parse("mongo:6.0"))
-                .withReuse(true)
-                .withExposedPorts(27017);
+            mongoDbContainer =
+                new MongoDBAtlasLocalContainer(DockerImageName.parse("mongodb/mongodb-atlas-local:7.0.15"))
+                    .withReuse(true)
+                    .withExposedPorts(27017);
             mongoDbContainer.start();
 
             String databaseName = "test-db";
-            String host = mongoDbContainer.getHost();
-            int port = mongoDbContainer.getFirstMappedPort();
-            String connectionString = "mongodb://" + host + ":" + port + "/?directConnection=true";
+            String connectionString = mongoDbContainer.getConnectionString();
 
             ProcessBuilder pb = new ProcessBuilder();
             pb.directory(new File("../mongo-db-migrations"));
