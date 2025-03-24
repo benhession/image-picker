@@ -22,7 +22,6 @@ quarkus:
       secret: ${OIDC_CLIENT_SECRET}
 
   s3.aws:
-    region: ${AWS_REGION}
     credentials.type: "default"
 
   mongodb:
@@ -119,7 +118,6 @@ image:
           - ${test-variables.cropping-queue-name}
         shared: true
       aws:
-        region: ${test-variables.aws-region}
         credentials:
           type: "static"
           static-provider:
@@ -131,7 +129,6 @@ image:
         buckets: ${test-variables.bucket-name}
         shared: true
       aws:
-        region: ${test-variables.aws-region}
         credentials:
           type: "static"
           static-provider:
@@ -156,7 +153,6 @@ image:
           - ${test-variables.processing-queue-name}
           - ${test-variables.cropping-queue-name}
       aws:
-        region: ${test-variables.aws-region}
         credentials:
           type: "static"
           static-provider:
@@ -167,7 +163,6 @@ image:
       devservices:
         buckets: ${test-variables.bucket-name}
       aws:
-        region: ${test-variables.aws-region}
         credentials:
           type: "static"
           static-provider:

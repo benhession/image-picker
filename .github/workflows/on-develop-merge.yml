@@ -62,3 +62,11 @@ jobs:
         working-directory: terraform
       - run: terraform apply -auto-approve
         working-directory: terraform
+
+  migrate-mongodb:
+    needs: apply-terraform
+    uses: ./.github/workflows/run-database-migration.yml
+    with:
+      DATABASE_NAME: ${{vars.MONGODB_DATABASE_NAME}}-sandbox
+    secrets:
+      MONGO_URL: ${{secrets.MONGODB_GITHUB_ACTIONS_CONNECTION_STRING}}

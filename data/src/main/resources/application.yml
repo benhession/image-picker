@@ -7,7 +7,6 @@
       devservices:
         buckets: "test-bucket"
       aws:
-        region: "us-east-1"
         credentials:
           type: "static"
           static-provider:
@@ -23,12 +22,11 @@
       devservices:
         buckets: "test-bucket"
       aws:
-        region: "us-east-1"
         credentials:
           type: "static"
           static-provider:
             access-key-id: "test-key"
             secret-access-key: "test-secret"
-
     mongodb:
-      database: "test-db"
+      devservices:
+        enabled: false

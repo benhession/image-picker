@@ -1,0 +1,37 @@
+name: Run database migration
+
+on:
+  workflow_call:
+    inputs:
+      DATABASE_NAME:
+        required: true
+        type: string
+    secrets:
+      MONGO_URL:
+        required: true
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout project sources
+        uses: actions/checkout@v3
+
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 22
+          cache: 'npm'
+          cache-dependency-path: mongo-db-migrations/package-lock.json
+
+      - name: Install dependencies
+        working-directory: ./mongo-db-migrations
+        run: npm ci
+
+      - name: Run migrations
+        working-directory: ./mongo-db-migrations
+        env:
+          MONGO_URL: ${{secrets.MONGO_URL}}
+          DATABASE_NAME: ${{inputs.DATABASE_NAME}}
+        run: npx migrate-mongo up
