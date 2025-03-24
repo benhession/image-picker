@@ -43,3 +43,9 @@ jobs:
         with:
           name: image-cropper build reports
           path: image-cropper/build/reports
+      - name: Upload data module build reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: data module build reports
+          path: data/build/reports
