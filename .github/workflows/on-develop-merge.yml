@@ -67,6 +67,6 @@ jobs:
     needs: apply-terraform
     uses: ./.github/workflows/run-database-migration.yml
     with:
-      DATABASE_NAME: ${{vars.MONGODB_DATABASE_NAME}}-sandbox
+      DATABASE_NAME: ${{vars.MONGODB_DATABASE_NAME}}-dev
     secrets:
       MONGO_URL: ${{secrets.MONGODB_GITHUB_ACTIONS_CONNECTION_STRING}}
