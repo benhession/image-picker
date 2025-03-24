@@ -18,8 +18,4 @@ and `DATABASE_NAME`. Then the migration run via `npx migrate-mongo up` and rolle
 ## Testing
 
 The migrations can be run during unit tests by adding a testImplementation dependency for`test-util`
-and annotating the test class with `@QuarkusTestResource(MongoMigrationResource.class)`. The
-database name and port of the MongoDb container must also be added to `application.yml` as:
-
-- `%test.quarkus.mongodb.database`
-- `%test.quarkus.mongodb.devservices.port`
+and annotating the test class with `@QuarkusTestResource(MongoMigrationResource.class)`.
