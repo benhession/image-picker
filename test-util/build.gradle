@@ -11,5 +11,8 @@ java {
 
 dependencies {
     implementation 'io.quarkus:quarkus-junit5'
+    implementation platform("org.testcontainers:testcontainers-bom:${testcontainersVersion}")
+    implementation 'org.testcontainers:junit-jupiter'
+    implementation 'org.testcontainers:mongodb'
 }
 

@@ -168,10 +168,6 @@ image:
           static-provider:
             access-key-id: ${test-variables.aws-access-key-id}
             secret-access-key: ${test-variables.aws-secret-access-key}
-    mongodb:
-      database: "test-db"
-      devservices:
-        port: "56021"
 
   image:
     size:

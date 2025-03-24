@@ -11,6 +11,8 @@ import com.benhession.imagepicker.data.model.ImageMetadata;
 import com.benhession.imagepicker.data.model.ImageProcessingStage;
 import com.benhession.imagepicker.data.model.ImageProcessingStatus;
 import com.benhession.imagepicker.data.repository.ImageMetaDataRepository;
+import com.benhession.imagepicker.testutil.resources.MongoMigrationResource;
+import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.junit.QuarkusTest;
 import java.time.Instant;
 import java.util.Arrays;
@@ -21,8 +23,10 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 @QuarkusTest
+@QuarkusTestResource(MongoMigrationResource.class)
 @RequiredArgsConstructor
 public class ImageMetaDataServiceTest {
+
     private final ImageMetaDataService imageMetaDataService;
     private final ImageMetaDataRepository imageMetaDataRepository;
 
@@ -77,9 +81,6 @@ public class ImageMetaDataServiceTest {
         var actualMetaData = actualMetaDataOptional.orElseThrow();
         assertThat(actualMetaData.getStatus().stage()).isEqualTo(PROCESSING_TIMEOUT);
     }
-
-    @Test
-    public void When_GetMetadata_WithProcessingTimeout_Expect_DownloadedStatus() {}
 
     public void addImageMetaDataWithStage(ImageProcessingStage stage) {
         var mockMetaData = ImageMetadata.builder()

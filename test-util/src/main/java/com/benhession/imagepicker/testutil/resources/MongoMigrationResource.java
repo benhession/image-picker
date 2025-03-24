@@ -6,19 +6,24 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Map;
-import org.eclipse.microprofile.config.ConfigProvider;
+import org.testcontainers.containers.MongoDBContainer;
+import org.testcontainers.utility.DockerImageName;
 
 public class MongoMigrationResource implements QuarkusTestResourceLifecycleManager {
+
+    private MongoDBContainer mongoDbContainer;
 
     @Override
     public Map<String, String> start() {
         try {
-            String databaseName = ConfigProvider.getConfig()
-                .getValue("%test.quarkus.mongodb.database", String.class);
-            String port = ConfigProvider.getConfig()
-                .getValue("%test.quarkus.mongodb.devservices.port", String.class);
-            String host = "localhost";
+            mongoDbContainer = new MongoDBContainer(DockerImageName.parse("mongo:6.0"))
+                .withReuse(true)
+                .withExposedPorts(27017);
+            mongoDbContainer.start();
 
+            String databaseName = "test-db";
+            String host = mongoDbContainer.getHost();
+            int port = mongoDbContainer.getFirstMappedPort();
             String connectionString = "mongodb://" + host + ":" + port + "/?directConnection=true";
 
             ProcessBuilder pb = new ProcessBuilder();
@@ -42,15 +47,21 @@ public class MongoMigrationResource implements QuarkusTestResourceLifecycleManag
                 throw new RuntimeException("MongoDB Migration failed with exit code " + exitCode);
             }
 
+            return Map.of(
+                "quarkus.mongodb.devservices.enabled", "false",
+                "quarkus.mongodb.database", databaseName,
+                "quarkus.mongodb.connection-string", connectionString);
+
         } catch (IOException | InterruptedException e) {
             throw new RuntimeException(e);
         }
 
-        return Map.of();
     }
 
     @Override
     public void stop() {
-        // no teardown needed
+        if (mongoDbContainer != null) {
+            mongoDbContainer.stop();
+        }
     }
 }
