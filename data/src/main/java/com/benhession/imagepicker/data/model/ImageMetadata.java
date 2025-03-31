@@ -34,5 +34,6 @@ public class ImageMetadata {
     @EqualsAndHashCode.Exclude
     @Builder.Default
     private List<String> aiTags = new ArrayList<>();
+    @EqualsAndHashCode.Exclude
     private ImageProcessingStatus status;
 }
