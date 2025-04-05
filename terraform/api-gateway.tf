@@ -138,6 +138,12 @@ resource "aws_api_gateway_resource" "crop_image_resource" {
   rest_api_id = aws_api_gateway_rest_api.image_picker_api.id
 }
 
+resource "aws_api_gateway_resource" "search_images_resource" {
+  parent_id   = aws_api_gateway_resource.image_resource.id
+  path_part   = "search"
+  rest_api_id = aws_api_gateway_rest_api.image_picker_api.id
+}
+
 module "process_image" {
   source      = "./api-gateway-lambda-method"
   http_method = "POST"
@@ -174,6 +180,14 @@ module "get_upload_url" {
   source      = "./api-gateway-lambda-method"
   http_method = "POST"
   resource_id = aws_api_gateway_resource.get_upload_url_resource.id
+  rest_api_id = aws_api_gateway_rest_api.image_picker_api.id
+  uri         = aws_lambda_function.image_picker_api.invoke_arn
+}
+
+module "search_images" {
+  source      = "./api-gateway-lambda-method"
+  http_method = "POST"
+  resource_id = aws_api_gateway_resource.search_images_resource.id
   rest_api_id = aws_api_gateway_rest_api.image_picker_api.id
   uri         = aws_lambda_function.image_picker_api.invoke_arn
 }

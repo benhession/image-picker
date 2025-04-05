@@ -29,21 +29,51 @@ public class ImageMetaDataRepository implements PanacheMongoRepository<ImageMeta
         return count("status.stage", PROCESSING_COMPLETE);
     }
 
-    public List<ImageMetadata> searchImagesByFilenameAndTags(String searchTerm) {
-        List<ImageMetadata> results = new ArrayList<>();
+    public List<ImageMetadata> searchByFilenameAndTags(String searchTerm, int page, int size) {
+        Document skipStage = new Document("$skip", page * size);
+        Document limitStage = new Document("$limit", size);
 
         Document searchQuery = new Document("$search",
             new Document("index", "fileMetadataSearchIndex")
-                .append("text",
-                    new Document("query", searchTerm)
-                        .append("path", List.of("filename", "tags", "aiTags")))
-                .append("text", new Document("query", PROCESSING_COMPLETE)
-                    .append("path", List.of("status.stage")))
-        );
+                .append("compound", getSearchByFilenameAndTagsCompoundQuery(searchTerm)));
 
-        mongoCollection().aggregate(List.of(searchQuery))
+        List<ImageMetadata> results = new ArrayList<>();
+        mongoCollection().aggregate(List.of(searchQuery, skipStage, limitStage))
             .forEach(results::add);
 
         return results;
+    }
+
+    public long countItemsForSearchByFilenameAndTags(String searchTerm) {
+        Document searchQuery = new Document("$searchMeta",
+            new Document("index", "fileMetadataSearchIndex")
+                .append("compound", getSearchByFilenameAndTagsCompoundQuery(searchTerm))
+                .append("count", new Document("type", "total")));
+
+        List<Document> results = new ArrayList<>();
+
+        mongoDatabase().getCollection("images")
+            .aggregate(List.of(searchQuery))
+            .forEach(results::add);
+
+        if (results.isEmpty()) {
+            return 0;
+        }
+
+        return results.getFirst()
+            .get("count", Document.class)
+            .getLong("total");
+    }
+
+    private Document getSearchByFilenameAndTagsCompoundQuery(String searchTerm) {
+        return
+            new Document("must", List.of(
+                new Document("text",
+                    new Document("query", searchTerm)
+                        .append("path", List.of("filename", "tags", "aiTags")))))
+                .append("filter", List.of(
+                    new Document("equals",
+                        new Document("value", PROCESSING_COMPLETE)
+                            .append("path", "status.stage"))));
     }
 }

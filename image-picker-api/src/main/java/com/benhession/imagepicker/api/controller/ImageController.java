@@ -9,6 +9,7 @@ import com.benhession.imagepicker.api.dto.CropPropertiesDto;
 import com.benhession.imagepicker.api.dto.GetUploadUrlDto;
 import com.benhession.imagepicker.api.dto.ImageResponseDto;
 import com.benhession.imagepicker.api.dto.ProcessImageDto;
+import com.benhession.imagepicker.api.dto.SearchImagesDto;
 import com.benhession.imagepicker.api.dto.UploadUrlResponseDto;
 import com.benhession.imagepicker.api.mapper.CropPropertiesMapper;
 import com.benhession.imagepicker.api.mapper.ImageResponseMapper;
@@ -161,18 +162,8 @@ public class ImageController {
         int page = parseIntegerQueryParameter(pageString, "page", errorMessages);
         int size = parseIntegerQueryParameter(sizeString, "size", errorMessages);
 
-        if (size <= 0) {
-            errorMessages.add(AbstractMultipleErrorApplicationException.ErrorMessage.builder()
-                .path(uriInfo.getPath())
-                .message("'size' must be greater than 0")
-                .build());
-        }
-        if (page < 0) {
-            errorMessages.add(AbstractMultipleErrorApplicationException.ErrorMessage.builder()
-                .path(uriInfo.getPath())
-                .message("'page' must be non-negative")
-                .build());
-        }
+        checkPaginationValuesAreValid(page, size, uriInfo.getPath(), errorMessages);
+
         if (!errorMessages.isEmpty()) {
             throw new BadRequestException(errorMessages);
         }
@@ -218,6 +209,36 @@ public class ImageController {
         return RestResponse.accepted(imageResponseMapper.toDtoWithoutImages(imageMetadata));
     }
 
+    @POST
+    @Path("/search")
+    @Consumes(APPLICATION_JSON)
+    @RolesAllowed({"blog-admin"})
+    public RestResponse<List<ImageResponseDto>> searchImages(@Valid SearchImagesDto searchImagesDto,
+        @Context UriInfo uriInfo) {
+
+        List<AbstractMultipleErrorApplicationException.ErrorMessage> errorMessages = new ArrayList<>();
+        checkPaginationValuesAreValid(searchImagesDto.getPage(), searchImagesDto.getSize(), uriInfo.getPath(),
+            errorMessages);
+
+        if (!errorMessages.isEmpty()) {
+            throw new BadRequestException(errorMessages);
+        }
+
+        PageInfo pageInfo = imageMetaDataService.searchByFilenameAndTagsPageInfo(
+            searchImagesDto.getPage(), searchImagesDto.getSize(), searchImagesDto.getSearchTerm());
+        if (pageInfo.numberItems() == 0) {
+            return RestResponse.noContent();
+        }
+
+        List<ImageMetadata> results =
+            imageMetaDataService.searchByFilenameAndTags(searchImagesDto.getSearchTerm(), searchImagesDto.getPage(),
+                searchImagesDto.getSize());
+
+        return RestResponse.ResponseBuilder.create(OK, results.stream().map(imageResponseMapper::toDto).toList())
+            .links(paginationLinksService.getPaginationLinks(pageInfo, uriInfo))
+            .build();
+    }
+
     private int parseIntegerQueryParameter(String paramString, String paramName,
         List<AbstractMultipleErrorApplicationException.ErrorMessage> errorMessages) {
 
@@ -238,5 +259,20 @@ public class ImageController {
         }
 
         return 0;
+    }
+
+    private void checkPaginationValuesAreValid(int page, int size, String path, List<ErrorMessage> errorMessages) {
+        if (size <= 0) {
+            errorMessages.add(AbstractMultipleErrorApplicationException.ErrorMessage.builder()
+                .path(path)
+                .message("'size' must be greater than 0")
+                .build());
+        }
+        if (page < 0) {
+            errorMessages.add(AbstractMultipleErrorApplicationException.ErrorMessage.builder()
+                .path(path)
+                .message("'page' must be non-negative")
+                .build());
+        }
     }
 }

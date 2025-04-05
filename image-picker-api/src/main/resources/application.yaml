@@ -169,6 +169,10 @@ image:
             access-key-id: ${test-variables.aws-access-key-id}
             secret-access-key: ${test-variables.aws-secret-access-key}
 
+    mongodb:
+      devservices:
+        enabled: false
+
   image:
     size:
       square:

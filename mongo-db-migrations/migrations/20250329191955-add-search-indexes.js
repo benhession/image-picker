@@ -30,9 +30,7 @@ module.exports = {
               "type": "document",
               "fields": {
                 "stage": {
-                  "type": "string",
-                  "analyzer": "lucene.keyword",
-                  "searchAnalyzer": "lucene.keyword"
+                  "type": "token"
                 }
               }
             }

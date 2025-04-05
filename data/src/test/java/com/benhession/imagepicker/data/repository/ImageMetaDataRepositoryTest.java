@@ -1,6 +1,7 @@
 package com.benhession.imagepicker.data.repository;
 
 import static com.benhession.imagepicker.data.model.ImageProcessingStage.PROCESSING_COMPLETE;
+import static com.benhession.imagepicker.data.model.ImageProcessingStage.PROCESSING_TIMEOUT;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.params.provider.EnumSource.Mode.EXCLUDE;
 
@@ -55,28 +56,37 @@ public class ImageMetaDataRepositoryTest {
 
     @ParameterizedTest
     @MethodSource("testSearchTerms")
-    void When_SearchImagesByFilenameAndTags_WithMatches_Expect_Results(String searchTerm) throws InterruptedException {
+    void When_SearchByFilenameAndTags_WithMatches_Expect_Results(String searchTerm) throws InterruptedException {
         // arrange
-        ImageMetadata imageMetadata =
-            ImageMetadata.builder().parentKey(UUID.randomUUID().toString()).filename("Bill-and-Teds-bogus-journey.jpg")
+        List<ImageMetadata> imageMetadata = List.of(
+            ImageMetadata.builder()
+                .parentKey(UUID.randomUUID().toString())
+                .filename("Bill-and-Teds-bogus-journey.jpg")
                 .tags(List.of("adventure")).aiTags(List.of("turnip"))
-                .status(ImageProcessingStatus.of(PROCESSING_COMPLETE)).build();
+                .status(ImageProcessingStatus.of(PROCESSING_COMPLETE))
+                .build(),
+            ImageMetadata.builder()
+                .parentKey(UUID.randomUUID().toString())
+                .filename("Negative-result.png")
+                .status(ImageProcessingStatus.of(PROCESSING_COMPLETE))
+                .build()
+        );
 
         imageMetaDataRepository.persist(imageMetadata);
         // sleep to give the database chance to index the new document
         Thread.sleep(2000);
 
         // act
-        var results = imageMetaDataRepository.searchImagesByFilenameAndTags(searchTerm);
+        var results = imageMetaDataRepository.searchByFilenameAndTags(searchTerm, 0, 10);
 
         // assert
         assertThat(results).hasSize(1);
         var result = results.getFirst();
 
-        assertThat(result).isEqualTo(imageMetadata)
+        assertThat(result).isEqualTo(imageMetadata.getFirst())
             .hasFieldOrProperty("id")
-            .hasFieldOrPropertyWithValue("tags", imageMetadata.getTags())
-            .hasFieldOrPropertyWithValue("aiTags", imageMetadata.getAiTags());
+            .hasFieldOrPropertyWithValue("tags", imageMetadata.getFirst().getTags())
+            .hasFieldOrPropertyWithValue("aiTags", imageMetadata.getFirst().getAiTags());
         assertThat(result.getStatus().stage()).isEqualTo(PROCESSING_COMPLETE);
     }
 
@@ -89,7 +99,7 @@ public class ImageMetaDataRepositoryTest {
 
     @ParameterizedTest
     @EnumSource(value = ImageProcessingStage.class, names = "PROCESSING_COMPLETE", mode = EXCLUDE)
-    void When_SearchImagesByFilenameAndTags_With_InvalidProcessingStage_Expect_Results(
+    void When_SearchByFilenameAndTags_With_InvalidProcessingStage_Expect_Results(
         ImageProcessingStage processingStage) throws InterruptedException {
         // arrange
         var imageMetadata =
@@ -105,9 +115,42 @@ public class ImageMetaDataRepositoryTest {
         Thread.sleep(2000);
 
         // act
-        var result = imageMetaDataRepository.searchImagesByFilenameAndTags("bill");
+        var result = imageMetaDataRepository.searchByFilenameAndTags("bill", 0, 10);
 
         // assert
         assertThat(result).isEmpty();
+    }
+
+    @Test
+    void When_countItemsForSearchByFilenameAndTags_WithMatches_Expect_CorrectCount() throws InterruptedException {
+        // arrange
+        var imageMetadata = List.of(
+            ImageMetadata.builder().parentKey(UUID.randomUUID().toString())
+                .filename("Bill-and-Teds-bogus-journey.jpg")
+                .aiTags(List.of("adventure"))
+                .tags(List.of("turnip"))
+                .status(ImageProcessingStatus.of(PROCESSING_COMPLETE))
+                .build(),
+            ImageMetadata.builder().parentKey(UUID.randomUUID().toString())
+                .filename("Shawshank Redemption.png")
+                .aiTags(List.of("adventure", "parsnip"))
+                .status(ImageProcessingStatus.of(PROCESSING_COMPLETE))
+                .build(),
+            ImageMetadata.builder().parentKey(UUID.randomUUID().toString())
+                .filename("Happy Gilmore.gif")
+                .aiTags(List.of("adventure"))
+                .status(ImageProcessingStatus.of(PROCESSING_TIMEOUT))
+                .build()
+        );
+
+        imageMetaDataRepository.persist(imageMetadata);
+        // sleep to give the database chance to index the new document
+        Thread.sleep(2000);
+
+        // act
+        long result = imageMetaDataRepository.countItemsForSearchByFilenameAndTags("adventure");
+
+        // assert
+        assertThat(result).isEqualTo(2);
     }
 }

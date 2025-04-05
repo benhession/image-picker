@@ -19,6 +19,7 @@ import org.bson.types.ObjectId;
 @ApplicationScoped
 @RequiredArgsConstructor
 public class ImageMetaDataService {
+
     private final ImageMetaDataRepository imageMetadataRepository;
     private final ImageProcessingProperties imageProcessingProperties;
     private final ObjectStorageService objectStorageService;
@@ -39,12 +40,7 @@ public class ImageMetaDataService {
     }
 
     public PageInfo findProcessedImagesPageInfo(int page, int size) {
-        long numberOfItems = imageMetadataRepository.countNumberOfProcessedImages();
-        int numberOfPages = (int) Math.ceil((double) numberOfItems / size);
-        int lastPage = numberOfPages - 1;
-        int currentPage = Math.min(page, lastPage);
-
-        return new PageInfo(numberOfItems, currentPage, lastPage, size);
+        return calculatePageInfo(page, size, imageMetadataRepository.countNumberOfProcessedImages());
     }
 
     public void persist(ImageMetadata imageMetadata) {
@@ -79,6 +75,21 @@ public class ImageMetaDataService {
 
         persist(imageMetadata);
         return imageMetadata;
+    }
+
+    public List<ImageMetadata> searchByFilenameAndTags(String searchTerm, int page, int size) {
+        return imageMetadataRepository.searchByFilenameAndTags(searchTerm, page, size);
+    }
+
+    public PageInfo searchByFilenameAndTagsPageInfo(int page, int size, String searchTerm) {
+        return calculatePageInfo(page, size, imageMetadataRepository.countItemsForSearchByFilenameAndTags(searchTerm));
+    }
+
+    private PageInfo calculatePageInfo(int page, int size, long numberOfItems) {
+        int numberOfPages = (int) Math.ceil((double) numberOfItems / size);
+        int lastPage = numberOfPages - 1;
+        int currentPage = Math.min(page, lastPage);
+        return new PageInfo(numberOfItems, currentPage, lastPage, size);
     }
 
     private ImageMetadata checkForTimeout(ImageMetadata imageMetadata) {
