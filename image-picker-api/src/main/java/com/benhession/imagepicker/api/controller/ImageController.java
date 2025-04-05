@@ -9,7 +9,6 @@ import com.benhession.imagepicker.api.dto.CropPropertiesDto;
 import com.benhession.imagepicker.api.dto.GetUploadUrlDto;
 import com.benhession.imagepicker.api.dto.ImageResponseDto;
 import com.benhession.imagepicker.api.dto.ProcessImageDto;
-import com.benhession.imagepicker.api.dto.SearchImagesDto;
 import com.benhession.imagepicker.api.dto.UploadUrlResponseDto;
 import com.benhession.imagepicker.api.mapper.CropPropertiesMapper;
 import com.benhession.imagepicker.api.mapper.ImageResponseMapper;
@@ -49,6 +48,7 @@ import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.UriInfo;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.bson.types.ObjectId;
 import org.jboss.resteasy.reactive.RestResponse;
@@ -70,7 +70,6 @@ public class ImageController {
     @Path("/pre-signed")
     @Consumes(APPLICATION_JSON)
     @RolesAllowed({"blog-admin"})
-    @InjectRestLinks(RestLinkType.INSTANCE)
     public RestResponse<UploadUrlResponseDto> getUploadUrl(@Valid GetUploadUrlDto getUploadUrlDto) {
         imageValidationService.validateMimeType(getUploadUrlDto.getMimetype(), "/image/pre-signed");
 
@@ -180,7 +179,7 @@ public class ImageController {
             .create(OK, imageMetadataList.stream()
                 .map(imageResponseMapper::toDto)
                 .toList())
-            .links(paginationLinksService.getPaginationLinks(pageInfo, uriInfo))
+            .links(paginationLinksService.getPaginationLinks(pageInfo, uriInfo, Map.of()))
             .build();
     }
 
@@ -188,6 +187,7 @@ public class ImageController {
     @Path("/{id}/crop")
     @Consumes(APPLICATION_JSON)
     @RolesAllowed({"blog-admin"})
+    @InjectRestLinks(RestLinkType.INSTANCE)
     public RestResponse<ImageResponseDto> cropImage(@PathParam("id") ObjectId id,
         @Valid CropPropertiesDto cropPropertiesDto, @Context UriInfo uriInfo) {
 
@@ -209,33 +209,39 @@ public class ImageController {
         return RestResponse.accepted(imageResponseMapper.toDtoWithoutImages(imageMetadata));
     }
 
-    @POST
+    @GET
     @Path("/search")
     @Consumes(APPLICATION_JSON)
     @RolesAllowed({"blog-admin"})
-    public RestResponse<List<ImageResponseDto>> searchImages(@Valid SearchImagesDto searchImagesDto,
-        @Context UriInfo uriInfo) {
+    @RestLink(rel = "search")
+    public RestResponse<List<ImageResponseDto>> searchImages(@QueryParam("page") String pageString,
+        @QueryParam("size") String sizeString, @QueryParam("searchTerm") String searchTerm, @Context UriInfo uriInfo) {
 
         List<AbstractMultipleErrorApplicationException.ErrorMessage> errorMessages = new ArrayList<>();
-        checkPaginationValuesAreValid(searchImagesDto.getPage(), searchImagesDto.getSize(), uriInfo.getPath(),
-            errorMessages);
+
+        int page = parseIntegerQueryParameter(pageString, "page", errorMessages);
+        int size = parseIntegerQueryParameter(sizeString, "size", errorMessages);
+        checkPaginationValuesAreValid(page, size, uriInfo.getPath(), errorMessages);
+
+        if (searchTerm.isBlank()) {
+            errorMessages.add(ErrorMessage.builder()
+                .message("SearchTerm parameter is required and cannot be blank")
+                .path(uriInfo.getPath())
+                .build());
+        }
 
         if (!errorMessages.isEmpty()) {
             throw new BadRequestException(errorMessages);
         }
 
-        PageInfo pageInfo = imageMetaDataService.searchByFilenameAndTagsPageInfo(
-            searchImagesDto.getPage(), searchImagesDto.getSize(), searchImagesDto.getSearchTerm());
+        PageInfo pageInfo = imageMetaDataService.searchByFilenameAndTagsPageInfo(page, size, searchTerm);
         if (pageInfo.numberItems() == 0) {
             return RestResponse.noContent();
         }
 
-        List<ImageMetadata> results =
-            imageMetaDataService.searchByFilenameAndTags(searchImagesDto.getSearchTerm(), searchImagesDto.getPage(),
-                searchImagesDto.getSize());
-
+        List<ImageMetadata> results = imageMetaDataService.searchByFilenameAndTags(searchTerm, page, size);
         return RestResponse.ResponseBuilder.create(OK, results.stream().map(imageResponseMapper::toDto).toList())
-            .links(paginationLinksService.getPaginationLinks(pageInfo, uriInfo))
+            .links(paginationLinksService.getPaginationLinks(pageInfo, uriInfo, Map.of("searchTerm", searchTerm)))
             .build();
     }
 

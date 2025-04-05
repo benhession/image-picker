@@ -186,7 +186,7 @@ module "get_upload_url" {
 
 module "search_images" {
   source      = "./api-gateway-lambda-method"
-  http_method = "POST"
+  http_method = "GET"
   resource_id = aws_api_gateway_resource.search_images_resource.id
   rest_api_id = aws_api_gateway_rest_api.image_picker_api.id
   uri         = aws_lambda_function.image_picker_api.invoke_arn

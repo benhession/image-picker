@@ -5,39 +5,43 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.ws.rs.core.Link;
 import jakarta.ws.rs.core.UriBuilder;
 import jakarta.ws.rs.core.UriInfo;
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @ApplicationScoped
 public class PaginationLinksService {
 
-    public Link[] getPaginationLinks(PageInfo pageInfo, UriInfo uriInfo) {
+    public Link[] getPaginationLinks(PageInfo pageInfo, UriInfo uriInfo, Map<String, String> extraParams) {
         List<Link> links = new ArrayList<>();
-        URI baseUri = uriInfo.getBaseUri();
-        links.add(buildPageUri(baseUri, 0, pageInfo.size(), "first"));
-        links.add(buildPageUri(baseUri, pageInfo.lastPage(), pageInfo.size(), "last"));
-        links.add(buildPageUri(baseUri, pageInfo.page(), pageInfo.size(), "current"));
+        links.add(buildPageUri(uriInfo, 0, pageInfo.size(), extraParams, "first"));
+        links.add(buildPageUri(uriInfo, pageInfo.lastPage(), pageInfo.size(), extraParams, "last"));
+        links.add(buildPageUri(uriInfo, pageInfo.page(), pageInfo.size(), extraParams, "current"));
 
         if (pageInfo.page() + 1 <= pageInfo.lastPage()) {
-            links.add(buildPageUri(baseUri, pageInfo.page() + 1, pageInfo.size(), "next"));
+            links.add(buildPageUri(uriInfo, pageInfo.page() + 1, pageInfo.size(), extraParams, "next"));
         }
 
         if (pageInfo.page() - 1 >= 0) {
-            links.add(buildPageUri(baseUri, pageInfo.page() - 1, pageInfo.size(), "previous"));
+            links.add(buildPageUri(uriInfo, pageInfo.page() - 1, pageInfo.size(), extraParams, "previous"));
         }
 
         return links.toArray(new Link[0]);
     }
 
-    private Link buildPageUri(URI baseUri, int page, int size, String rel) {
-        return Link.fromUri(
-            UriBuilder.newInstance()
-              .uri(baseUri)
-              .queryParam("page", page)
-              .queryParam("size", size)
-              .build())
-          .rel(rel)
-          .build();
+    private Link buildPageUri(UriInfo uriInfo, int page, int size, Map<String, String> params, String rel) {
+        var uriBuilder = UriBuilder.newInstance()
+            .uri(uriInfo.getBaseUri())
+            .path(uriInfo.getPath())
+            .queryParam("page", page)
+            .queryParam("size", size);
+
+        for (Map.Entry<String, String> entry : params.entrySet()) {
+            uriBuilder.queryParam(entry.getKey(), entry.getValue());
+        }
+
+        return Link.fromUri(uriBuilder.build())
+            .rel(rel)
+            .build();
     }
 }
