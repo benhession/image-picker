@@ -31,8 +31,7 @@ public class PaginationLinksService {
 
     private Link buildPageUri(UriInfo uriInfo, int page, int size, Map<String, String> params, String rel) {
         var uriBuilder = UriBuilder.newInstance()
-            .uri(uriInfo.getBaseUri())
-            .path(uriInfo.getPath())
+            .uri(uriInfo.getAbsolutePath())
             .queryParam("page", page)
             .queryParam("size", size);
 
