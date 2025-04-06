@@ -242,11 +242,11 @@ public class ImageControllerTest {
         Optional<String> lastHeader = getHeaderWithRel("last", linkHeaders);
 
         assertThat(currentHeader.isPresent()).isTrue();
-        assertThat(currentHeader.get()).contains("page=0&size=5");
+        assertThat(currentHeader.get()).contains("page=0").contains("size=5");
         assertThat(firstHeader.isPresent()).isTrue();
-        assertThat(firstHeader.get()).contains("page=0&size=5");
+        assertThat(firstHeader.get()).contains("page=0").contains("size=5");
         assertThat(lastHeader.isPresent()).isTrue();
-        assertThat(lastHeader.get()).contains("page=0&size=5");
+        assertThat(lastHeader.get()).contains("page=0").contains("size=5");
     }
 
     @Test
@@ -286,13 +286,13 @@ public class ImageControllerTest {
         Optional<String> next = getHeaderWithRel("next", linkHeaders);
 
         assertThat(currentHeader.isPresent()).isTrue();
-        assertThat(currentHeader.get()).contains("page=0&size=3");
+        assertThat(currentHeader.get()).contains("size=3").contains("page=0");
         assertThat(firstHeader.isPresent()).isTrue();
-        assertThat(firstHeader.get()).contains("page=0&size=3");
+        assertThat(firstHeader.get()).contains("page=0").contains("size=3");
         assertThat(lastHeader.isPresent()).isTrue();
-        assertThat(lastHeader.get()).contains("page=1&size=3");
+        assertThat(lastHeader.get()).contains("page=1").contains("size=3");
         assertThat(next.isPresent()).isTrue();
-        assertThat(next.get()).contains("page=1&size=3");
+        assertThat(next.get()).contains("page=1").contains("size=3");
     }
 
     @Test
@@ -332,13 +332,13 @@ public class ImageControllerTest {
         Optional<String> previous = getHeaderWithRel("previous", linkHeaders);
 
         assertThat(currentHeader.isPresent()).isTrue();
-        assertThat(currentHeader.get()).contains("page=1&size=3");
+        assertThat(currentHeader.get()).contains("page=1").contains("size=3");
         assertThat(firstHeader.isPresent()).isTrue();
-        assertThat(firstHeader.get()).contains("page=0&size=3");
+        assertThat(firstHeader.get()).contains("page=0").contains("size=3");
         assertThat(lastHeader.isPresent()).isTrue();
-        assertThat(lastHeader.get()).contains("page=1&size=3");
+        assertThat(lastHeader.get()).contains("page=1").contains("size=3");
         assertThat(previous.isPresent()).isTrue();
-        assertThat(previous.get()).contains("page=0&size=3");
+        assertThat(previous.get()).contains("page=0").contains("size=3");
     }
 
     @Test
