@@ -26,6 +26,7 @@ import com.benhession.imagepicker.common.model.ImageType;
 import com.benhession.imagepicker.common.model.PageInfo;
 import com.benhession.imagepicker.data.dto.ImageUploadDto;
 import com.benhession.imagepicker.data.dto.PreSignedUploadDto;
+import com.benhession.imagepicker.data.model.ImageMetaDataSearchResult;
 import com.benhession.imagepicker.data.model.ImageMetadata;
 import com.benhession.imagepicker.data.model.ImageProcessingStage;
 import com.benhession.imagepicker.data.service.ImageMetaDataService;
@@ -48,6 +49,7 @@ import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.UriInfo;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.bson.types.ObjectId;
 import org.jboss.resteasy.reactive.RestResponse;
@@ -69,7 +71,6 @@ public class ImageController {
     @Path("/pre-signed")
     @Consumes(APPLICATION_JSON)
     @RolesAllowed({"blog-admin"})
-    @InjectRestLinks(RestLinkType.INSTANCE)
     public RestResponse<UploadUrlResponseDto> getUploadUrl(@Valid GetUploadUrlDto getUploadUrlDto) {
         imageValidationService.validateMimeType(getUploadUrlDto.getMimetype(), "/image/pre-signed");
 
@@ -161,18 +162,8 @@ public class ImageController {
         int page = parseIntegerQueryParameter(pageString, "page", errorMessages);
         int size = parseIntegerQueryParameter(sizeString, "size", errorMessages);
 
-        if (size <= 0) {
-            errorMessages.add(AbstractMultipleErrorApplicationException.ErrorMessage.builder()
-                .path(uriInfo.getPath())
-                .message("'size' must be greater than 0")
-                .build());
-        }
-        if (page < 0) {
-            errorMessages.add(AbstractMultipleErrorApplicationException.ErrorMessage.builder()
-                .path(uriInfo.getPath())
-                .message("'page' must be non-negative")
-                .build());
-        }
+        checkPaginationValuesAreValid(page, size, uriInfo.getPath(), errorMessages);
+
         if (!errorMessages.isEmpty()) {
             throw new BadRequestException(errorMessages);
         }
@@ -189,7 +180,7 @@ public class ImageController {
             .create(OK, imageMetadataList.stream()
                 .map(imageResponseMapper::toDto)
                 .toList())
-            .links(paginationLinksService.getPaginationLinks(pageInfo, uriInfo))
+            .links(paginationLinksService.getPaginationLinks(pageInfo, uriInfo, Map.of()))
             .build();
     }
 
@@ -197,6 +188,7 @@ public class ImageController {
     @Path("/{id}/crop")
     @Consumes(APPLICATION_JSON)
     @RolesAllowed({"blog-admin"})
+    @InjectRestLinks(RestLinkType.INSTANCE)
     public RestResponse<ImageResponseDto> cropImage(@PathParam("id") ObjectId id,
         @Valid CropPropertiesDto cropPropertiesDto, @Context UriInfo uriInfo) {
 
@@ -216,6 +208,46 @@ public class ImageController {
 
         imageMetadata = imageProcessingService.validateAndCropOriginalImage(imageMetadata, cropProperties);
         return RestResponse.accepted(imageResponseMapper.toDtoWithoutImages(imageMetadata));
+    }
+
+    @GET
+    @Path("/search")
+    @Consumes(APPLICATION_JSON)
+    @RolesAllowed({"blog-admin"})
+    @RestLink(rel = "search")
+    public RestResponse<List<ImageResponseDto>> searchImages(@QueryParam("page") String pageString,
+        @QueryParam("size") String sizeString, @QueryParam("searchTerm") String searchTerm,
+        @QueryParam("searchAfter") String searchAfter, @QueryParam("searchBefore") String searchBefore,
+        @Context UriInfo uriInfo) {
+
+        List<AbstractMultipleErrorApplicationException.ErrorMessage> errorMessages = new ArrayList<>();
+        int page = parseIntegerQueryParameter(pageString, "page", errorMessages);
+        int size = parseIntegerQueryParameter(sizeString, "size", errorMessages);
+        checkPaginationValuesAreValid(page, size, uriInfo.getPath(), errorMessages);
+
+        if (searchTerm.isBlank()) {
+            errorMessages.add(ErrorMessage.builder()
+                .message("SearchTerm parameter is required and cannot be blank")
+                .path(uriInfo.getPath())
+                .build());
+        }
+
+        if (!errorMessages.isEmpty()) {
+            throw new BadRequestException(errorMessages);
+        }
+
+        PageInfo pageInfo = imageMetaDataService.searchByFilenameAndTagsPageInfo(page, size, searchTerm);
+        if (pageInfo.numberItems() == 0) {
+            return RestResponse.noContent();
+        }
+
+        List<ImageMetaDataSearchResult> results =
+            imageMetaDataService.searchByFilenameAndTags(searchTerm, page, size, searchBefore, searchAfter);
+
+        return RestResponse.ResponseBuilder.create(OK, results.stream().map(imageResponseMapper::toDto).toList())
+            .links(paginationLinksService.getPaginationLinksForSearchResults(pageInfo, uriInfo, results,
+                Map.of("searchTerm", searchTerm)))
+            .build();
     }
 
     private int parseIntegerQueryParameter(String paramString, String paramName,
@@ -238,5 +270,20 @@ public class ImageController {
         }
 
         return 0;
+    }
+
+    private void checkPaginationValuesAreValid(int page, int size, String path, List<ErrorMessage> errorMessages) {
+        if (size <= 0) {
+            errorMessages.add(AbstractMultipleErrorApplicationException.ErrorMessage.builder()
+                .path(path)
+                .message("'size' must be greater than 0")
+                .build());
+        }
+        if (page < 0) {
+            errorMessages.add(AbstractMultipleErrorApplicationException.ErrorMessage.builder()
+                .path(path)
+                .message("'page' must be non-negative")
+                .build());
+        }
     }
 }

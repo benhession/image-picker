@@ -14,5 +14,6 @@ dependencies {
     implementation platform("org.testcontainers:testcontainers-bom:${testcontainersVersion}")
     implementation 'org.testcontainers:junit-jupiter'
     implementation 'org.testcontainers:mongodb'
+    implementation 'org.mongodb:mongodb-driver-sync:5.4.0'
 }
 

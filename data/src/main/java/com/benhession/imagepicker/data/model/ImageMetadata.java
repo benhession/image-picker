@@ -10,6 +10,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 import org.bson.codecs.pojo.annotations.BsonId;
 import org.bson.types.ObjectId;
 
@@ -20,6 +21,7 @@ import org.bson.types.ObjectId;
 @Getter
 @Setter
 @EqualsAndHashCode
+@ToString
 public class ImageMetadata {
 
     @BsonId
@@ -34,5 +36,6 @@ public class ImageMetadata {
     @EqualsAndHashCode.Exclude
     @Builder.Default
     private List<String> aiTags = new ArrayList<>();
+    @EqualsAndHashCode.Exclude
     private ImageProcessingStatus status;
 }

@@ -2,6 +2,6 @@ name: "Image-picker-dev-support"
 
 services:
   image-picker-mongodb:
-    image: "mongo:7.0"
+    image: "mongodb/mongodb-atlas-local:7.0.15"
     ports:
       - "8180:27017"
