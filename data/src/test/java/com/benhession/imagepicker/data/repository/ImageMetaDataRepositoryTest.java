@@ -5,6 +5,7 @@ import static com.benhession.imagepicker.data.model.ImageProcessingStage.PROCESS
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.params.provider.EnumSource.Mode.EXCLUDE;
 
+import com.benhession.imagepicker.common.model.ImageType;
 import com.benhession.imagepicker.data.model.ImageMetadata;
 import com.benhession.imagepicker.data.model.ImageProcessingStage;
 import com.benhession.imagepicker.data.model.ImageProcessingStatus;
@@ -64,6 +65,7 @@ public class ImageMetaDataRepositoryTest {
                 .filename("Bill-and-Teds-bogus-journey.jpg")
                 .tags(List.of("adventure")).aiTags(List.of("turnip"))
                 .status(ImageProcessingStatus.of(PROCESSING_COMPLETE))
+                .type(ImageType.RECTANGULAR)
                 .build(),
             ImageMetadata.builder()
                 .parentKey(UUID.randomUUID().toString())
@@ -84,7 +86,9 @@ public class ImageMetaDataRepositoryTest {
         var result = results.getFirst();
 
         assertThat(result).isEqualTo(imageMetadata.getFirst())
+            .hasNoNullFieldsOrProperties()
             .hasFieldOrProperty("id")
+            .hasFieldOrProperty("pointOfReference")
             .hasFieldOrPropertyWithValue("tags", imageMetadata.getFirst().getTags())
             .hasFieldOrPropertyWithValue("aiTags", imageMetadata.getFirst().getAiTags());
         assertThat(result.getStatus().stage()).isEqualTo(PROCESSING_COMPLETE);

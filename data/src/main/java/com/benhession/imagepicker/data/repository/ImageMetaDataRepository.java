@@ -2,6 +2,7 @@ package com.benhession.imagepicker.data.repository;
 
 import static com.benhession.imagepicker.data.model.ImageProcessingStage.PROCESSING_COMPLETE;
 
+import com.benhession.imagepicker.data.model.ImageMetaDataSearchResult;
 import com.benhession.imagepicker.data.model.ImageMetadata;
 import io.quarkus.mongodb.panache.PanacheMongoRepository;
 import io.quarkus.panache.common.Page;
@@ -29,19 +30,47 @@ public class ImageMetaDataRepository implements PanacheMongoRepository<ImageMeta
         return count("status.stage", PROCESSING_COMPLETE);
     }
 
-    public List<ImageMetadata> searchByFilenameAndTags(String searchTerm, int page, int size) {
-        Document skipStage = new Document("$skip", page * size);
-        Document limitStage = new Document("$limit", size);
+    public List<ImageMetaDataSearchResult> searchByFilenameAndTags(String searchTerm, int page, int size) {
 
         Document searchQuery = new Document("$search",
             new Document("index", "fileMetadataSearchIndex")
                 .append("compound", getSearchByFilenameAndTagsCompoundQuery(searchTerm)));
 
-        List<ImageMetadata> results = new ArrayList<>();
-        mongoCollection().aggregate(List.of(searchQuery, skipStage, limitStage))
+        Document addFieldStage = new Document("$addFields",
+            new Document("pointOfReference",
+                new Document("$meta", "searchSequenceToken")));
+
+        Document skipStage = new Document("$skip", page * size);
+        Document limitStage = new Document("$limit", size);
+
+        List<ImageMetaDataSearchResult> results = new ArrayList<>();
+        mongoDatabase().getCollection("images", ImageMetaDataSearchResult.class)
+            .aggregate(List.of(searchQuery, addFieldStage, skipStage, limitStage))
             .forEach(results::add);
 
         return results;
+    }
+
+    public List<ImageMetaDataSearchResult> searchByFilenameAndTagsAfter(String searchTerm, int size,
+        String searchAfter) {
+
+        Document searchQuery = new Document("$search",
+            new Document("index", "fileMetadataSearchIndex")
+                .append("compound", getSearchByFilenameAndTagsCompoundQuery(searchTerm))
+                .append("searchAfter", searchAfter));
+
+        return searchWithSize(searchQuery, size);
+    }
+
+    public List<ImageMetaDataSearchResult> searchByFilenameAndTagsBefore(String searchTerm, int size,
+        String searchBefore) {
+
+        Document searchQuery = new Document("$search",
+            new Document("index", "fileMetadataSearchIndex")
+                .append("compound", getSearchByFilenameAndTagsCompoundQuery(searchTerm))
+                .append("searchBefore", searchBefore));
+
+        return searchWithSize(searchQuery, size);
     }
 
     public long countItemsForSearchByFilenameAndTags(String searchTerm) {
@@ -75,5 +104,20 @@ public class ImageMetaDataRepository implements PanacheMongoRepository<ImageMeta
                     new Document("equals",
                         new Document("value", PROCESSING_COMPLETE)
                             .append("path", "status.stage"))));
+    }
+
+    private List<ImageMetaDataSearchResult> searchWithSize(Document searchStage, int size) {
+        Document addFieldStage = new Document("$addFields",
+            new Document("pointOfReference",
+                new Document("$meta", "searchSequenceToken")));
+
+        Document limitStage = new Document("$limit", size);
+
+        List<ImageMetaDataSearchResult> results = new ArrayList<>();
+        mongoDatabase().getCollection("images", ImageMetaDataSearchResult.class)
+            .aggregate(List.of(searchStage, addFieldStage, limitStage))
+            .forEach(results::add);
+
+        return results;
     }
 }

@@ -26,6 +26,7 @@ import com.benhession.imagepicker.common.model.ImageType;
 import com.benhession.imagepicker.common.model.PageInfo;
 import com.benhession.imagepicker.data.dto.ImageUploadDto;
 import com.benhession.imagepicker.data.dto.PreSignedUploadDto;
+import com.benhession.imagepicker.data.model.ImageMetaDataSearchResult;
 import com.benhession.imagepicker.data.model.ImageMetadata;
 import com.benhession.imagepicker.data.model.ImageProcessingStage;
 import com.benhession.imagepicker.data.service.ImageMetaDataService;
@@ -215,10 +216,11 @@ public class ImageController {
     @RolesAllowed({"blog-admin"})
     @RestLink(rel = "search")
     public RestResponse<List<ImageResponseDto>> searchImages(@QueryParam("page") String pageString,
-        @QueryParam("size") String sizeString, @QueryParam("searchTerm") String searchTerm, @Context UriInfo uriInfo) {
+        @QueryParam("size") String sizeString, @QueryParam("searchTerm") String searchTerm,
+        @QueryParam("searchAfter") String searchAfter, @QueryParam("searchBefore") String searchBefore,
+        @Context UriInfo uriInfo) {
 
         List<AbstractMultipleErrorApplicationException.ErrorMessage> errorMessages = new ArrayList<>();
-
         int page = parseIntegerQueryParameter(pageString, "page", errorMessages);
         int size = parseIntegerQueryParameter(sizeString, "size", errorMessages);
         checkPaginationValuesAreValid(page, size, uriInfo.getPath(), errorMessages);
@@ -239,9 +241,12 @@ public class ImageController {
             return RestResponse.noContent();
         }
 
-        List<ImageMetadata> results = imageMetaDataService.searchByFilenameAndTags(searchTerm, page, size);
+        List<ImageMetaDataSearchResult> results =
+            imageMetaDataService.searchByFilenameAndTags(searchTerm, page, size, searchBefore, searchAfter);
+
         return RestResponse.ResponseBuilder.create(OK, results.stream().map(imageResponseMapper::toDto).toList())
-            .links(paginationLinksService.getPaginationLinks(pageInfo, uriInfo, Map.of("searchTerm", searchTerm)))
+            .links(paginationLinksService.getPaginationLinksForSearchResults(pageInfo, uriInfo, results,
+                Map.of("searchTerm", searchTerm)))
             .build();
     }
 

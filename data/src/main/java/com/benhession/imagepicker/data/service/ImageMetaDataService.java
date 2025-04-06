@@ -5,6 +5,7 @@ import static com.benhession.imagepicker.data.model.ImageProcessingStage.INITIAL
 import com.benhession.imagepicker.common.config.ImageProcessingProperties;
 import com.benhession.imagepicker.common.model.PageInfo;
 import com.benhession.imagepicker.common.util.FilenameUtil;
+import com.benhession.imagepicker.data.model.ImageMetaDataSearchResult;
 import com.benhession.imagepicker.data.model.ImageMetadata;
 import com.benhession.imagepicker.data.model.ImageProcessingStage;
 import com.benhession.imagepicker.data.model.ImageProcessingStatus;
@@ -77,7 +78,16 @@ public class ImageMetaDataService {
         return imageMetadata;
     }
 
-    public List<ImageMetadata> searchByFilenameAndTags(String searchTerm, int page, int size) {
+    public List<ImageMetaDataSearchResult> searchByFilenameAndTags(String searchTerm, int page, int size,
+        String searchBefore, String searchAfter) {
+        if (searchBefore != null && !searchBefore.isBlank() && page > 0) {
+            return imageMetadataRepository.searchByFilenameAndTagsBefore(searchTerm, size, searchBefore);
+        }
+
+        if (searchAfter != null && !searchAfter.isBlank()) {
+            return imageMetadataRepository.searchByFilenameAndTagsAfter(searchTerm, size, searchAfter);
+        }
+
         return imageMetadataRepository.searchByFilenameAndTags(searchTerm, page, size);
     }
 
