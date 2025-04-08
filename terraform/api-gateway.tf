@@ -39,6 +39,21 @@ resource "aws_api_gateway_stage" "image_picker_api" {
   }
 }
 
+resource "aws_api_gateway_domain_name" "image_picker_api_domain" {
+  domain_name              = var.api_gateway_domain_name
+  regional_certificate_arn = data.aws_acm_certificate.api_domain_cert.arn
+
+  endpoint_configuration {
+    types = ["REGIONAL"]
+  }
+}
+
+resource "aws_api_gateway_base_path_mapping" "image_picker_api" {
+  api_id      = aws_api_gateway_rest_api.image_picker_api.id
+  domain_name = aws_api_gateway_domain_name.image_picker_api_domain.domain_name
+  stage_name  = aws_api_gateway_stage.image_picker_api.stage_name
+}
+
 resource "aws_api_gateway_method_settings" "canopy_rest_api" {
   method_path = "*/*"
   rest_api_id = aws_api_gateway_rest_api.image_picker_api.id

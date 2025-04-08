@@ -95,3 +95,7 @@ variable "logging_level" {
   type    = string
   default = "INFO"
 }
+
+variable "api_gateway_domain_name" {
+  type = string
+}
