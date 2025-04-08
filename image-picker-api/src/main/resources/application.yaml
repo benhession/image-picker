@@ -27,6 +27,11 @@ quarkus:
   mongodb:
     database: ${MONGODB_DATABASE_NAME}
 
+  http:
+    proxy:
+      proxy-address-forwarding: true
+      enable-forwarded-host: true
+
 validation-messages:
   system:
     error: "An unexpected error has occurred."
