@@ -60,6 +60,7 @@ public class PaginationLinksService {
     private Link buildPageUri(UriInfo uriInfo, int page, int size, Map<String, String> params, String rel) {
         var uriBuilder = UriBuilder.newInstance()
             .uri(uriInfo.getAbsolutePath())
+            .scheme("https")
             .queryParam("page", page)
             .queryParam("size", size);
         params.forEach(uriBuilder::queryParam);
@@ -71,7 +72,8 @@ public class PaginationLinksService {
 
     private Link buildCurrentUri(UriInfo uriInfo) {
         var uriBuilder = UriBuilder.newInstance()
-            .uri(uriInfo.getAbsolutePath());
+            .uri(uriInfo.getAbsolutePath())
+            .scheme("https");
         uriInfo.getQueryParameters()
             .forEach((key, value) -> uriBuilder.queryParam(key, String.join(",", value)));
 
