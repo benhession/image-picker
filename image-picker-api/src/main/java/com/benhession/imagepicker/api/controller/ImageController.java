@@ -70,7 +70,7 @@ public class ImageController {
     @POST
     @Path("/pre-signed")
     @Consumes(APPLICATION_JSON)
-    @RolesAllowed({"blog-admin"})
+    @RolesAllowed({"admin"})
     public RestResponse<UploadUrlResponseDto> getUploadUrl(@Valid GetUploadUrlDto getUploadUrlDto) {
         imageValidationService.validateMimeType(getUploadUrlDto.getMimetype(), "/image/pre-signed");
 
@@ -95,7 +95,7 @@ public class ImageController {
     @POST
     @Consumes(APPLICATION_JSON)
     @Path(("/{id}/process"))
-    @RolesAllowed({"blog-admin"})
+    @RolesAllowed({"admin"})
     @InjectRestLinks(RestLinkType.INSTANCE)
     public RestResponse<ImageResponseDto> processImage(@PathParam("id") ObjectId imageId,
         @Valid ProcessImageDto processImageDto, @Context UriInfo uriInfo) {
@@ -152,7 +152,7 @@ public class ImageController {
 
     @GET
     @Produces({APPLICATION_JSON})
-    @RolesAllowed({"blog-admin"})
+    @RolesAllowed({"admin"})
     @RestLink(rel = "list")
     public RestResponse<List<ImageResponseDto>> getImages(@QueryParam("page") String pageString,
         @QueryParam("size") String sizeString,
@@ -187,7 +187,7 @@ public class ImageController {
     @POST
     @Path("/{id}/crop")
     @Consumes(APPLICATION_JSON)
-    @RolesAllowed({"blog-admin"})
+    @RolesAllowed({"admin"})
     @InjectRestLinks(RestLinkType.INSTANCE)
     public RestResponse<ImageResponseDto> cropImage(@PathParam("id") ObjectId id,
         @Valid CropPropertiesDto cropPropertiesDto, @Context UriInfo uriInfo) {
@@ -213,7 +213,7 @@ public class ImageController {
     @GET
     @Path("/search")
     @Consumes(APPLICATION_JSON)
-    @RolesAllowed({"blog-admin"})
+    @RolesAllowed({"admin"})
     @RestLink(rel = "search")
     public RestResponse<List<ImageResponseDto>> searchImages(@QueryParam("page") String pageString,
         @QueryParam("size") String sizeString, @QueryParam("searchTerm") String searchTerm,

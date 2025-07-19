@@ -20,6 +20,8 @@ quarkus:
     client-id: ${OIDC_CLIENT_ID}
     credentials:
       secret: ${OIDC_CLIENT_SECRET}
+    roles:
+      role-claim-path: "permissions"
 
   s3.aws:
     credentials.type: "default"
