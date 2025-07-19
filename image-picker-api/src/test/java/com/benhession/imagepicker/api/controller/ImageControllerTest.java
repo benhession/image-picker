@@ -86,7 +86,7 @@ public class ImageControllerTest {
     ImageValidationService imageValidationService;
 
     @Test
-    @TestSecurity(user = "testUser", roles = {"blog-admin"})
+    @TestSecurity(user = "testUser", roles = {"admin"})
     public void When_ProcessImage_With_MetaDataNotFound_Expect_NotFoundException() {
         // arrange
         ObjectId testImageId = ObjectId.get();
@@ -113,7 +113,7 @@ public class ImageControllerTest {
     }
 
     @Test
-    @TestSecurity(user = "testUser", roles = {"blog-admin"})
+    @TestSecurity(user = "testUser", roles = {"admin"})
     public void When_ProcessImage_With_ValidStage_Expect_SentToBeProcessed() {
         // arrange
         ObjectId testImageId = ObjectId.get();
@@ -158,7 +158,7 @@ public class ImageControllerTest {
     }
 
     @Test
-    @TestSecurity(user = "testUser", roles = {"blog-admin"})
+    @TestSecurity(user = "testUser", roles = {"admin"})
     public void When_ProcessImage_With_InvalidStage_Expect_BadRequestResponseAndMessage() {
         // arrange
         ObjectId testImageId = ObjectId.get();
@@ -207,7 +207,7 @@ public class ImageControllerTest {
     }
 
     @Test
-    @TestSecurity(user = "testUser", roles = {"blog-admin"})
+    @TestSecurity(user = "testUser", roles = {"admin"})
     public void When_GetImages_With_ResultsOnOnePage_Expect_ResultsAndCorrectHeaders() {
         when(imageMetaDataService.findProcessedImagesPageInfo(eq(0), eq(5)))
             .thenReturn(PageInfo.builder()
@@ -250,7 +250,7 @@ public class ImageControllerTest {
     }
 
     @Test
-    @TestSecurity(user = "testUser", roles = {"blog-admin"})
+    @TestSecurity(user = "testUser", roles = {"admin"})
     public void When_GetImages_With_MultiplePages_Expect_ResultsAndCorrectHeaders() {
         when(imageMetaDataService.findProcessedImagesPageInfo(eq(0), eq(3)))
             .thenReturn(PageInfo.builder()
@@ -296,7 +296,7 @@ public class ImageControllerTest {
     }
 
     @Test
-    @TestSecurity(user = "testUser", roles = {"blog-admin"})
+    @TestSecurity(user = "testUser", roles = {"admin"})
     public void When_GetImages_With_PageIsLastPage_Expect_ResultsAndCorrectHeaders() {
         when(imageMetaDataService.findProcessedImagesPageInfo(eq(1), eq(3)))
             .thenReturn(PageInfo.builder()
@@ -354,7 +354,7 @@ public class ImageControllerTest {
     }
 
     @Test
-    @TestSecurity(user = "testUser", roles = {"blog-admin", "Everyone"})
+    @TestSecurity(user = "testUser", roles = {"admin", "Everyone"})
     public void When_GetImage_With_ProcessingComplete_Expect_OkAndImageUrls() {
         // arrange
         var testId = ObjectId.get();
@@ -401,7 +401,7 @@ public class ImageControllerTest {
     }
 
     @Test
-    @TestSecurity(user = "testUser", roles = {"blog-admin", "Everyone"})
+    @TestSecurity(user = "testUser", roles = {"admin", "Everyone"})
     public void When_GetImage_With_ProcessingFailed_Expect_BadGateway() {
         // arrange
         var testId = ObjectId.get();
@@ -429,7 +429,7 @@ public class ImageControllerTest {
     }
 
     @Test
-    @TestSecurity(user = "testUser", roles = {"blog-admin", "Everyone"})
+    @TestSecurity(user = "testUser", roles = {"admin", "Everyone"})
     public void When_GetImage_With_ProcessingTimeout_Expect_GatewayTimeout() {
         // arrange
         var testId = ObjectId.get();
@@ -457,19 +457,19 @@ public class ImageControllerTest {
     }
 
     @Test
-    @TestSecurity(user = "testUser", roles = {"blog-admin", "Everyone"})
+    @TestSecurity(user = "testUser", roles = {"admin", "Everyone"})
     public void When_GetImage_With_OriginalUploaded_Expect_MetaDataWithoutImageUrls() {
         checkForNoImagesResponse(ORIGINAL_UPLOADED);
     }
 
     @Test
-    @TestSecurity(user = "testUser", roles = {"blog-admin", "Everyone"})
+    @TestSecurity(user = "testUser", roles = {"admin", "Everyone"})
     public void When_GetImage_With_Processing_Expect_MetaDataWithoutImageUrls() {
         checkForNoImagesResponse(PROCESSING);
     }
 
     @Test
-    @TestSecurity(user = "testuser", roles = {"blog-admin", "Everyone"})
+    @TestSecurity(user = "testuser", roles = {"admin", "Everyone"})
     public void When_GetUploadUrl_With_ValidRequest_Expect_MetadataAndCorrectResponse() {
         var stubMetadata = ImageMetadata.builder()
             .id(ObjectId.get())
@@ -532,7 +532,7 @@ public class ImageControllerTest {
     }
 
     @Test
-    @TestSecurity(user = "testUser", roles = {"blog-admin"})
+    @TestSecurity(user = "testUser", roles = {"admin"})
     public void When_GetUploadUrl_With_InvalidMimeType_Expect_BadRequestException() {
         // arrange
         String invalidMimeType = "application/json";
@@ -562,7 +562,7 @@ public class ImageControllerTest {
     }
 
     @Test
-    @TestSecurity(user = "testuser", roles = {"blog-admin", "Everyone"})
+    @TestSecurity(user = "testuser", roles = {"admin", "Everyone"})
     public void When_GetUploadUrl_With_MissingFilename_Expect_BadRequest() {
         given()
             .contentType(JSON)

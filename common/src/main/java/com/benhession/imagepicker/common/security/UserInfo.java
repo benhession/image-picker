@@ -6,7 +6,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor(staticName = "of")
 public class UserInfo {
 
-    public static final String EDITOR_ROLE = "blog-admin";
+    public static final String EDITOR_ROLE = "admin";
 
     private final SecurityIdentity securityIdentity;
 
