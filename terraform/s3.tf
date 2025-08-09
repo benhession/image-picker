@@ -61,3 +61,12 @@ resource "aws_s3_bucket_lifecycle_configuration" "image-picker-images" {
   }
   depends_on = [aws_s3_bucket.image-picker-images]
 }
+
+resource "aws_s3_bucket_cors_configuration" "image-picker-images" {
+  bucket = aws_s3_bucket.image-picker-images.id
+
+  cors_rule {
+    allowed_methods = ["GET"]
+    allowed_origins = ["*"]
+  }
+}
