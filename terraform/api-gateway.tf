@@ -6,6 +6,7 @@ resource "aws_api_gateway_rest_api" "image_picker_api" {
 resource "aws_api_gateway_deployment" "image_picker" {
   rest_api_id = aws_api_gateway_rest_api.image_picker_api.id
   depends_on = [
+    aws_api_gateway_resource.api_resource,
     module.process_image,
     module.get_upload_url,
     module.get_all_images,
@@ -123,9 +124,15 @@ resource "aws_cloudwatch_log_group" "canopy_rest_api" {
   retention_in_days = 30
 }
 
+resource "aws_api_gateway_resource" "api_resource" {
+  path_part   = "api"
+  parent_id   = aws_api_gateway_rest_api.image_picker_api.root_resource_id
+  rest_api_id = aws_api_gateway_rest_api.image_picker_api.id
+}
+
 resource "aws_api_gateway_resource" "image_resource" {
   path_part   = "image"
-  parent_id   = aws_api_gateway_rest_api.image_picker_api.root_resource_id
+  parent_id   = aws_api_gateway_resource.api_resource.id
   rest_api_id = aws_api_gateway_rest_api.image_picker_api.id
 }
 
