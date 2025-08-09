@@ -33,6 +33,7 @@ quarkus:
     proxy:
       proxy-address-forwarding: true
       enable-forwarded-host: true
+    root-path: "/api"
 
 validation-messages:
   system:
