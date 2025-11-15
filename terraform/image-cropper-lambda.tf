@@ -11,8 +11,8 @@ resource "aws_lambda_function" "image_cropper" {
     size = 512
   }
 
-  s3_bucket = aws_s3_bucket.lambda_source_bucket.id
-  s3_key    = var.image_cropper_lambda_name
+  s3_bucket        = aws_s3_bucket.lambda_source_bucket.id
+  s3_key           = var.image_cropper_lambda_name
   source_code_hash = filebase64sha256("${path.module}/../image-cropper/build/function.zip")
 
   depends_on = [aws_s3_object.image_cropper_file_upload]
@@ -22,7 +22,7 @@ resource "aws_lambda_function" "image_cropper" {
       AUTH_SERVER_URL           = var.auth_server_url
       OIDC_CLIENT_ID            = var.oidc_client_id
       OIDC_CLIENT_SECRET        = var.oidc_client_secret
-      BUCKET_NAME               = var.image_picker_bucket_name
+      BUCKET_NAME               = local.image_picker_bucket_name
       MONGODB_CONNECTION_STRING = var.mongodb_connection_string
       MONGODB_DATABASE_NAME     = var.mongodb_database_name
       DISABLE_SIGNAL_HANDLERS   = "true"
@@ -43,7 +43,7 @@ data "aws_iam_policy_document" "image_cropper_assume_lambda_role" {
 
     principals {
       identifiers = ["lambda.amazonaws.com"]
-      type = "Service"
+      type        = "Service"
     }
 
     actions = ["sts:AssumeRole"]
@@ -55,7 +55,7 @@ resource "aws_s3_object" "image_cropper_file_upload" {
   key           = var.image_cropper_lambda_name
   force_destroy = true
   source        = "${path.module}/../image-cropper/build/function.zip"
-  etag = filebase64sha256("${path.module}/../image-cropper/build/function.zip")
+  etag          = filebase64sha256("${path.module}/../image-cropper/build/function.zip")
 
   depends_on = [aws_s3_bucket.lambda_source_bucket]
 }
@@ -106,9 +106,9 @@ resource "aws_iam_policy" "image_cropper_sqs_policy" {
 
 data "aws_iam_policy_document" "image_cropper_sqs_policy_document" {
   statement {
-    actions = ["sqs:ReceiveMessage", "sqs:DeleteMessage", "sqs:GetQueueAttributes"]
+    actions   = ["sqs:ReceiveMessage", "sqs:DeleteMessage", "sqs:GetQueueAttributes"]
     resources = [aws_sqs_queue.image_cropping_queue.arn]
-    effect = "Allow"
+    effect    = "Allow"
   }
 }
 
@@ -125,7 +125,7 @@ resource "aws_lambda_event_source_mapping" "image_cropper_trigger" {
     maximum_concurrency = var.image_cropper_max_concurrency
   }
   function_response_types = ["ReportBatchItemFailures"]
-  depends_on = [aws_lambda_function.image_cropper, aws_sqs_queue.image_cropping_queue]
+  depends_on              = [aws_lambda_function.image_cropper, aws_sqs_queue.image_cropping_queue]
 
 }
 

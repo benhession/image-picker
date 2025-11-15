@@ -1,6 +1,9 @@
 resource "aws_api_gateway_rest_api" "image_picker_api" {
-  name = "image_picker_api"
+  name               = "image_picker_api"
   binary_media_types = ["multipart/form-data"]
+  endpoint_configuration {
+    types = ["REGIONAL"]
+  }
 }
 
 resource "aws_api_gateway_deployment" "image_picker" {
@@ -40,26 +43,11 @@ resource "aws_api_gateway_stage" "image_picker_api" {
   }
 }
 
-resource "aws_api_gateway_domain_name" "image_picker_api_domain" {
-  domain_name              = var.api_gateway_domain_name
-  regional_certificate_arn = data.aws_acm_certificate.api_domain_cert.arn
-
-  endpoint_configuration {
-    types = ["REGIONAL"]
-  }
-}
-
-resource "aws_api_gateway_base_path_mapping" "image_picker_api" {
-  api_id      = aws_api_gateway_rest_api.image_picker_api.id
-  domain_name = aws_api_gateway_domain_name.image_picker_api_domain.domain_name
-  stage_name  = aws_api_gateway_stage.image_picker_api.stage_name
-}
-
 resource "aws_api_gateway_method_settings" "canopy_rest_api" {
   method_path = "*/*"
   rest_api_id = aws_api_gateway_rest_api.image_picker_api.id
   stage_name  = aws_api_gateway_stage.image_picker_api.stage_name
-  depends_on = [aws_api_gateway_account.gateway_account]
+  depends_on  = [aws_api_gateway_account.gateway_account]
 
   settings {
     metrics_enabled = true
@@ -69,7 +57,7 @@ resource "aws_api_gateway_method_settings" "canopy_rest_api" {
 
 resource "aws_api_gateway_account" "gateway_account" {
   cloudwatch_role_arn = aws_iam_role.gateway_role.arn
-  depends_on = [aws_iam_role.gateway_role, aws_iam_role_policy.gateway_policy]
+  depends_on          = [aws_iam_role.gateway_role, aws_iam_role_policy.gateway_policy]
 }
 
 resource "aws_iam_role" "gateway_role" {
@@ -95,8 +83,8 @@ resource "aws_iam_role" "gateway_role" {
 }
 
 resource "aws_iam_role_policy" "gateway_policy" {
-  name = "cloudwatch_logs_allow_policy"
-  role = aws_iam_role.gateway_role.id
+  name       = "cloudwatch_logs_allow_policy"
+  role       = aws_iam_role.gateway_role.id
   depends_on = [aws_iam_role.gateway_role]
 
   policy = jsonencode({

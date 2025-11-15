@@ -13,7 +13,7 @@ resource "aws_lambda_function" "image_classifier" {
 
   environment {
     variables = tomap({
-      S3_BUCKET_NAME = var.image_picker_bucket_name
+      S3_BUCKET_NAME = local.image_picker_bucket_name
     })
   }
 }
@@ -33,7 +33,7 @@ data "aws_iam_policy_document" "image_classifier_assume_lambda_policy" {
     effect = "Allow"
 
     principals {
-      type = "Service"
+      type        = "Service"
       identifiers = ["lambda.amazonaws.com"]
     }
 

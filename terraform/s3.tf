@@ -1,5 +1,5 @@
 resource "aws_s3_bucket" "lambda_source_bucket" {
-  bucket = var.lambda_source_bucket_name
+  bucket = local.lambda_source_bucket_name
 }
 
 resource "aws_s3_bucket_ownership_controls" "lambda-deployment" {
@@ -10,7 +10,7 @@ resource "aws_s3_bucket_ownership_controls" "lambda-deployment" {
 }
 
 resource "aws_s3_bucket" "image-picker-images" {
-  bucket = var.image_picker_bucket_name
+  bucket = local.image_picker_bucket_name
 }
 
 resource "aws_s3_bucket_public_access_block" "image-picker-images" {
