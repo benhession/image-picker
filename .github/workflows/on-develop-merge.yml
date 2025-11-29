@@ -7,7 +7,7 @@ on:
 
 env:
   TF_WORKSPACE: ${{vars.DEV_TF_WORKSPACE}}
-  TERRAFORM_VERSION: '1.12.2'
+  TERRAFORM_VERSION: '1.13.5'
 
 jobs:
   call-build-push-image-classifier:

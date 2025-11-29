@@ -1,7 +1,3 @@
-variable "lambda_source_bucket_name" {
-  type = string
-}
-
 variable "image_picker_api_lambda_name" {
   type    = string
   default = "image-picker-api"
@@ -44,10 +40,6 @@ variable "oidc_client_secret" {
 }
 
 variable "aws_region" {
-  type = string
-}
-
-variable "image_picker_bucket_name" {
   type = string
 }
 
@@ -96,6 +88,6 @@ variable "logging_level" {
   default = "INFO"
 }
 
-variable "api_gateway_domain_name" {
+variable "bucket_prefix" {
   type = string
 }
