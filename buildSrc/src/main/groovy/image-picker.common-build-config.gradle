@@ -10,17 +10,16 @@ repositories {
     mavenLocal()
 }
 
-test {
+tasks.named('test', Test).configure {
     systemProperty "java.util.logging.manager", "org.jboss.logmanager.LogManager"
 }
 
-compileJava {
+tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8'
-    options.compilerArgs << '-parameters'
 }
 
-compileTestJava {
-    options.encoding = 'UTF-8'
+tasks.named('compileJava', JavaCompile).configure {
+    options.compilerArgs << '-parameters'
 }
 
 dependencies {

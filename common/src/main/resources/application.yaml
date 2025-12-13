@@ -1,58 +1,57 @@
-"%test":
-  image-processing-properties:
-    timeout: PT10M
+image-processing-properties:
+  timeout: ${IMAGE_PROCESSING_TIMEOUT:PT10M}
 
-  image:
-    accepted-mime-types:
-      - "image/jpeg"
-      - "image/png"
-      - "image/gif"
+image:
+  accepted-mime-types:
+    - "image/jpeg"
+    - "image/png"
+    - "image/gif"
 
-    size:
-      square:
-        aspect-ratio: "1:1"
-        min-width: "400"
-        thumbnail:
-          scaling-factor: "0.1"
-        small:
-          scaling-factor: "0.4"
-        medium:
-          scaling-factor: "0.7"
-        large:
-          scaling-factor: "1"
+  size:
+    square:
+      aspect-ratio: "1:1"
+      min-width: "1200"
+      thumbnail:
+        scaling-factor: "0.1"
+      small:
+        scaling-factor: "0.3"
+      medium:
+        scaling-factor: "0.7"
+      large:
+        scaling-factor: "1"
 
-      panoramic:
-        aspect-ratio: "2:1"
-        min-width: "400"
-        thumbnail:
-          scaling-factor: "0.1"
-        small:
-          scaling-factor: "0.4"
-        medium:
-          scaling-factor: "0.7"
-        large:
-          scaling-factor: "1"
+    panoramic:
+      aspect-ratio: "2:1"
+      min-width: "2000"
+      thumbnail:
+        scaling-factor: "0.1"
+      small:
+        scaling-factor: "0.3"
+      medium:
+        scaling-factor: "0.7"
+      large:
+        scaling-factor: "1"
 
-      rectangular:
-        aspect-ratio: "4:3"
-        min-width: "800"
-        thumbnail:
-          scaling-factor: "0.1"
-        small:
-          scaling-factor: "0.4"
-        medium:
-          scaling-factor: "0.7"
-        large:
-          scaling-factor: "1"
+    rectangular:
+      aspect-ratio: "3:4"
+      min-width: "1200"
+      thumbnail:
+        scaling-factor: "0.1"
+      small:
+        scaling-factor: "0.3"
+      medium:
+        scaling-factor: "0.7"
+      large:
+        scaling-factor: "1"
 
-      landscape:
-        aspect-ratio: "16:9"
-        min-width: "400"
-        thumbnail:
-          scaling-factor: "0.1"
-        small:
-          scaling-factor: "0.4"
-        medium:
-          scaling-factor: "0.7"
-        large:
-          scaling-factor: "1"
+    landscape:
+      aspect-ratio: "16:9"
+      min-width: "1600"
+      thumbnail:
+        scaling-factor: "0.1"
+      small:
+        scaling-factor: "0.3"
+      medium:
+        scaling-factor: "0.7"
+      large:
+        scaling-factor: "1"
