@@ -16,11 +16,11 @@ jobs:
       - name: Setup Gradle
         uses: gradle/gradle-build-action@v2
       - name: Build native API function
-        run: ./gradlew image-picker-api:clean :image-picker-api:build -Dquarkus.package.type=native -x test -Dquarkus.native.resources.includes=application.properties -Dquarkus.native.container-build=true --info
+        run: ./gradlew image-picker-api:clean :image-picker-api:build -Dquarkus.package.type=native -x test -Dquarkus.native.resources.includes=application.properties -Dquarkus.native.container-build=true -Dquarkus.native.builder-image=quay.io/quarkus/ubi9-quarkus-mandrel-builder-image:jdk-21 --info
       - name: Build native Image Processor
-        run: ./gradlew :image-processor:clean :image-processor:build -Dquarkus.package.type=native -x test -Dquarkus.native.resources.includes=application.properties -Dquarkus.native.container-build=true --info
+        run: ./gradlew :image-processor:clean :image-processor:build -Dquarkus.package.type=native -x test -Dquarkus.native.resources.includes=application.properties -Dquarkus.native.container-build=true -Dquarkus.native.builder-image=quay.io/quarkus/ubi9-quarkus-mandrel-builder-image:jdk-21 --info
       - name: Build native Image Cropper
-        run: ./gradlew image-cropper:clean :image-cropper:build -Dquarkus.package.type=native -x test -Dquarkus.native.resources.includes=application.properties -Dquarkus.native.container-build=true --info
+        run: ./gradlew image-cropper:clean :image-cropper:build -Dquarkus.package.type=native -x test -Dquarkus.native.resources.includes=application.properties -Dquarkus.native.container-build=true -Dquarkus.native.builder-image=quay.io/quarkus/ubi9-quarkus-mandrel-builder-image:jdk-21 --info
       - name: Upload API function zip
         uses: actions/upload-artifact@v4
         with:
