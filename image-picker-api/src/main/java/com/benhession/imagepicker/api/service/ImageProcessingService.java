@@ -9,6 +9,7 @@ import com.benhession.imagepicker.api.sqs.ImageCroppingQueueService;
 import com.benhession.imagepicker.api.sqs.ImageProcessingQueueService;
 import com.benhession.imagepicker.common.exception.ImageProcessingException;
 import com.benhession.imagepicker.common.model.ImageCropProperties;
+import com.benhession.imagepicker.common.model.ImageOrientation;
 import com.benhession.imagepicker.common.model.ImageType;
 import com.benhession.imagepicker.common.sqs.ImageCreationMessage;
 import com.benhession.imagepicker.common.sqs.ImageCropMessage;
@@ -38,7 +39,8 @@ public class ImageProcessingService {
     private final ImageCroppingQueueService imageCroppingQueueService;
     private final Logger logger;
 
-    public ImageMetadata validateAndProcessUploadedImage(ImageType imageType, ImageMetadata imageMetadata) {
+    public ImageMetadata validateAndProcessUploadedImage(ImageType imageType, ImageOrientation orientation,
+        ImageMetadata imageMetadata) {
         try {
             String fileDataKey = imageMetadata.getParentKey();
             if (imageMetadata.getStatus().stage().equals(CROPPED)) {
@@ -46,9 +48,10 @@ public class ImageProcessingService {
             }
 
             var fileData = objectStorageService.getOriginalFileData(fileDataKey);
-            imageValidationService.validateInputImage(fileData.getData(), imageType);
+            imageValidationService.validateInputImage(fileData.getData(), imageType, orientation);
 
             imageMetadata.setType(imageType);
+            imageMetadata.setOrientation(orientation);
             imageMetadata.setStatus(ImageProcessingStatus.of(ORIGINAL_UPLOADED));
             imageMetadata = persistAndFindMetadata(imageMetadata);
 

@@ -6,6 +6,7 @@ import lombok.Builder;
 
 @RegisterForReflection
 @Builder
-public record ImageCropProperties(ImageType imageType, Coordinate baseCoordinate, int width) {
+public record ImageCropProperties(ImageType imageType, Coordinate baseCoordinate, int width,
+                                  ImageOrientation orientation) {
 
 }

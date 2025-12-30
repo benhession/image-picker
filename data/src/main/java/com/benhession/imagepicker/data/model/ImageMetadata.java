@@ -1,5 +1,6 @@
 package com.benhession.imagepicker.data.model;
 
+import com.benhession.imagepicker.common.model.ImageOrientation;
 import com.benhession.imagepicker.common.model.ImageType;
 import io.quarkus.mongodb.panache.common.MongoEntity;
 import java.util.ArrayList;
@@ -30,6 +31,7 @@ public class ImageMetadata {
     private String parentKey;
     private String filename;
     private ImageType type;
+    private ImageOrientation orientation;
     @EqualsAndHashCode.Exclude
     @Builder.Default
     private List<String> tags = new ArrayList<>();

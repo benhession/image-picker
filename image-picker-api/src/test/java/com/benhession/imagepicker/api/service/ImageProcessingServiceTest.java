@@ -1,5 +1,6 @@
 package com.benhession.imagepicker.api.service;
 
+import static com.benhession.imagepicker.common.model.ImageOrientation.LANDSCAPE;
 import static com.benhession.imagepicker.common.model.ImageType.RECTANGULAR;
 import static com.benhession.imagepicker.data.model.ImageProcessingStage.INITIALISED;
 import static com.benhession.imagepicker.data.model.ImageProcessingStage.ORIGINAL_UPLOADED;
@@ -96,7 +97,8 @@ public class ImageProcessingServiceTest {
             .thenReturn(Optional.of(expectedMetadata));
 
         // act
-        var outputMetadata = imageProcessingService.validateAndProcessUploadedImage(RECTANGULAR, inputImageMetadata);
+        var outputMetadata =
+            imageProcessingService.validateAndProcessUploadedImage(RECTANGULAR, LANDSCAPE, inputImageMetadata);
 
         // assert
         assertThat(outputMetadata).isNotNull();
@@ -136,7 +138,8 @@ public class ImageProcessingServiceTest {
             .thenReturn(Optional.of(mockMetaData));
 
         // act
-        var returnedMetaData = imageProcessingService.validateAndProcessUploadedImage(RECTANGULAR, inputImageMetadata);
+        var returnedMetaData =
+            imageProcessingService.validateAndProcessUploadedImage(RECTANGULAR, LANDSCAPE, inputImageMetadata);
         assertThat(returnedMetaData).isEqualTo(mockMetaData);
 
         // assert
@@ -166,7 +169,8 @@ public class ImageProcessingServiceTest {
         when(objectStorageService.getOriginalFileData(testParentKey)).thenReturn(testFileData);
 
         // act
-        var returnedMetaData = imageProcessingService.validateAndProcessUploadedImage(RECTANGULAR, inputImageMetadata);
+        var returnedMetaData =
+            imageProcessingService.validateAndProcessUploadedImage(RECTANGULAR, LANDSCAPE, inputImageMetadata);
 
         // assert
         assertThat(returnedMetaData).isEqualTo(mockMetaData);
@@ -193,7 +197,7 @@ public class ImageProcessingServiceTest {
 
         // act + assert
         assertThatThrownBy(
-            () -> imageProcessingService.validateAndProcessUploadedImage(RECTANGULAR, inputImageMetadata))
+            () -> imageProcessingService.validateAndProcessUploadedImage(RECTANGULAR, LANDSCAPE, inputImageMetadata))
             .isInstanceOf(PanacheQueryException.class);
 
     }
@@ -206,7 +210,7 @@ public class ImageProcessingServiceTest {
 
         // act + assert
         assertThatThrownBy(
-            () -> imageProcessingService.validateAndProcessUploadedImage(RECTANGULAR, inputImageMetadata))
+            () -> imageProcessingService.validateAndProcessUploadedImage(RECTANGULAR, LANDSCAPE, inputImageMetadata))
             .isInstanceOf(ImageProcessingException.class)
             .hasMessageContaining("Unable to save image metadata: parentKey = " + testParentKey);
 
@@ -216,11 +220,11 @@ public class ImageProcessingServiceTest {
     public void When_ValidateAndProcessUploadedImage_With_ValidationError_Expect_BadRequestException() {
         // arrange
         when(objectStorageService.getOriginalFileData(testParentKey)).thenReturn(testFileData);
-        doThrow(BadRequestException.class).when(imageValidationService).validateInputImage(any(), any());
+        doThrow(BadRequestException.class).when(imageValidationService).validateInputImage(any(), any(), any());
 
         // act
         assertThatThrownBy(() ->
-            imageProcessingService.validateAndProcessUploadedImage(RECTANGULAR, inputImageMetadata))
+            imageProcessingService.validateAndProcessUploadedImage(RECTANGULAR, LANDSCAPE, inputImageMetadata))
             .isInstanceOf(BadRequestException.class);
 
     }

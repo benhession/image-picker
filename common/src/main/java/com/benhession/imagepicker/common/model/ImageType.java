@@ -4,5 +4,5 @@ public enum ImageType {
     SQUARE,
     PANORAMIC,
     RECTANGULAR,
-    LANDSCAPE
+    WIDE
 }

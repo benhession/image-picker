@@ -1,13 +1,19 @@
 package com.benhession.imagepicker.imageprocessor.service;
 
+import static com.benhession.imagepicker.common.model.ImageType.WIDE;
+import static com.benhession.imagepicker.data.model.ImageProcessingStage.ORIGINAL_UPLOADED;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import com.benhession.imagepicker.common.model.FileData;
 import com.benhession.imagepicker.common.model.ImageSize;
 import com.benhession.imagepicker.common.model.ImageType;
-import static com.benhession.imagepicker.common.model.ImageType.LANDSCAPE;
 import com.benhession.imagepicker.common.util.FilenameUtil;
 import com.benhession.imagepicker.data.dto.ImageUploadDto;
 import com.benhession.imagepicker.data.model.ImageMetadata;
-import static com.benhession.imagepicker.data.model.ImageProcessingStage.ORIGINAL_UPLOADED;
 import com.benhession.imagepicker.data.model.ImageProcessingStatus;
 import com.benhession.imagepicker.data.service.ObjectStorageService;
 import com.benhession.imagepicker.testutil.TestFileLoader;
@@ -17,14 +23,9 @@ import jakarta.inject.Inject;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
-import static org.assertj.core.api.Assertions.assertThat;
 import org.bson.types.ObjectId;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 @QuarkusTest
 public class ImageCreationServiceTest {
@@ -32,7 +33,7 @@ public class ImageCreationServiceTest {
     private static final String PARENT_TEST_KEY = "parent-test-key";
     private static final String TEST_FILENAME = "test-filename.jpg";
     private static final String TEST_MIME_TYPE = "image/jpeg";
-    private static final ImageType TEST_IMAGE_TYPE = LANDSCAPE;
+    private static final ImageType TEST_IMAGE_TYPE = WIDE;
 
     @Inject
     TestFileLoader testFileLoader;

@@ -1,6 +1,7 @@
 package com.benhession.imagepicker.api.dto;
 
 import com.benhession.imagepicker.api.validation.EnumValidator;
+import com.benhession.imagepicker.common.model.ImageOrientation;
 import com.benhession.imagepicker.common.model.ImageType;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import jakarta.validation.Valid;
@@ -21,6 +22,8 @@ public class CropPropertiesDto {
 
     @EnumValidator(enumClass = ImageType.class)
     private String imageType;
+    @EnumValidator(enumClass = ImageOrientation.class)
+    private String orientation;
     @Valid
     private CoordinateDto baseCoordinate;
     @NotNull

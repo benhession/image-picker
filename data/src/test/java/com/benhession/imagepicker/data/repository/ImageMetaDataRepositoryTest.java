@@ -1,5 +1,6 @@
 package com.benhession.imagepicker.data.repository;
 
+import static com.benhession.imagepicker.common.model.ImageOrientation.LANDSCAPE;
 import static com.benhession.imagepicker.data.model.ImageProcessingStage.PROCESSING_COMPLETE;
 import static com.benhession.imagepicker.data.model.ImageProcessingStage.PROCESSING_TIMEOUT;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -66,6 +67,7 @@ public class ImageMetaDataRepositoryTest {
                 .tags(List.of("adventure")).aiTags(List.of("turnip"))
                 .status(ImageProcessingStatus.of(PROCESSING_COMPLETE))
                 .type(ImageType.RECTANGULAR)
+                .orientation(LANDSCAPE)
                 .build(),
             ImageMetadata.builder()
                 .parentKey(UUID.randomUUID().toString())

@@ -22,6 +22,7 @@ import com.benhession.imagepicker.common.exception.DownStreamServerException;
 import com.benhession.imagepicker.common.exception.DownStreamServerTimeoutException;
 import com.benhession.imagepicker.common.exception.NotFoundException;
 import com.benhession.imagepicker.common.model.ImageCropProperties;
+import com.benhession.imagepicker.common.model.ImageOrientation;
 import com.benhession.imagepicker.common.model.ImageType;
 import com.benhession.imagepicker.common.model.PageInfo;
 import com.benhession.imagepicker.data.dto.ImageUploadDto;
@@ -117,7 +118,8 @@ public class ImageController {
         }
 
         imageMetadata = imageProcessingService
-            .validateAndProcessUploadedImage(ImageType.valueOf(processImageDto.getImageType()), imageMetadata);
+            .validateAndProcessUploadedImage(ImageType.valueOf(processImageDto.getImageType()),
+                ImageOrientation.valueOf(processImageDto.getOrientation()), imageMetadata);
 
         return RestResponse.accepted(imageResponseMapper.toDtoWithoutImages(imageMetadata));
     }
