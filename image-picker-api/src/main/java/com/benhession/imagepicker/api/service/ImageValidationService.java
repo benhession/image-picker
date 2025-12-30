@@ -3,6 +3,7 @@ package com.benhession.imagepicker.api.service;
 import com.benhession.imagepicker.common.config.ImageConfigProperties;
 import com.benhession.imagepicker.common.exception.BadRequestException;
 import com.benhession.imagepicker.common.exception.ImageProcessingException;
+import com.benhession.imagepicker.common.model.ImageOrientation;
 import com.benhession.imagepicker.common.model.ImageType;
 import com.benhession.imagepicker.common.service.ImageSizeService;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -23,14 +24,15 @@ public class ImageValidationService {
     private final ImageSizeService imageSizeService;
     private final ImageConfigProperties imageConfigProperties;
 
-    public void validateInputImage(byte[] imageBytes, ImageType imageType) throws ImageProcessingException {
+    public void validateInputImage(byte[] imageBytes, ImageType imageType, ImageOrientation imageOrientation)
+        throws ImageProcessingException {
 
         try (var byteArrayInputStream = new ByteArrayInputStream(imageBytes)) {
             BufferedImage bufferedImage = ImageIO.read(byteArrayInputStream);
             List<BadRequestException.ErrorMessage> errorMessages = new ArrayList<>();
-            BigDecimal expectedAspectRatio = imageSizeService.findAspectRatio(imageType);
+            BigDecimal expectedAspectRatio = imageSizeService.findAspectRatio(imageType, imageOrientation);
             BigDecimal actualAspectRatio = calculateAspectRatio(bufferedImage.getWidth(), bufferedImage.getHeight());
-            int minWidth = imageSizeService.findMinWidth(imageType);
+            int minWidth = imageSizeService.findMinWidth(imageType, imageOrientation);
 
             if (!actualAspectRatio.equals(expectedAspectRatio)) {
                 errorMessages.add(BadRequestException.ErrorMessage.builder()

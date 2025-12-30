@@ -1,10 +1,12 @@
 package com.benhession.imagepicker.imageprocessor.service;
 
+import static com.benhession.imagepicker.common.model.ImageSize.values;
+
 import com.benhession.imagepicker.common.exception.ImageProcessingException;
 import com.benhession.imagepicker.common.model.FileData;
 import com.benhession.imagepicker.common.model.ImageHeightWidth;
+import com.benhession.imagepicker.common.model.ImageOrientation;
 import com.benhession.imagepicker.common.model.ImageSize;
-import static com.benhession.imagepicker.common.model.ImageSize.values;
 import com.benhession.imagepicker.common.model.ImageType;
 import com.benhession.imagepicker.common.service.ImageSizeService;
 import com.benhession.imagepicker.common.util.FilenameUtil;
@@ -42,7 +44,7 @@ public class ImageCreationService {
             .map(imageSize -> ImageUploadDto.builder()
                 .filename(filenameUtil.getFilename(fileData.getFilename(), imageType, imageSize))
                 .mimetype(fileData.getMimeType())
-                .image(resizeAsNewImage(fileData, imageSize, fileData.getMimeType()))
+                .image(resizeAsNewImage(fileData, imageSize, fileData.getMimeType(), imageMetadata.getOrientation()))
                 .build())
             .toList();
 
@@ -51,9 +53,9 @@ public class ImageCreationService {
     }
 
     private byte[] resizeAsNewImage(FileData fileData, ImageSize imageSize,
-        String mimeType) {
+        String mimeType, ImageOrientation orientation) {
         ImageType imageType = ImageType.valueOf(fileData.getImageType());
-        var heightWidth = imageSizeService.findImageHeightWidth(imageType, imageSize);
+        var heightWidth = imageSizeService.findImageHeightWidth(imageType, imageSize, orientation);
 
         try {
             if (mimeType.equals("image/gif")) {

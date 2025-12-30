@@ -1,7 +1,8 @@
 package com.benhession.imagepicker.api.service;
 
-import static com.benhession.imagepicker.common.model.ImageType.LANDSCAPE;
+import static com.benhession.imagepicker.common.model.ImageOrientation.LANDSCAPE;
 import static com.benhession.imagepicker.common.model.ImageType.SQUARE;
+import static com.benhession.imagepicker.common.model.ImageType.WIDE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
@@ -23,7 +24,8 @@ import org.mockito.Mockito;
 @QuarkusTest
 @RequiredArgsConstructor
 public class ImageValidationServiceTest {
-    private static final ImageType TEST_IMAGE_TYPE = LANDSCAPE;
+
+    private static final ImageType TEST_IMAGE_TYPE = WIDE;
 
     private final TestFileLoader testFileLoader;
     private final ImageValidationService imageValidationService;
@@ -32,7 +34,8 @@ public class ImageValidationServiceTest {
     public void When_CreateNewImages_With_InvalidAspectRatio_Expect_BadRequestException() {
 
         assertThatThrownBy(
-            () -> imageValidationService.validateInputImage(testFileLoader.loadTestFileBytes("test.jpeg"), SQUARE))
+            () -> imageValidationService.validateInputImage(testFileLoader.loadTestFileBytes("test.jpeg"), SQUARE,
+                LANDSCAPE))
             .isInstanceOf(BadRequestException.class)
             .matches(e -> ((BadRequestException) e).getErrorMessages().stream()
                     .map(AbstractMultipleErrorApplicationException.ErrorMessage::message)
@@ -46,17 +49,17 @@ public class ImageValidationServiceTest {
         var imageService = Mockito.mock(ImageSizeService.class);
         QuarkusMock.installMockForType(imageService, ImageSizeService.class);
 
-        when(imageService.findAspectRatio(any())).thenReturn(new BigDecimal("1.78"));
-        when(imageService.findMinWidth(any())).thenReturn(2000);
+        when(imageService.findAspectRatio(any(), any())).thenReturn(new BigDecimal("1.78"));
+        when(imageService.findMinWidth(any(), any())).thenReturn(2000);
 
         assertThatThrownBy(
             () -> imageValidationService.validateInputImage(testFileLoader.loadTestFileBytes("test.jpeg"),
-                TEST_IMAGE_TYPE))
+                TEST_IMAGE_TYPE, LANDSCAPE))
             .isInstanceOf(BadRequestException.class)
             .matches(e -> ((BadRequestException) e).getErrorMessages().stream()
                     .map(AbstractMultipleErrorApplicationException.ErrorMessage::message)
                     .anyMatch(message ->
-                        message.equals("Expected width of LANDSCAPE image to be more that 2000, but was 800")),
+                        message.equals("Expected width of WIDE image to be more that 2000, but was 800")),
                 "has expected message");
     }
 

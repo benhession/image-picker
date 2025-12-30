@@ -1,5 +1,6 @@
 package com.benhession.imagepicker.api.controller;
 
+import static com.benhession.imagepicker.common.model.ImageOrientation.LANDSCAPE;
 import static com.benhession.imagepicker.common.model.ImageSize.LARGE;
 import static com.benhession.imagepicker.common.model.ImageSize.MEDIUM;
 import static com.benhession.imagepicker.common.model.ImageSize.SMALL;
@@ -46,8 +47,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Stream;
 import org.bson.types.ObjectId;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mockito;
 
 @QuarkusTest
@@ -97,6 +102,7 @@ public class ImageControllerTest {
             .contentType(JSON)
             .body(ProcessImageDto.builder()
                 .imageType(RECTANGULAR.toString())
+                .orientation(LANDSCAPE.toString())
                 .build())
             .when()
             .post(String.format("/%s/process", testImageId))
@@ -132,7 +138,7 @@ public class ImageControllerTest {
             .build();
 
         when(imageMetaDataService.getImageMetaData(testImageId)).thenReturn(Optional.of(inputMetadata));
-        when(imageProcessingService.validateAndProcessUploadedImage(any(), any()))
+        when(imageProcessingService.validateAndProcessUploadedImage(any(), any(), any()))
             .thenReturn(outputMetadata);
 
         // act
@@ -140,6 +146,7 @@ public class ImageControllerTest {
             .contentType(JSON)
             .body(ProcessImageDto.builder()
                 .imageType(RECTANGULAR.toString())
+                .orientation(LANDSCAPE.toString())
                 .build())
             .when()
             .post(String.format("/%s/process", testImageId))
@@ -151,7 +158,7 @@ public class ImageControllerTest {
 
         // assert
         verify(imageProcessingService, times(1))
-            .validateAndProcessUploadedImage(eq(RECTANGULAR), eq(inputMetadata));
+            .validateAndProcessUploadedImage(eq(RECTANGULAR), eq(LANDSCAPE), eq(inputMetadata));
 
         assertThat(responseDto.getId()).isEqualTo(testImageId.toString());
         assertThat(responseDto.getStatus().stage()).isEqualTo(PROCESSING);
@@ -176,6 +183,7 @@ public class ImageControllerTest {
             .contentType(JSON)
             .body(ProcessImageDto.builder()
                 .imageType(RECTANGULAR.toString())
+                .orientation(LANDSCAPE.toString())
                 .build())
             .when()
             .post(String.format("/%s/process", testImageId))
@@ -191,6 +199,27 @@ public class ImageControllerTest {
             .isEqualTo("Expected image processing stage to be one of [INITIALISED, CROPPED] but was PROCESSING");
     }
 
+    public static Stream<Arguments> missingDtoFieldProvider() {
+        return Stream.of(
+            Arguments.of(ProcessImageDto.builder().orientation(LANDSCAPE.toString()).build()),
+            Arguments.of(ProcessImageDto.builder().imageType(RECTANGULAR.toString()).build())
+        );
+    }
+
+    @ParameterizedTest
+    @MethodSource("missingDtoFieldProvider")
+    @TestSecurity(user = "testUser", roles = {"admin"})
+    public void When_ProcessImage_With_MissingDtoField_Expect_BadRequestException(ProcessImageDto dto) {
+        // act + assert
+        given()
+            .contentType(JSON)
+            .body(dto)
+            .when()
+            .post(String.format("/%s/process", ObjectId.get()))
+            .then()
+            .statusCode(400);
+    }
+
     @Test
     @TestSecurity(user = "testUser", roles = {"Everyone"})
     public void When_ProcessImage_With_UnauthorisedUser_Expect_ForbiddenResponse() {
@@ -199,6 +228,7 @@ public class ImageControllerTest {
             .contentType(JSON)
             .body(ProcessImageDto.builder()
                 .imageType(RECTANGULAR.toString())
+                .orientation(LANDSCAPE.toString())
                 .build())
             .when()
             .post(String.format("/%s/process", ObjectId.get()))
@@ -365,6 +395,7 @@ public class ImageControllerTest {
             .thenReturn(Optional.of(ImageMetadata.builder()
                 .id(testId)
                 .type(RECTANGULAR)
+                .orientation(LANDSCAPE)
                 .filename(RECTANGULAR_TEST_IMAGE_NAME)
                 .parentKey(testParentKey)
                 .status(testStatus)
@@ -385,6 +416,7 @@ public class ImageControllerTest {
         assertThat(response).isNotNull();
         assertThat(response.getId()).isEqualTo(testId.toString());
         assertThat(response.getType()).isEqualTo(RECTANGULAR);
+        assertThat(response.getOrientation()).isEqualTo(LANDSCAPE);
         assertThat(response.getFilename()).isEqualTo(RECTANGULAR_TEST_IMAGE_NAME);
         assertThat(response.getStatus()).isEqualTo(testStatus);
         assertThat(response.getImages()).hasSize(4);

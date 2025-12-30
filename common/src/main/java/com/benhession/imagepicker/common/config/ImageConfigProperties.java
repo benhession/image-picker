@@ -5,20 +5,23 @@ import java.util.List;
 
 @ConfigMapping(prefix = "image")
 public interface ImageConfigProperties {
+
     List<String> acceptedMimeTypes();
 
     ImageType size();
 
     interface ImageType {
+
         ImageSize square();
 
         ImageSize panoramic();
 
         ImageSize rectangular();
 
-        ImageSize landscape();
+        ImageSize wide();
 
         interface ImageSize {
+
             Scale thumbnail();
 
             Scale small();
@@ -32,6 +35,7 @@ public interface ImageConfigProperties {
             String minWidth();
 
             interface Scale {
+
                 String scalingFactor();
             }
         }

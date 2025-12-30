@@ -1,5 +1,6 @@
 package com.benhession.imagepicker.api.dto;
 
+import com.benhession.imagepicker.common.model.ImageOrientation;
 import com.benhession.imagepicker.common.model.ImageSize;
 import com.benhession.imagepicker.common.model.ImageType;
 import com.benhession.imagepicker.data.model.ImageProcessingStatus;
@@ -16,6 +17,7 @@ public class ImageResponseDto {
     private String id;
     private String filename;
     private ImageType type;
+    private ImageOrientation orientation;
     private List<String> tags;
     private List<String> aiTags;
     private Map<ImageSize, String> images = new HashMap<>();

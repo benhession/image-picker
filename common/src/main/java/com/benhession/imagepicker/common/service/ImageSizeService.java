@@ -1,10 +1,12 @@
 package com.benhession.imagepicker.common.service;
 
+import static com.benhession.imagepicker.common.model.ImageOrientation.PORTRAIT;
 import static java.math.RoundingMode.HALF_UP;
 
 import com.benhession.imagepicker.common.config.ImageConfigProperties;
 import com.benhession.imagepicker.common.exception.InvalidConfigurationException;
 import com.benhession.imagepicker.common.model.ImageHeightWidth;
+import com.benhession.imagepicker.common.model.ImageOrientation;
 import com.benhession.imagepicker.common.model.ImageSize;
 import com.benhession.imagepicker.common.model.ImageType;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -20,65 +22,97 @@ public class ImageSizeService {
 
     private final ImageConfigProperties imageConfigProperties;
 
-    public BigDecimal findAspectRatio(ImageType imageType) {
+    public BigDecimal findAspectRatio(ImageType imageType, ImageOrientation orientation) {
+        boolean reverse = orientation == PORTRAIT;
+
         return switch (imageType) {
-            case SQUARE -> aspectRatioFromString(imageConfigProperties.size().square().aspectRatio());
-            case PANORAMIC -> aspectRatioFromString(imageConfigProperties.size().panoramic().aspectRatio());
-            case RECTANGULAR -> aspectRatioFromString(imageConfigProperties.size().rectangular().aspectRatio());
-            case LANDSCAPE -> aspectRatioFromString(imageConfigProperties.size().landscape().aspectRatio());
+            case SQUARE -> aspectRatioFromString(imageConfigProperties.size().square().aspectRatio(), reverse);
+            case PANORAMIC -> aspectRatioFromString(imageConfigProperties.size().panoramic().aspectRatio(), reverse);
+            case RECTANGULAR ->
+                aspectRatioFromString(imageConfigProperties.size().rectangular().aspectRatio(), reverse);
+            case WIDE -> aspectRatioFromString(imageConfigProperties.size().wide().aspectRatio(), reverse);
         };
     }
 
-    public int findMinWidth(ImageType imageType) {
+    public int findMinWidth(ImageType imageType, ImageOrientation orientation) {
         return switch (imageType) {
-            case SQUARE -> Integer.parseInt(imageConfigProperties.size().square().minWidth());
-            case PANORAMIC -> Integer.parseInt(imageConfigProperties.size().panoramic().minWidth());
-            case RECTANGULAR -> Integer.parseInt(imageConfigProperties.size().rectangular().minWidth());
-            case LANDSCAPE -> Integer.parseInt(imageConfigProperties.size().landscape().minWidth());
+            case SQUARE -> calculateMinWidthForOrientation(
+                Integer.parseInt(imageConfigProperties.size().square().minWidth()),
+                imageType, orientation);
+            case PANORAMIC -> calculateMinWidthForOrientation(
+                Integer.parseInt(imageConfigProperties.size().panoramic().minWidth()),
+                imageType, orientation);
+            case RECTANGULAR -> calculateMinWidthForOrientation(
+                Integer.parseInt(imageConfigProperties.size().rectangular().minWidth()),
+                imageType, orientation);
+            case WIDE -> calculateMinWidthForOrientation(
+                Integer.parseInt(imageConfigProperties.size().wide().minWidth()),
+                imageType, orientation);
         };
     }
 
-    public ImageHeightWidth findImageHeightWidth(ImageType imageType, ImageSize imageSize) {
+    public ImageHeightWidth findImageHeightWidth(ImageType imageType, ImageSize imageSize,
+        ImageOrientation orientation) {
         var squareConfig = imageConfigProperties.size().square();
         var panoConfig = imageConfigProperties.size().panoramic();
         var rectangularConfig = imageConfigProperties.size().rectangular();
-        var landscapeConfig = imageConfigProperties.size().landscape();
+        var landscapeConfig = imageConfigProperties.size().wide();
 
         return switch (imageType) {
-            case SQUARE -> heightWidthFromImageSize(imageSize, squareConfig);
-            case PANORAMIC -> heightWidthFromImageSize(imageSize, panoConfig);
-            case RECTANGULAR -> heightWidthFromImageSize(imageSize, rectangularConfig);
-            case LANDSCAPE -> heightWidthFromImageSize(imageSize, landscapeConfig);
+            case SQUARE -> heightWidthFromImageSize(imageSize, squareConfig, orientation);
+            case PANORAMIC -> heightWidthFromImageSize(imageSize, panoConfig, orientation);
+            case RECTANGULAR -> heightWidthFromImageSize(imageSize, rectangularConfig, orientation);
+            case WIDE -> heightWidthFromImageSize(imageSize, landscapeConfig, orientation);
         };
     }
 
-    public int calculateImageHeight(int width, ImageType imageType) {
-        BigDecimal height = new BigDecimal(width).divide(findAspectRatio(imageType), 2, HALF_UP);
+    public int calculateImageHeight(int width, ImageType imageType, ImageOrientation orientation) {
+        BigDecimal height = new BigDecimal(width).divide(findAspectRatio(imageType, orientation), 2, HALF_UP);
         return height.intValue();
     }
 
+    private int calculateMinWidthForOrientation(int minWidth, ImageType imageType, ImageOrientation orientation) {
+        if (orientation == PORTRAIT) {
+            BigDecimal aspectRatio = findAspectRatio(imageType, orientation);
+            return new BigDecimal(minWidth).multiply(aspectRatio).intValue();
+        }
+
+        return minWidth;
+    }
+
+    private BigDecimal calculateMinWidthForOrientation(ImageConfigProperties.ImageType.ImageSize imageSizeConfig,
+        ImageOrientation orientation) {
+        if (orientation == PORTRAIT) {
+            BigDecimal aspectRatio = aspectRatioFromString(imageSizeConfig.aspectRatio(), true);
+            return new BigDecimal(imageSizeConfig.minWidth()).multiply(aspectRatio);
+        }
+
+        return new BigDecimal(imageSizeConfig.minWidth());
+    }
+
     private ImageHeightWidth heightWidthFromImageSize(ImageSize imageSize,
-        ImageConfigProperties.ImageType.ImageSize imageSizeConfig) {
+        ImageConfigProperties.ImageType.ImageSize imageSizeConfig, ImageOrientation orientation) {
+        var reverse = orientation == PORTRAIT;
         return switch (imageSize) {
             case THUMBNAIL -> calculateHeightWidth(
-                new BigDecimal(imageSizeConfig.minWidth()),
+                calculateMinWidthForOrientation(imageSizeConfig, orientation),
                 new BigDecimal(imageSizeConfig.thumbnail().scalingFactor()),
-                aspectRatioFromString(imageSizeConfig.aspectRatio())
+                aspectRatioFromString(imageSizeConfig.aspectRatio(), reverse)
             );
             case SMALL -> calculateHeightWidth(
-                new BigDecimal(imageSizeConfig.minWidth()),
+                calculateMinWidthForOrientation(imageSizeConfig, orientation),
                 new BigDecimal(imageSizeConfig.small().scalingFactor()),
-                aspectRatioFromString(imageSizeConfig.aspectRatio())
+                aspectRatioFromString(imageSizeConfig.aspectRatio(), reverse)
             );
             case MEDIUM -> calculateHeightWidth(
-                new BigDecimal(imageSizeConfig.minWidth()),
+                calculateMinWidthForOrientation(imageSizeConfig, orientation),
                 new BigDecimal(imageSizeConfig.medium().scalingFactor()),
-                aspectRatioFromString(imageSizeConfig.aspectRatio())
+                aspectRatioFromString(imageSizeConfig.aspectRatio(), reverse)
             );
             case LARGE -> calculateHeightWidth(
-                new BigDecimal(imageSizeConfig.minWidth()),
+                calculateMinWidthForOrientation(imageSizeConfig, orientation),
                 new BigDecimal(imageSizeConfig.large().scalingFactor()),
-                aspectRatioFromString(imageSizeConfig.aspectRatio())
+                aspectRatioFromString(imageSizeConfig.aspectRatio(), reverse)
             );
         };
     }
@@ -98,7 +132,7 @@ public class ImageSizeService {
             .build();
     }
 
-    private BigDecimal aspectRatioFromString(String ratio) {
+    private BigDecimal aspectRatioFromString(String ratio, boolean reverse) {
         Pattern pattern = Pattern.compile("^(\\d+):(\\d+)$");
         Matcher matcher = pattern.matcher(ratio);
 
@@ -108,6 +142,10 @@ public class ImageSizeService {
 
         var widthPart = new BigDecimal(matcher.group(1));
         var heightPart = new BigDecimal(matcher.group(2));
+
+        if (reverse) {
+            return heightPart.divide(widthPart, 2, RoundingMode.HALF_UP);
+        }
 
         return widthPart.divide(heightPart, 2, RoundingMode.HALF_UP);
     }

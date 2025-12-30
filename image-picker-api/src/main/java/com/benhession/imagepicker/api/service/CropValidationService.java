@@ -20,7 +20,8 @@ public class CropValidationService {
         List<ErrorMessage> errorMessages = new ArrayList<>();
 
         // check the cropped image meets the minimum size for the image type
-        var minWidth = imageSizeService.findMinWidth(imageCropProperties.imageType());
+        var minWidth =
+            imageSizeService.findMinWidth(imageCropProperties.imageType(), imageCropProperties.orientation());
         if (imageCropProperties.width() < minWidth) {
             errorMessages.add(ErrorMessage.builder()
                 .message(String.format(
@@ -42,7 +43,8 @@ public class CropValidationService {
         // check the crop dimensions are within the original image dimensions
         int originalHeight = originalImage.getHeight();
         int croppedHeight = imageSizeService
-            .calculateImageHeight(imageCropProperties.width(), imageCropProperties.imageType());
+            .calculateImageHeight(imageCropProperties.width(), imageCropProperties.imageType(),
+                imageCropProperties.orientation());
         int bottomExtremity = imageCropProperties.baseCoordinate().y() + croppedHeight;
         if (bottomExtremity > originalHeight) {
             errorMessages.add(ErrorMessage.builder()

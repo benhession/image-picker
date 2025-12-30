@@ -71,7 +71,8 @@ public class ImageCropService {
                 imageCropProperties.baseCoordinate().x(),
                 imageCropProperties.baseCoordinate().y(),
                 imageCropProperties.width(),
-                imageSizeService.calculateImageHeight(imageCropProperties.width(), imageCropProperties.imageType())
+                imageSizeService.calculateImageHeight(imageCropProperties.width(), imageCropProperties.imageType(),
+                    imageCropProperties.orientation())
             );
 
             ImageIO.write(croppedImage, mimeTypeUtil.mimeTypeToFileFormat(mimeType), byteArrayOutputStream);
@@ -89,7 +90,8 @@ public class ImageCropService {
             imageCropProperties.baseCoordinate().x(),
             imageCropProperties.baseCoordinate().y(),
             imageCropProperties.width(),
-            imageSizeService.calculateImageHeight(imageCropProperties.width(), imageCropProperties.imageType())
+            imageSizeService.calculateImageHeight(imageCropProperties.width(), imageCropProperties.imageType(),
+                imageCropProperties.orientation())
         ));
     }
 }
