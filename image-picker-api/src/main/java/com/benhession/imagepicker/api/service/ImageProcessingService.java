@@ -81,6 +81,7 @@ public class ImageProcessingService {
                 cropValidationService.validateCrop(imageCropProperties, originalImage);
 
                 imageMetadata.setType(imageCropProperties.imageType());
+                imageMetadata.setOrientation(imageCropProperties.orientation());
                 imageMetadata.setStatus(ImageProcessingStatus.of(SENT_TO_CROP));
                 imageMetadata = persistAndFindMetadata(imageMetadata);
 
