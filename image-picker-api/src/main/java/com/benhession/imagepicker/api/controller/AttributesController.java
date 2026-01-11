@@ -14,7 +14,7 @@ import lombok.RequiredArgsConstructor;
 import org.jboss.resteasy.reactive.RestResponse;
 
 @ApplicationScoped
-@Path("/attibutes")
+@Path("/attributes")
 @RequiredArgsConstructor
 public class AttributesController {
 
