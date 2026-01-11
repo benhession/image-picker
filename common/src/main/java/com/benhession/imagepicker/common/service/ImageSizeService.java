@@ -71,6 +71,24 @@ public class ImageSizeService {
         return height.intValue();
     }
 
+    public BigDecimal aspectRatioFromString(String ratio, boolean reverse) {
+        Pattern pattern = Pattern.compile("^(\\d+):(\\d+)$");
+        Matcher matcher = pattern.matcher(ratio);
+
+        if (!matcher.matches()) {
+            throw new InvalidConfigurationException("Unable to match ratio when parsing: " + ratio);
+        }
+
+        var widthPart = new BigDecimal(matcher.group(1));
+        var heightPart = new BigDecimal(matcher.group(2));
+
+        if (reverse) {
+            return heightPart.divide(widthPart, 2, RoundingMode.HALF_UP);
+        }
+
+        return widthPart.divide(heightPart, 2, RoundingMode.HALF_UP);
+    }
+
     private int calculateMinWidthForOrientation(int minWidth, ImageType imageType, ImageOrientation orientation) {
         if (orientation == PORTRAIT) {
             BigDecimal aspectRatio = findAspectRatio(imageType, orientation);
@@ -130,23 +148,5 @@ public class ImageSizeService {
             .height(calculateHeight(minWidth, scaleFactor, aspectRatio))
             .width(calculateWidth(minWidth, scaleFactor))
             .build();
-    }
-
-    private BigDecimal aspectRatioFromString(String ratio, boolean reverse) {
-        Pattern pattern = Pattern.compile("^(\\d+):(\\d+)$");
-        Matcher matcher = pattern.matcher(ratio);
-
-        if (!matcher.matches()) {
-            throw new InvalidConfigurationException("Unable to match ratio when parsing: " + ratio);
-        }
-
-        var widthPart = new BigDecimal(matcher.group(1));
-        var heightPart = new BigDecimal(matcher.group(2));
-
-        if (reverse) {
-            return heightPart.divide(widthPart, 2, RoundingMode.HALF_UP);
-        }
-
-        return widthPart.divide(heightPart, 2, RoundingMode.HALF_UP);
     }
 }

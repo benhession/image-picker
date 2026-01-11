@@ -154,6 +154,12 @@ resource "aws_api_gateway_resource" "search_images_resource" {
   rest_api_id = aws_api_gateway_rest_api.image_picker_api.id
 }
 
+resource "aws_api_gateway_resource" "get_attributes" {
+  parent_id   = aws_api_gateway_resource.api_resource.id
+  path_part   = "attibutes"
+  rest_api_id = aws_api_gateway_rest_api.image_picker_api.id
+}
+
 module "process_image" {
   source      = "./api-gateway-lambda-method"
   http_method = "POST"
@@ -198,6 +204,14 @@ module "search_images" {
   source      = "./api-gateway-lambda-method"
   http_method = "GET"
   resource_id = aws_api_gateway_resource.search_images_resource.id
+  rest_api_id = aws_api_gateway_rest_api.image_picker_api.id
+  uri         = aws_lambda_function.image_picker_api.invoke_arn
+}
+
+module "get_attributes" {
+  source      = "./api-gateway-lambda-method"
+  http_method = "GET"
+  resource_id = aws_api_gateway_resource.get_attributes.id
   rest_api_id = aws_api_gateway_rest_api.image_picker_api.id
   uri         = aws_lambda_function.image_picker_api.invoke_arn
 }
