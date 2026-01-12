@@ -156,7 +156,7 @@ resource "aws_api_gateway_resource" "search_images_resource" {
 
 resource "aws_api_gateway_resource" "get_attributes" {
   parent_id   = aws_api_gateway_resource.api_resource.id
-  path_part   = "attibutes"
+  path_part   = "attributes"
   rest_api_id = aws_api_gateway_rest_api.image_picker_api.id
 }
 
